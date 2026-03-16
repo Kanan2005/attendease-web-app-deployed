@@ -1,0 +1,6 @@
+export { StudentDashboardScreen } from "./student-dashboard-screen"
+export { StudentJoinClassroomScreen } from "./student-join-classroom-screen"
+export { StudentClassroomsScreen } from "./student-classrooms-screen"
+export { StudentClassroomDetailScreen } from "./student-classroom-detail-screen"
+export { StudentClassroomStreamScreen } from "./student-classroom-stream-screen"
+export { StudentClassroomScheduleScreen } from "./student-classroom-schedule-screen"

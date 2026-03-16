@@ -1,0 +1,1298 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  BLOCKED
+  ARCHIVED
+}
+
+enum AppRole {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum OAuthProvider {
+  GOOGLE
+}
+
+enum SessionPlatform {
+  WEB
+  MOBILE
+}
+
+enum SessionStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+enum LoginEventStatus {
+  SUCCESS
+  FAILURE
+}
+
+enum AcademicTermStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+  ARCHIVED
+}
+
+enum SemesterStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+  ARCHIVED
+}
+
+enum AcademicClassStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum SectionStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum SubjectStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum TeacherAssignmentStatus {
+  ACTIVE
+  REVOKED
+  ARCHIVED
+}
+
+enum CourseOfferingStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum JoinCodeStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  PENDING
+  DROPPED
+  BLOCKED
+}
+
+enum EnrollmentSource {
+  JOIN_CODE
+  IMPORT
+  MANUAL
+  ADMIN
+}
+
+enum ScheduleSlotStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ScheduleExceptionType {
+  CANCELLED
+  RESCHEDULED
+  ONE_OFF
+}
+
+enum LectureStatus {
+  PLANNED
+  OPEN_FOR_ATTENDANCE
+  COMPLETED
+  CANCELLED
+}
+
+enum AttendanceMode {
+  QR_GPS
+  BLUETOOTH
+  MANUAL
+}
+
+enum AttendanceLocationAnchorType {
+  CLASSROOM_FIXED
+  CAMPUS_ZONE
+  TEACHER_SELECTED
+}
+
+enum AttendanceSessionStatus {
+  DRAFT
+  ACTIVE
+  ENDED
+  CANCELLED
+  EXPIRED
+}
+
+enum AttendanceRecordStatus {
+  PRESENT
+  ABSENT
+}
+
+enum AttendanceMarkSource {
+  QR_GPS
+  BLUETOOTH
+  MANUAL
+}
+
+enum AttendanceEventType {
+  SESSION_CREATED
+  SESSION_STARTED
+  SESSION_ENDED
+  SESSION_EXPIRED
+  AUTO_MARK_QR
+  AUTO_MARK_BLUETOOTH
+  MANUAL_MARK_PRESENT
+  MANUAL_MARK_ABSENT
+}
+
+enum AnnouncementPostType {
+  ANNOUNCEMENT
+  SCHEDULE_UPDATE
+  ATTENDANCE_REMINDER
+  IMPORT_RESULT
+}
+
+enum AnnouncementVisibility {
+  TEACHER_ONLY
+  STUDENT_AND_TEACHER
+}
+
+enum NotificationChannel {
+  IN_APP
+  PUSH
+  EMAIL
+}
+
+enum RosterImportStatus {
+  UPLOADED
+  PROCESSING
+  REVIEW_REQUIRED
+  APPLIED
+  FAILED
+}
+
+enum RosterImportRowStatus {
+  PENDING
+  VALID
+  INVALID
+  APPLIED
+  SKIPPED
+  FAILED
+}
+
+enum DevicePlatform {
+  ANDROID
+  IOS
+  WEB
+}
+
+enum DeviceAttestationStatus {
+  UNKNOWN
+  PASSED
+  FAILED
+  NOT_SUPPORTED
+}
+
+enum DeviceBindingType {
+  STUDENT_ATTENDANCE
+  TEACHER_ACCESS
+  ADMIN_ACCESS
+}
+
+enum DeviceBindingStatus {
+  PENDING
+  ACTIVE
+  REVOKED
+  BLOCKED
+}
+
+enum SecurityEventType {
+  DEVICE_BOUND
+  DEVICE_REVOKED
+  ATTENDANCE_BLOCKED_UNTRUSTED_DEVICE
+  ATTENDANCE_LOCATION_VALIDATION_FAILED
+  ATTENDANCE_BLUETOOTH_VALIDATION_FAILED
+  MULTI_ACCOUNT_SAME_DEVICE_ATTEMPT
+  SECOND_DEVICE_FOR_STUDENT_ATTEMPT
+  REVOKED_DEVICE_USED
+  LOGIN_RISK_DETECTED
+}
+
+enum SecurityEventSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AdminActionType {
+  DEVICE_REVOKE
+  DEVICE_APPROVE_REPLACEMENT
+  USER_STATUS_CHANGE
+  ENROLLMENT_OVERRIDE
+  JOIN_CODE_RESET
+  ROSTER_IMPORT_APPLY
+  SESSION_OVERRIDE
+  SEMESTER_ARCHIVE
+  CLASSROOM_ARCHIVE
+  CLASSROOM_STUDENT_REMOVE
+}
+
+enum ExportJobType {
+  SESSION_PDF
+  SESSION_CSV
+  STUDENT_PERCENT_CSV
+  COMPREHENSIVE_CSV
+}
+
+enum ExportJobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ExportFileStatus {
+  GENERATING
+  READY
+  EXPIRED
+  FAILED
+}
+
+enum AutomationRuleStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum EmailDispatchTriggerType {
+  MANUAL
+  AUTOMATED
+}
+
+enum EmailDispatchRunStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum EmailLogStatus {
+  PENDING
+  SENT
+  FAILED
+  BOUNCED
+  DROPPED
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  FAILED
+  DEAD_LETTER
+}
+
+model User {
+  id                              String                          @id @default(cuid())
+  email                           String                          @unique
+  displayName                     String
+  status                          UserStatus                      @default(PENDING)
+  avatarUrl                       String?
+  createdAt                       DateTime                        @default(now())
+  updatedAt                       DateTime                        @updatedAt
+  lastLoginAt                     DateTime?
+  credentials                     UserCredential?
+  roles                           UserRole[]
+  oauthAccounts                   OAuthAccount[]
+  studentProfile                  StudentProfile?
+  teacherProfile                  TeacherProfile?
+  authSessions                    AuthSession[]                   @relation("AuthSessionUser")
+  refreshTokens                   RefreshToken[]                  @relation("RefreshTokenUser")
+  loginEvents                     LoginEvent[]                    @relation("LoginEventUser")
+  primaryCourseOfferings          CourseOffering[]                @relation("CourseOfferingPrimaryTeacher")
+  createdCourseOfferings          CourseOffering[]                @relation("CourseOfferingCreatedBy")
+  teacherAssignments              TeacherAssignment[]             @relation("TeacherAssignmentTeacher")
+  grantedTeacherAssignments       TeacherAssignment[]             @relation("TeacherAssignmentGrantedBy")
+  createdJoinCodes                ClassroomJoinCode[]             @relation("JoinCodeCreatedBy")
+  enrollments                     Enrollment[]                    @relation("EnrollmentStudent")
+  createdEnrollments              Enrollment[]                    @relation("EnrollmentCreatedBy")
+  createdLectures                 Lecture[]                       @relation("LectureCreatedBy")
+  authoredAnnouncements           AnnouncementPost[]              @relation("AnnouncementAuthor")
+  announcementReceipts            AnnouncementReceipt[]
+  requestedRosterImportJobs       RosterImportJob[]               @relation("RosterImportRequestedBy")
+  resolvedRosterImportRows        RosterImportRow[]               @relation("RosterImportResolvedStudent")
+  attendanceSessionsTaught        AttendanceSession[]             @relation("AttendanceSessionTeacher")
+  attendanceSessionsEnded         AttendanceSession[]             @relation("AttendanceSessionEndedBy")
+  attendanceRecords               AttendanceRecord[]              @relation("AttendanceRecordStudent")
+  markedAttendanceRecords         AttendanceRecord[]              @relation("AttendanceRecordMarkedBy")
+  attendanceEventsForStudent      AttendanceEvent[]               @relation("AttendanceEventStudent")
+  attendanceEventsActed           AttendanceEvent[]               @relation("AttendanceEventActor")
+  attendanceEditLogsForStudent    AttendanceEditAuditLog[]        @relation("AttendanceEditStudent")
+  attendanceEditLogsEdited        AttendanceEditAuditLog[]        @relation("AttendanceEditEditedBy")
+  requestedExportJobs             ExportJob[]                     @relation("ExportJobRequestedBy")
+  analyticsStudentCourseSummaries AnalyticsStudentCourseSummary[] @relation("AnalyticsStudentCourseSummaryStudent")
+  createdEmailRules               EmailAutomationRule[]           @relation("EmailRuleCreatedBy")
+  requestedEmailDispatchRuns      EmailDispatchRun[]              @relation("EmailDispatchRequestedBy")
+  studentEmailLogs                EmailLog[]                      @relation("EmailLogStudent")
+  deviceBindings                  UserDeviceBinding[]             @relation("UserDeviceBindingUser")
+  revokedDeviceBindings           UserDeviceBinding[]             @relation("UserDeviceBindingRevokedBy")
+  securityEvents                  SecurityEvent[]                 @relation("SecurityEventUser")
+  actedSecurityEvents             SecurityEvent[]                 @relation("SecurityEventActor")
+  administeredActions             AdminActionLog[]                @relation("AdminActionAdminUser")
+  targetedActions                 AdminActionLog[]                @relation("AdminActionTargetUser")
+
+  @@map("users")
+}
+
+model UserCredential {
+  userId            String    @id
+  passwordHash      String
+  passwordChangedAt DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_credentials")
+}
+
+model UserRole {
+  userId    String
+  role      AppRole
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, role])
+  @@index([role])
+  @@map("user_roles")
+}
+
+model OAuthAccount {
+  id              String        @id @default(cuid())
+  userId          String
+  provider        OAuthProvider
+  providerSubject String
+  providerEmail   String
+  linkedAt        DateTime      @default(now())
+  lastUsedAt      DateTime?
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerSubject])
+  @@index([userId])
+  @@map("oauth_accounts")
+}
+
+model StudentProfile {
+  userId             String   @id
+  rollNumber         String?  @unique
+  universityId       String?  @unique
+  programName        String?
+  currentSemester    Int?
+  attendanceDisabled Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("student_profiles")
+}
+
+model TeacherProfile {
+  userId       String   @id
+  employeeCode String?  @unique
+  department   String?
+  designation  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("teacher_profiles")
+}
+
+model AuthSession {
+  id             String          @id @default(cuid())
+  userId         String
+  deviceId       String?
+  platform       SessionPlatform
+  activeRole     AppRole         @default(STUDENT)
+  status         SessionStatus   @default(ACTIVE)
+  ipAddress      String?
+  userAgent      String?
+  lastActivityAt DateTime        @default(now())
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  createdAt      DateTime        @default(now())
+  user           User            @relation("AuthSessionUser", fields: [userId], references: [id], onDelete: Cascade)
+  device         Device?         @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  refreshTokens  RefreshToken[]
+
+  @@index([userId, status])
+  @@index([deviceId, status])
+  @@index([userId, status, expiresAt])
+  @@index([activeRole, status])
+  @@map("auth_sessions")
+}
+
+model RefreshToken {
+  id            String         @id @default(cuid())
+  sessionId     String
+  userId        String
+  tokenHash     String         @unique
+  expiresAt     DateTime
+  lastUsedAt    DateTime?
+  revokedAt     DateTime?
+  rotatedFromId String?
+  createdAt     DateTime       @default(now())
+  session       AuthSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user          User           @relation("RefreshTokenUser", fields: [userId], references: [id], onDelete: Cascade)
+  rotatedFrom   RefreshToken?  @relation("RefreshTokenRotation", fields: [rotatedFromId], references: [id], onDelete: SetNull)
+  rotatedTo     RefreshToken[] @relation("RefreshTokenRotation")
+
+  @@index([userId, revokedAt])
+  @@index([sessionId, revokedAt])
+  @@map("refresh_tokens")
+}
+
+model LoginEvent {
+  id          String           @id @default(cuid())
+  userId      String?
+  deviceId    String?
+  provider    OAuthProvider?
+  email       String?
+  status      LoginEventStatus
+  failureCode String?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime         @default(now())
+  user        User?            @relation("LoginEventUser", fields: [userId], references: [id], onDelete: SetNull)
+  device      Device?          @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([deviceId, createdAt])
+  @@map("login_events")
+}
+
+model AcademicTerm {
+  id                String             @id @default(cuid())
+  code              String             @unique
+  title             String
+  academicYearLabel String
+  status            AcademicTermStatus @default(DRAFT)
+  startDate         DateTime           @db.Date
+  endDate           DateTime           @db.Date
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  semesters         Semester[]
+
+  @@index([status, startDate])
+  @@map("academic_terms")
+}
+
+model Semester {
+  id                   String                       @id @default(cuid())
+  academicTermId       String
+  code                 String                       @unique
+  title                String
+  ordinal              Int?
+  status               SemesterStatus               @default(DRAFT)
+  startDate            DateTime                     @db.Date
+  endDate              DateTime                     @db.Date
+  attendanceCutoffDate DateTime?                    @db.Date
+  createdAt            DateTime                     @default(now())
+  updatedAt            DateTime                     @updatedAt
+  academicTerm         AcademicTerm                 @relation(fields: [academicTermId], references: [id], onDelete: Restrict)
+  teacherAssignments   TeacherAssignment[]
+  courseOfferings      CourseOffering[]
+  enrollments          Enrollment[]
+  attendanceSessions   AttendanceSession[]
+  analyticsSubjectRows AnalyticsSubjectAttendance[]
+
+  @@index([academicTermId, status])
+  @@index([status, startDate, endDate])
+  @@map("semesters")
+}
+
+model AcademicClass {
+  id                   String                       @id @default(cuid())
+  code                 String                       @unique
+  title                String
+  programName          String?
+  cohortYear           Int?
+  status               AcademicClassStatus          @default(ACTIVE)
+  createdAt            DateTime                     @default(now())
+  updatedAt            DateTime                     @updatedAt
+  sections             Section[]
+  teacherAssignments   TeacherAssignment[]
+  courseOfferings      CourseOffering[]
+  enrollments          Enrollment[]
+  attendanceSessions   AttendanceSession[]
+  analyticsSubjectRows AnalyticsSubjectAttendance[]
+
+  @@index([status])
+  @@map("classes")
+}
+
+model Section {
+  id                   String                       @id @default(cuid())
+  classId              String
+  code                 String
+  title                String
+  status               SectionStatus                @default(ACTIVE)
+  createdAt            DateTime                     @default(now())
+  updatedAt            DateTime                     @updatedAt
+  academicClass        AcademicClass                @relation(fields: [classId], references: [id], onDelete: Restrict)
+  teacherAssignments   TeacherAssignment[]
+  courseOfferings      CourseOffering[]
+  enrollments          Enrollment[]
+  attendanceSessions   AttendanceSession[]
+  analyticsSubjectRows AnalyticsSubjectAttendance[]
+
+  @@unique([classId, code])
+  @@index([classId, status])
+  @@map("sections")
+}
+
+model Subject {
+  id                   String                       @id @default(cuid())
+  code                 String                       @unique
+  title                String
+  shortTitle           String?
+  status               SubjectStatus                @default(ACTIVE)
+  createdAt            DateTime                     @default(now())
+  updatedAt            DateTime                     @updatedAt
+  teacherAssignments   TeacherAssignment[]
+  courseOfferings      CourseOffering[]
+  enrollments          Enrollment[]
+  attendanceSessions   AttendanceSession[]
+  analyticsSubjectRows AnalyticsSubjectAttendance[]
+
+  @@index([status])
+  @@map("subjects")
+}
+
+model TeacherAssignment {
+  id                          String                  @id @default(cuid())
+  teacherId                   String
+  grantedByUserId             String?
+  semesterId                  String
+  classId                     String
+  sectionId                   String
+  subjectId                   String
+  canSelfCreateCourseOffering Boolean                 @default(true)
+  status                      TeacherAssignmentStatus @default(ACTIVE)
+  createdAt                   DateTime                @default(now())
+  updatedAt                   DateTime                @updatedAt
+  teacher                     User                    @relation("TeacherAssignmentTeacher", fields: [teacherId], references: [id], onDelete: Restrict)
+  grantedByUser               User?                   @relation("TeacherAssignmentGrantedBy", fields: [grantedByUserId], references: [id], onDelete: SetNull)
+  semester                    Semester                @relation(fields: [semesterId], references: [id], onDelete: Restrict)
+  academicClass               AcademicClass           @relation(fields: [classId], references: [id], onDelete: Restrict)
+  section                     Section                 @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+  subject                     Subject                 @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  attendanceSessions          AttendanceSession[]
+
+  @@unique([teacherId, semesterId, classId, sectionId, subjectId])
+  @@index([teacherId, status])
+  @@index([semesterId, classId, sectionId, subjectId])
+  @@index([classId, sectionId, subjectId, status])
+  @@map("teacher_assignments")
+}
+
+model CourseOffering {
+  id                              String                          @id @default(cuid())
+  semesterId                      String
+  classId                         String
+  sectionId                       String
+  subjectId                       String
+  primaryTeacherId                String
+  createdByUserId                 String
+  code                            String                          @unique
+  displayTitle                    String
+  status                          CourseOfferingStatus            @default(DRAFT)
+  defaultAttendanceMode           AttendanceMode                  @default(QR_GPS)
+  defaultGpsRadiusMeters          Int                             @default(100)
+  defaultSessionDurationMinutes   Int                             @default(15)
+  qrRotationWindowSeconds         Int                             @default(15)
+  bluetoothRotationWindowSeconds  Int                             @default(10)
+  timezone                        String                          @default("Asia/Kolkata")
+  requiresTrustedDevice           Boolean                         @default(true)
+  createdAt                       DateTime                        @default(now())
+  updatedAt                       DateTime                        @updatedAt
+  archivedAt                      DateTime?
+  semester                        Semester                        @relation(fields: [semesterId], references: [id], onDelete: Restrict)
+  academicClass                   AcademicClass                   @relation(fields: [classId], references: [id], onDelete: Restrict)
+  section                         Section                         @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+  subject                         Subject                         @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  primaryTeacher                  User                            @relation("CourseOfferingPrimaryTeacher", fields: [primaryTeacherId], references: [id], onDelete: Restrict)
+  createdByUser                   User                            @relation("CourseOfferingCreatedBy", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  joinCodes                       ClassroomJoinCode[]
+  enrollments                     Enrollment[]
+  scheduleSlots                   CourseScheduleSlot[]
+  scheduleExceptions              CourseScheduleException[]
+  lectures                        Lecture[]
+  announcements                   AnnouncementPost[]
+  rosterImportJobs                RosterImportJob[]
+  attendanceSessions              AttendanceSession[]
+  exportJobs                      ExportJob[]
+  analyticsDailyAttendances       AnalyticsDailyAttendance[]
+  analyticsStudentCourseSummaries AnalyticsStudentCourseSummary[]
+  analyticsModeUsageDaily         AnalyticsModeUsageDaily[]
+  emailAutomationRules            EmailAutomationRule[]
+  securityEvents                  SecurityEvent[]
+  adminActionLogs                 AdminActionLog[]
+
+  @@unique([semesterId, classId, sectionId, subjectId, primaryTeacherId])
+  @@index([semesterId, subjectId, classId, sectionId])
+  @@index([primaryTeacherId, status])
+  @@index([status, semesterId, primaryTeacherId])
+  @@map("course_offerings")
+}
+
+model ClassroomJoinCode {
+  id               String              @id @default(cuid())
+  courseOfferingId String
+  createdByUserId  String
+  code             String              @unique
+  status           JoinCodeStatus      @default(ACTIVE)
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  lastUsedAt       DateTime?
+  rotatedFromId    String?
+  createdAt        DateTime            @default(now())
+  courseOffering   CourseOffering      @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
+  createdByUser    User                @relation("JoinCodeCreatedBy", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  rotatedFrom      ClassroomJoinCode?  @relation("JoinCodeRotation", fields: [rotatedFromId], references: [id], onDelete: SetNull)
+  rotatedTo        ClassroomJoinCode[] @relation("JoinCodeRotation")
+
+  @@index([courseOfferingId, status])
+  @@map("classroom_join_codes")
+}
+
+model Enrollment {
+  id                String             @id @default(cuid())
+  courseOfferingId  String
+  studentId         String
+  semesterId        String
+  classId           String
+  sectionId         String
+  subjectId         String
+  status            EnrollmentStatus   @default(PENDING)
+  source            EnrollmentSource
+  joinedAt          DateTime           @default(now())
+  droppedAt         DateTime?
+  createdByUserId   String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  courseOffering    CourseOffering     @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
+  student           User               @relation("EnrollmentStudent", fields: [studentId], references: [id], onDelete: Restrict)
+  semester          Semester           @relation(fields: [semesterId], references: [id], onDelete: Restrict)
+  academicClass     AcademicClass      @relation(fields: [classId], references: [id], onDelete: Restrict)
+  section           Section            @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+  subject           Subject            @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  createdByUser     User?              @relation("EnrollmentCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  attendanceRecords AttendanceRecord[]
+
+  @@unique([studentId, courseOfferingId])
+  @@index([studentId, status])
+  @@index([courseOfferingId, status])
+  @@map("enrollments")
+}
+
+model CourseScheduleSlot {
+  id                 String                    @id @default(cuid())
+  courseOfferingId   String
+  weekday            Int
+  startMinutes       Int
+  endMinutes         Int
+  locationLabel      String?
+  status             ScheduleSlotStatus        @default(ACTIVE)
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+  courseOffering     CourseOffering            @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
+  scheduleExceptions CourseScheduleException[]
+  lectures           Lecture[]
+
+  @@unique([courseOfferingId, weekday, startMinutes, endMinutes])
+  @@index([courseOfferingId, weekday, status])
+  @@map("course_schedule_slots")
+}
+
+model CourseScheduleException {
+  id               String                @id @default(cuid())
+  courseOfferingId String
+  scheduleSlotId   String?
+  exceptionType    ScheduleExceptionType
+  effectiveDate    DateTime              @db.Date
+  startMinutes     Int?
+  endMinutes       Int?
+  locationLabel    String?
+  reason           String?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  courseOffering   CourseOffering        @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
+  scheduleSlot     CourseScheduleSlot?   @relation(fields: [scheduleSlotId], references: [id], onDelete: SetNull)
+  lectures         Lecture[]
+
+  @@index([courseOfferingId, effectiveDate])
+  @@index([courseOfferingId, exceptionType, effectiveDate])
+  @@map("course_schedule_exceptions")
+}
+
+model Lecture {
+  id                  String                   @id @default(cuid())
+  courseOfferingId    String
+  scheduleSlotId      String?
+  scheduleExceptionId String?
+  createdByUserId     String?
+  title               String?
+  lectureDate         DateTime                 @db.Date
+  plannedStartAt      DateTime?
+  plannedEndAt        DateTime?
+  actualStartAt       DateTime?
+  actualEndAt         DateTime?
+  status              LectureStatus            @default(PLANNED)
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  courseOffering      CourseOffering           @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
+  scheduleSlot        CourseScheduleSlot?      @relation(fields: [scheduleSlotId], references: [id], onDelete: SetNull)
+  scheduleException   CourseScheduleException? @relation(fields: [scheduleExceptionId], references: [id], onDelete: SetNull)
+  createdByUser       User?                    @relation("LectureCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  attendanceSessions  AttendanceSession[]
+
+  @@index([courseOfferingId, lectureDate, status])
+  @@map("lectures")
+}
+
+model AnnouncementPost {
+  id               String                 @id @default(cuid())
+  courseOfferingId String
+  authorUserId     String
+  postType         AnnouncementPostType   @default(ANNOUNCEMENT)
+  visibility       AnnouncementVisibility @default(STUDENT_AND_TEACHER)
+  title            String?
+  body             String
+  shouldNotify     Boolean                @default(false)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  editedAt         DateTime?
+  courseOffering   CourseOffering         @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
+  authorUser       User                   @relation("AnnouncementAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
+  receipts         AnnouncementReceipt[]
+
+  @@index([courseOfferingId, createdAt])
+  @@map("announcement_posts")
+}
+
+model AnnouncementReceipt {
+  announcementPostId String
+  userId             String
+  channel            NotificationChannel
+  deliveredAt        DateTime?
+  readAt             DateTime?
+  createdAt          DateTime            @default(now())
+  announcementPost   AnnouncementPost    @relation(fields: [announcementPostId], references: [id], onDelete: Cascade)
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([announcementPostId, userId, channel])
+  @@index([userId, readAt])
+  @@map("announcement_receipts")
+}
+
+model RosterImportJob {
+  id                String             @id @default(cuid())
+  courseOfferingId  String
+  requestedByUserId String
+  sourceFileKey     String
+  sourceFileName    String
+  status            RosterImportStatus @default(UPLOADED)
+  totalRows         Int                @default(0)
+  validRows         Int                @default(0)
+  invalidRows       Int                @default(0)
+  appliedRows       Int                @default(0)
+  startedAt         DateTime?
+  completedAt       DateTime?
+  reviewedAt        DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  courseOffering    CourseOffering     @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
+  requestedByUser   User               @relation("RosterImportRequestedBy", fields: [requestedByUserId], references: [id], onDelete: Restrict)
+  rows              RosterImportRow[]
+
+  @@index([courseOfferingId, status])
+  @@map("roster_import_jobs")
+}
+
+model RosterImportRow {
+  id                String                @id @default(cuid())
+  jobId             String
+  rowNumber         Int
+  studentEmail      String?
+  studentRollNumber String?
+  parsedName        String?
+  status            RosterImportRowStatus @default(PENDING)
+  errorMessage      String?
+  resolvedStudentId String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  job               RosterImportJob       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resolvedStudent   User?                 @relation("RosterImportResolvedStudent", fields: [resolvedStudentId], references: [id], onDelete: SetNull)
+
+  @@unique([jobId, rowNumber])
+  @@index([jobId, status])
+  @@map("roster_import_rows")
+}
+
+model AttendanceSession {
+  id                             String                        @id @default(cuid())
+  courseOfferingId               String
+  lectureId                      String?
+  teacherAssignmentId            String
+  teacherId                      String
+  endedByUserId                  String?
+  semesterId                     String
+  classId                        String
+  sectionId                      String
+  subjectId                      String
+  mode                           AttendanceMode
+  status                         AttendanceSessionStatus       @default(DRAFT)
+  startedAt                      DateTime?
+  scheduledEndAt                 DateTime?
+  endedAt                        DateTime?
+  editableUntil                  DateTime?
+  durationSeconds                Int?
+  qrSeed                         String?
+  bleSeed                        String?
+  blePublicId                    String?                        @unique
+  bleProtocolVersion             Int?
+  gpsAnchorType                  AttendanceLocationAnchorType?
+  gpsAnchorLabel                 String?
+  gpsAnchorResolvedAt            DateTime?
+  gpsCenterLatitude              Decimal?                      @db.Decimal(10, 7)
+  gpsCenterLongitude             Decimal?                      @db.Decimal(10, 7)
+  gpsRadiusMeters                Int?
+  qrRotationWindowSeconds        Int?
+  bluetoothRotationWindowSeconds Int?
+  rosterSnapshotCount            Int                           @default(0)
+  presentCount                   Int                           @default(0)
+  absentCount                    Int                           @default(0)
+  createdAt                      DateTime                      @default(now())
+  updatedAt                      DateTime                      @updatedAt
+  courseOffering                 CourseOffering                @relation(fields: [courseOfferingId], references: [id], onDelete: Restrict)
+  lecture                        Lecture?                      @relation(fields: [lectureId], references: [id], onDelete: SetNull)
+  teacherAssignment              TeacherAssignment             @relation(fields: [teacherAssignmentId], references: [id], onDelete: Restrict)
+  teacher                        User                          @relation("AttendanceSessionTeacher", fields: [teacherId], references: [id], onDelete: Restrict)
+  endedByUser                    User?                         @relation("AttendanceSessionEndedBy", fields: [endedByUserId], references: [id], onDelete: SetNull)
+  semester                       Semester                      @relation(fields: [semesterId], references: [id], onDelete: Restrict)
+  academicClass                  AcademicClass                 @relation(fields: [classId], references: [id], onDelete: Restrict)
+  section                        Section                       @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+  subject                        Subject                       @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  attendanceRecords              AttendanceRecord[]
+  attendanceEvents               AttendanceEvent[]
+  attendanceEditAuditLogs        AttendanceEditAuditLog[]
+  securityEvents                 SecurityEvent[]
+  adminActionLogs                AdminActionLog[]
+
+  @@index([teacherId, startedAt])
+  @@index([classId, sectionId, subjectId, startedAt])
+  @@index([courseOfferingId, status, startedAt])
+  @@index([teacherAssignmentId, status, startedAt])
+  @@index([status, mode, scheduledEndAt])
+  @@map("attendance_sessions")
+}
+
+model AttendanceRecord {
+  id               String                   @id @default(cuid())
+  sessionId        String
+  enrollmentId     String
+  studentId        String
+  status           AttendanceRecordStatus   @default(ABSENT)
+  markSource       AttendanceMarkSource?
+  markedAt         DateTime?
+  markedByUserId   String?
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  session          AttendanceSession        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  enrollment       Enrollment               @relation(fields: [enrollmentId], references: [id], onDelete: Restrict)
+  student          User                     @relation("AttendanceRecordStudent", fields: [studentId], references: [id], onDelete: Restrict)
+  markedByUser     User?                    @relation("AttendanceRecordMarkedBy", fields: [markedByUserId], references: [id], onDelete: SetNull)
+  attendanceEvents AttendanceEvent[]
+  editAuditLogs    AttendanceEditAuditLog[]
+
+  @@unique([sessionId, studentId])
+  @@index([sessionId, status])
+  @@index([studentId, status])
+  @@index([enrollmentId, sessionId])
+  @@map("attendance_records")
+}
+
+model AttendanceEvent {
+  id                 String                  @id @default(cuid())
+  sessionId          String
+  attendanceRecordId String?
+  studentId          String?
+  actorUserId        String?
+  deviceId           String?
+  eventType          AttendanceEventType
+  mode               AttendanceMode?
+  previousStatus     AttendanceRecordStatus?
+  newStatus          AttendanceRecordStatus?
+  metadata           Json?
+  occurredAt         DateTime                @default(now())
+  session            AttendanceSession       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  attendanceRecord   AttendanceRecord?       @relation(fields: [attendanceRecordId], references: [id], onDelete: SetNull)
+  student            User?                   @relation("AttendanceEventStudent", fields: [studentId], references: [id], onDelete: SetNull)
+  actorUser          User?                   @relation("AttendanceEventActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  device             Device?                 @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId, occurredAt])
+  @@index([studentId, occurredAt])
+  @@index([deviceId, occurredAt])
+  @@index([actorUserId, occurredAt])
+  @@map("attendance_events")
+}
+
+model AttendanceEditAuditLog {
+  id                 String                 @id @default(cuid())
+  sessionId          String
+  attendanceRecordId String
+  studentId          String
+  editedByUserId     String
+  previousStatus     AttendanceRecordStatus
+  newStatus          AttendanceRecordStatus
+  editedAt           DateTime               @default(now())
+  session            AttendanceSession      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  attendanceRecord   AttendanceRecord       @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  student            User                   @relation("AttendanceEditStudent", fields: [studentId], references: [id], onDelete: Restrict)
+  editedByUser       User                   @relation("AttendanceEditEditedBy", fields: [editedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([sessionId, editedAt])
+  @@index([studentId, editedAt])
+  @@map("attendance_edit_audit_logs")
+}
+
+model ExportJob {
+  id                String          @id @default(cuid())
+  requestedByUserId String
+  courseOfferingId  String?
+  jobType           ExportJobType
+  status            ExportJobStatus @default(QUEUED)
+  filterSnapshot    Json?
+  requestedAt       DateTime        @default(now())
+  startedAt         DateTime?
+  completedAt       DateTime?
+  failedAt          DateTime?
+  errorMessage      String?
+  requestedByUser   User            @relation("ExportJobRequestedBy", fields: [requestedByUserId], references: [id], onDelete: Restrict)
+  courseOffering    CourseOffering? @relation(fields: [courseOfferingId], references: [id], onDelete: SetNull)
+  files             ExportJobFile[]
+
+  @@index([requestedByUserId, requestedAt])
+  @@index([courseOfferingId, status])
+  @@map("export_jobs")
+}
+
+model ExportJobFile {
+  id             String           @id @default(cuid())
+  exportJobId    String
+  objectKey      String
+  fileName       String
+  mimeType       String
+  status         ExportFileStatus @default(GENERATING)
+  sizeBytes      Int?
+  checksumSha256 String?
+  createdAt      DateTime         @default(now())
+  readyAt        DateTime?
+  expiresAt      DateTime?
+  exportJob      ExportJob        @relation(fields: [exportJobId], references: [id], onDelete: Cascade)
+
+  @@unique([exportJobId, objectKey])
+  @@index([status, expiresAt])
+  @@map("export_job_files")
+}
+
+model AnalyticsDailyAttendance {
+  courseOfferingId String
+  attendanceDate   DateTime       @db.Date
+  totalStudents    Int
+  presentCount     Int
+  absentCount      Int
+  attendanceRate   Decimal        @db.Decimal(5, 2)
+  updatedAt        DateTime       @updatedAt
+  courseOffering   CourseOffering @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
+
+  @@id([courseOfferingId, attendanceDate])
+  @@index([attendanceDate])
+  @@map("analytics_daily_attendance")
+}
+
+model AnalyticsSubjectAttendance {
+  semesterId            String
+  classId               String
+  sectionId             String
+  subjectId             String
+  snapshotDate          DateTime      @db.Date
+  totalStudents         Int
+  totalSessions         Int
+  presentCount          Int
+  absentCount           Int
+  averageAttendanceRate Decimal       @db.Decimal(5, 2)
+  updatedAt             DateTime      @updatedAt
+  semester              Semester      @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  academicClass         AcademicClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  section               Section       @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subject               Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@id([semesterId, classId, sectionId, subjectId, snapshotDate])
+  @@index([subjectId, snapshotDate])
+  @@map("analytics_subject_attendance")
+}
+
+model AnalyticsStudentCourseSummary {
+  courseOfferingId     String
+  studentId            String
+  totalSessions        Int            @default(0)
+  presentSessions      Int            @default(0)
+  absentSessions       Int            @default(0)
+  attendancePercentage Decimal        @db.Decimal(5, 2)
+  lastSessionAt        DateTime?
+  updatedAt            DateTime       @updatedAt
+  courseOffering       CourseOffering @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
+  student              User           @relation("AnalyticsStudentCourseSummaryStudent", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@id([courseOfferingId, studentId])
+  @@index([studentId, updatedAt])
+  @@map("analytics_student_course_summary")
+}
+
+model AnalyticsModeUsageDaily {
+  courseOfferingId String
+  usageDate        DateTime       @db.Date
+  mode             AttendanceMode
+  sessionCount     Int            @default(0)
+  markedCount      Int            @default(0)
+  updatedAt        DateTime       @updatedAt
+  courseOffering   CourseOffering @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
+
+  @@id([courseOfferingId, usageDate, mode])
+  @@index([usageDate, mode])
+  @@map("analytics_mode_usage_daily")
+}
+
+model EmailAutomationRule {
+  id                  String               @id @default(cuid())
+  courseOfferingId    String
+  createdByUserId     String
+  status              AutomationRuleStatus @default(ACTIVE)
+  thresholdPercent    Decimal              @default(75) @db.Decimal(5, 2)
+  scheduleHourLocal   Int
+  scheduleMinuteLocal Int                  @default(0)
+  timezone            String               @default("Asia/Kolkata")
+  templateSubject     String
+  templateBody        String
+  lastEvaluatedAt     DateTime?
+  lastSuccessfulRunAt DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  courseOffering      CourseOffering       @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade)
+  createdByUser       User                 @relation("EmailRuleCreatedBy", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  dispatchRuns        EmailDispatchRun[]
+  emailLogs           EmailLog[]
+
+  @@index([courseOfferingId, status, scheduleHourLocal, scheduleMinuteLocal])
+  @@map("email_automation_rules")
+}
+
+model EmailDispatchRun {
+  id                   String                   @id @default(cuid())
+  ruleId               String
+  requestedByUserId    String?
+  triggerType          EmailDispatchTriggerType
+  dispatchDate         DateTime                 @db.Date
+  filterSnapshot       Json?
+  status               EmailDispatchRunStatus   @default(QUEUED)
+  targetedStudentCount Int                      @default(0)
+  sentCount            Int                      @default(0)
+  failedCount          Int                      @default(0)
+  startedAt            DateTime?
+  completedAt          DateTime?
+  failedAt             DateTime?
+  errorMessage         String?
+  createdAt            DateTime                 @default(now())
+  rule                 EmailAutomationRule      @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  requestedByUser      User?                    @relation("EmailDispatchRequestedBy", fields: [requestedByUserId], references: [id], onDelete: SetNull)
+  emailLogs            EmailLog[]
+
+  @@index([ruleId, dispatchDate, triggerType])
+  @@index([status, dispatchDate])
+  @@map("email_dispatch_runs")
+}
+
+model EmailLog {
+  id                String               @id @default(cuid())
+  dispatchRunId     String?
+  ruleId            String?
+  studentId         String?
+  recipientEmail    String
+  status            EmailLogStatus       @default(PENDING)
+  providerMessageId String?
+  subject           String
+  body              String
+  failureReason     String?
+  createdAt         DateTime             @default(now())
+  sentAt            DateTime?
+  dispatchRun       EmailDispatchRun?    @relation(fields: [dispatchRunId], references: [id], onDelete: SetNull)
+  rule              EmailAutomationRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+  student           User?                @relation("EmailLogStudent", fields: [studentId], references: [id], onDelete: SetNull)
+
+  @@index([recipientEmail, createdAt])
+  @@index([status, createdAt])
+  @@map("email_logs")
+}
+
+model Device {
+  id                   String                  @id @default(cuid())
+  installId            String                  @unique
+  platform             DevicePlatform
+  deviceModel          String?
+  osVersion            String?
+  appVersion           String?
+  publicKey            String
+  attestationStatus    DeviceAttestationStatus @default(UNKNOWN)
+  attestationProvider  String?
+  attestedAt           DateTime?
+  firstSeenAt          DateTime                @default(now())
+  lastSeenAt           DateTime                @default(now())
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+  authSessions         AuthSession[]
+  loginEvents          LoginEvent[]
+  userBindings         UserDeviceBinding[]
+  securityEvents       SecurityEvent[]
+  attendanceEvents     AttendanceEvent[]
+  targetedAdminActions AdminActionLog[]        @relation("AdminActionTargetDevice")
+
+  @@index([platform, attestationStatus])
+  @@index([attestationProvider, attestationStatus])
+  @@index([lastSeenAt])
+  @@map("devices")
+}
+
+model UserDeviceBinding {
+  id                   String              @id @default(cuid())
+  userId               String
+  deviceId             String
+  bindingType          DeviceBindingType
+  status               DeviceBindingStatus @default(PENDING)
+  boundAt              DateTime            @default(now())
+  activatedAt          DateTime?
+  revokedAt            DateTime?
+  revokedByUserId      String?
+  revokeReason         String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  user                 User                @relation("UserDeviceBindingUser", fields: [userId], references: [id], onDelete: Cascade)
+  device               Device              @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  revokedByUser        User?               @relation("UserDeviceBindingRevokedBy", fields: [revokedByUserId], references: [id], onDelete: SetNull)
+  securityEvents       SecurityEvent[]     @relation("SecurityEventBinding")
+  targetedAdminActions AdminActionLog[]    @relation("AdminActionTargetBinding")
+
+  @@index([userId, status])
+  @@index([deviceId, status])
+  @@index([bindingType, status, userId])
+  @@index([bindingType, status, deviceId])
+  @@map("user_device_bindings")
+}
+
+model SecurityEvent {
+  id               String                @id @default(cuid())
+  userId           String?
+  actorUserId      String?
+  deviceId         String?
+  bindingId        String?
+  courseOfferingId String?
+  sessionId        String?
+  eventType        SecurityEventType
+  severity         SecurityEventSeverity @default(MEDIUM)
+  description      String?
+  metadata         Json?
+  createdAt        DateTime              @default(now())
+  user             User?                 @relation("SecurityEventUser", fields: [userId], references: [id], onDelete: SetNull)
+  actorUser        User?                 @relation("SecurityEventActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  device           Device?               @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  binding          UserDeviceBinding?    @relation("SecurityEventBinding", fields: [bindingId], references: [id], onDelete: SetNull)
+  courseOffering   CourseOffering?       @relation(fields: [courseOfferingId], references: [id], onDelete: SetNull)
+  session          AttendanceSession?    @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([deviceId, createdAt])
+  @@index([bindingId, createdAt])
+  @@index([eventType, severity, createdAt])
+  @@index([courseOfferingId, createdAt])
+  @@index([sessionId, createdAt])
+  @@map("security_events")
+}
+
+model AdminActionLog {
+  id                     String             @id @default(cuid())
+  adminUserId            String
+  targetUserId           String?
+  targetDeviceId         String?
+  targetBindingId        String?
+  targetCourseOfferingId String?
+  targetSessionId        String?
+  actionType             AdminActionType
+  metadata               Json?
+  createdAt              DateTime           @default(now())
+  adminUser              User               @relation("AdminActionAdminUser", fields: [adminUserId], references: [id], onDelete: Restrict)
+  targetUser             User?              @relation("AdminActionTargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+  targetDevice           Device?            @relation("AdminActionTargetDevice", fields: [targetDeviceId], references: [id], onDelete: SetNull)
+  targetBinding          UserDeviceBinding? @relation("AdminActionTargetBinding", fields: [targetBindingId], references: [id], onDelete: SetNull)
+  targetCourseOffering   CourseOffering?    @relation(fields: [targetCourseOfferingId], references: [id], onDelete: SetNull)
+  targetSession          AttendanceSession? @relation(fields: [targetSessionId], references: [id], onDelete: SetNull)
+
+  @@index([adminUserId, createdAt])
+  @@index([targetUserId, createdAt])
+  @@index([targetDeviceId, createdAt])
+  @@index([targetBindingId, createdAt])
+  @@index([actionType, createdAt])
+  @@map("admin_action_logs")
+}
+
+model OutboxEvent {
+  id            String       @id @default(cuid())
+  topic         String
+  aggregateType String
+  aggregateId   String
+  payload       Json
+  status        OutboxStatus @default(PENDING)
+  availableAt   DateTime     @default(now())
+  lockedAt      DateTime?
+  processedAt   DateTime?
+  attemptCount  Int          @default(0)
+  lastError     String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([status, availableAt])
+  @@index([aggregateType, aggregateId, createdAt])
+  @@index([topic, status, availableAt])
+  @@map("outbox_events")
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@attendease/auth",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./device": "./src/device.ts",
+    "./password": "./src/password.ts",
+    "./policies": "./src/policies.ts",
+    "./tokens": "./src/tokens.ts"
+  },
+  "dependencies": {
+    "@attendease/contracts": "workspace:*",
+    "jose": "^6.1.0"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "dev": "tsc --project tsconfig.json --watch",
+    "lint": "biome check src package.json tsconfig.json",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "vitest run"
+  }
+}

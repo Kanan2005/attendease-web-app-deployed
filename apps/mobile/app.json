@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "AttendEase",
+    "slug": "attendease",
+    "scheme": "attendease",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      "expo-router"
+    ],
+    "ios": {
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "AttendEase uses Bluetooth to run proximity-based attendance sessions and scan nearby teacher broadcasts.",
+        "NSBluetoothPeripheralUsageDescription": "AttendEase uses Bluetooth to run teacher attendance broadcasts during active classroom sessions."
+      }
+    },
+    "android": {
+      "permissions": [
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.BLUETOOTH_ADVERTISE",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.BLUETOOTH_ADVERTISE",
+        "android.permission.BLUETOOTH_CONNECT"
+      ],
+      "package": "com.anurag203.attendease"
+    }
+  }
+}

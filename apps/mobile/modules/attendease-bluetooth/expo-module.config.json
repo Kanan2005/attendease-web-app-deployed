@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["AttendeaseBluetoothModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.attendeasebluetooth.AttendeaseBluetoothModule"]
+  }
+}

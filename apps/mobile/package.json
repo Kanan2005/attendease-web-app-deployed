@@ -1,0 +1,37 @@
+{
+  "name": "@attendease/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start --clear",
+    "start": "expo start",
+    "build": "expo export --platform web --output-dir dist",
+    "lint": "biome check app src modules package.json tsconfig.json app.json babel.config.js metro.config.js",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@attendease/auth": "workspace:^",
+    "@attendease/config": "workspace:*",
+    "@attendease/contracts": "workspace:*",
+    "@attendease/domain": "workspace:*",
+    "@attendease/ui-mobile": "workspace:*",
+    "@expo/metro-runtime": "^55.0.6",
+    "@tanstack/react-query": "^5.90.21",
+    "expo": "^55.0.6",
+    "expo-camera": "^55.0.9",
+    "expo-location": "^55.1.2",
+    "expo-modules-core": "^55.0.15",
+    "expo-router": "^55.0.5",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-native": "^0.83.2",
+    "react-native-safe-area-context": "^5.6.2",
+    "react-native-screens": "^4.23.0",
+    "react-native-web": "^0.21.2"
+  },
+  "devDependencies": {
+    "babel-preset-expo": "^55.0.2"
+  }
+}

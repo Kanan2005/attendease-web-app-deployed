@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "baseUrl": ".",
+    "paths": {
+      "@attendease/auth": ["packages/auth/src/index.ts"],
+      "@attendease/config": ["packages/config/src/index.ts"],
+      "@attendease/contracts": ["packages/contracts/src/index.ts"],
+      "@attendease/db": ["packages/db/src/index.ts"],
+      "@attendease/domain": ["packages/domain/src/index.ts"],
+      "@attendease/email": ["packages/email/src/index.ts"],
+      "@attendease/export": ["packages/export/src/index.ts"],
+      "@attendease/notifications": ["packages/notifications/src/index.ts"],
+      "@attendease/realtime": ["packages/realtime/src/index.ts"],
+      "@attendease/ui-mobile": ["packages/ui-mobile/src/index.ts"],
+      "@attendease/ui-web": ["packages/ui-web/src/index.ts"],
+      "@attendease/utils": ["packages/utils/src/index.ts"]
+    }
+  }
+}

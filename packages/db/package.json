@@ -1,0 +1,36 @@
+{
+  "name": "@attendease/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "pnpm prisma:generate && tsc --project tsconfig.json",
+    "dev": "tsc --project tsconfig.json --watch",
+    "lint": "biome check src prisma prisma.config.ts package.json tsconfig.json",
+    "prisma:format": "prisma format --schema prisma/schema.prisma",
+    "prisma:validate": "prisma validate --schema prisma/schema.prisma",
+    "prisma:generate": "prisma generate --schema prisma/schema.prisma",
+    "migrate:status": "prisma migrate status --schema prisma/schema.prisma",
+    "migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
+    "seed:dev": "tsx src/scripts/seed-dev.ts",
+    "seed:dev:test-url": "tsx src/scripts/seed-dev.ts --prefer-test-url",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "pnpm prisma:validate && vitest run src/index.test.ts src/client.test.ts src/transactions.test.ts src/audit.test.ts src/schema.test.ts",
+    "test:integration": "vitest run src/integration.test.ts"
+  },
+  "dependencies": {
+    "@attendease/auth": "workspace:^",
+    "@prisma/adapter-pg": "^7.5.0",
+    "@prisma/client": "^7.5.0",
+    "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.18.0",
+    "dotenv": "^17.3.1",
+    "prisma": "^7.5.0",
+    "tsx": "^4.21.0"
+  }
+}
