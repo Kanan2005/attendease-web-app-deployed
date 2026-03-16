@@ -1,6 +1,7 @@
 "use client"
 
 import type { ClassroomDetail } from "@attendease/contracts"
+import { webTheme } from "@attendease/ui-web"
 
 import {
   buildTeacherWebClassroomScopeSummary,
@@ -28,23 +29,23 @@ export function TeacherRosterHeaderSummary(props: {
     >
       <div style={workflowStyles.summaryGrid}>
         <div style={workflowStyles.summaryMetric}>
-          <div style={{ color: "#475569", fontSize: 13 }}>Teaching scope</div>
+          <div style={{ color: webTheme.colors.textMuted, fontSize: 13 }}>Teaching scope</div>
           <strong style={{ display: "block", marginTop: 6 }}>{scopeSummary}</strong>
         </div>
         <div style={workflowStyles.summaryMetric}>
-          <div style={{ color: "#475569", fontSize: 13 }}>Attendance mode</div>
+          <div style={{ color: webTheme.colors.textMuted, fontSize: 13 }}>Attendance mode</div>
           <strong style={{ display: "block", marginTop: 6 }}>
             {formatTeacherWebAttendanceModeLabel(props.classroom.defaultAttendanceMode)}
           </strong>
         </div>
         <div style={workflowStyles.summaryMetric}>
-          <div style={{ color: "#475569", fontSize: 13 }}>Students in view</div>
+          <div style={{ color: webTheme.colors.textMuted, fontSize: 13 }}>Students in view</div>
           <strong style={{ display: "block", fontSize: 24, marginTop: 6 }}>
             {props.loading ? "..." : props.visibleCount}
           </strong>
         </div>
         <div style={workflowStyles.summaryMetric}>
-          <div style={{ color: "#475569", fontSize: 13 }}>Pending / Blocked</div>
+          <div style={{ color: webTheme.colors.textMuted, fontSize: 13 }}>Pending / Blocked</div>
           <strong style={{ display: "block", marginTop: 6 }}>
             {props.pendingCount} pending · {props.blockedCount} blocked
           </strong>

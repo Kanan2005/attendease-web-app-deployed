@@ -1,100 +1,31 @@
 "use client"
 
-import type {
-  AnnouncementVisibility,
-  AttendanceMode,
-  AttendanceSessionStatus,
-  AttendanceSessionStudentSummary,
-  ClassroomDetail,
-  ClassroomRosterMemberSummary,
-  ClassroomSummary,
-  CourseOfferingStatus,
-  ExportJobType,
-  LectureSummary,
-} from "@attendease/contracts"
-import {
-  buildAttendanceCorrectionSaveMessage,
-  buildAttendanceEditChanges,
-  createAttendanceEditDraft,
-  getAttendanceCorrectionReviewPollInterval,
-} from "@attendease/domain"
+import type { AttendanceMode, AttendanceSessionStatus } from "@attendease/contracts"
 import { webTheme } from "@attendease/ui-web"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
-import { createWebAuthBootstrap } from "../auth"
 import {
-  buildTeacherWebClassroomCreateRequest,
-  buildTeacherWebClassroomListCards,
-  buildTeacherWebClassroomScopeOptions,
-  buildTeacherWebClassroomScopeSummary,
-  buildTeacherWebClassroomUpdateRequest,
-  createTeacherWebClassroomCreateDraft,
-  createTeacherWebClassroomEditDraft,
-  formatTeacherWebAttendanceModeLabel,
-  hasTeacherWebClassroomEditChanges,
-} from "../teacher-classroom-management"
-import {
-  applyTeacherWebQrSessionClassroomSelection,
-  buildTeacherWebQrSessionClassroomOptions,
-  buildTeacherWebQrSessionStartRequest,
-  createTeacherWebQrSessionStartDraft,
-  evaluateTeacherWebQrSessionStartReadiness,
-} from "../teacher-qr-session-management"
-import {
-  type TeacherWebReviewTone,
   buildTeacherWebAcademicFilterOptions,
   buildTeacherWebFilterSummary,
-  buildTeacherWebHistoryQueryFilters,
   buildTeacherWebReportOverviewModel,
   buildTeacherWebReportQueryFilters,
-  buildTeacherWebSessionDetailOverviewModel,
-  buildTeacherWebSessionDetailStatusModel,
-  buildTeacherWebSessionHistorySummaryModel,
-  buildTeacherWebSessionRosterModel,
-  createTeacherWebHistoryFilterDraft,
   createTeacherWebReportFilterDraft,
   mapTeacherWebReviewErrorToMessage,
 } from "../teacher-review-workflows"
-import {
-  buildTeacherWebRosterAddRequest,
-  buildTeacherWebRosterFilters,
-  buildTeacherWebRosterMemberActions,
-  buildTeacherWebRosterMemberIdentityText,
-  buildTeacherWebRosterResultSummary,
-} from "../teacher-roster-management"
-import { WebSectionCard } from "../web-shell"
-import {
-  buildScheduleSavePayload,
-  buildTeacherClassroomLinks,
-  buildTeacherSemesterVisibilityRows,
-  createEmptyScheduleExceptionDraft,
-  createEmptyScheduleSlotDraft,
-  createScheduleDraftState,
-  formatPortalDateTime,
-  formatPortalMinutesRange,
-  getTeacherSessionHistoryPollInterval,
-  parseRosterImportRowsText,
-  sortScheduleExceptions,
-  sortScheduleSlots,
-  teacherWorkflowRoutes,
-  webWorkflowQueryKeys,
-} from "../web-workflows"
+import { formatPortalDateTime } from "../web-workflows"
+import { teacherWorkflowRoutes, webWorkflowQueryKeys } from "../web-workflows"
 
 import {
   WorkflowBanner,
   WorkflowField,
   WorkflowSelectField,
   WorkflowStateCard,
-  WorkflowStatusCard,
   WorkflowSummaryGrid,
   WorkflowTonePill,
   bootstrap,
   findSelectedFilterLabel,
-  getToneStyles,
-  toneForSessionState,
   workflowStyles,
 } from "./shared"
 
@@ -150,115 +81,105 @@ export function TeacherReportsWorkspace(props: {
 
   return (
     <div style={workflowStyles.grid}>
-      <WebSectionCard
-        title="Report filters"
-        description="Use one filter scope for day-wise trends, course rollups, and student follow-up so review work stays fast."
-      >
-        {!props.accessToken ? (
-          <WorkflowStateCard message="Sign in to review attendance reports." />
-        ) : (
-          <div style={workflowStyles.grid}>
-            <div style={workflowStyles.formGrid}>
-              <WorkflowSelectField
-                label="Classroom"
-                value={filters.classroomId}
-                onChange={(value) =>
-                  setFilters((current) => ({
-                    ...current,
-                    classroomId: value,
-                  }))
-                }
-                options={[
-                  { value: "", label: "All classrooms" },
-                  ...academicFilterOptions.classroomOptions,
-                ]}
-              />
-              <WorkflowSelectField
-                label="Class"
-                value={filters.classId}
-                onChange={(value) =>
-                  setFilters((current) => ({
-                    ...current,
-                    classId: value,
-                  }))
-                }
-                options={[
-                  { value: "", label: "All classes" },
-                  ...academicFilterOptions.classOptions,
-                ]}
-              />
-              <WorkflowSelectField
-                label="Section"
-                value={filters.sectionId}
-                onChange={(value) =>
-                  setFilters((current) => ({
-                    ...current,
-                    sectionId: value,
-                  }))
-                }
-                options={[
-                  { value: "", label: "All sections" },
-                  ...academicFilterOptions.sectionOptions,
-                ]}
-              />
-              <WorkflowSelectField
-                label="Subject"
-                value={filters.subjectId}
-                onChange={(value) =>
-                  setFilters((current) => ({
-                    ...current,
-                    subjectId: value,
-                  }))
-                }
-                options={[
-                  { value: "", label: "All subjects" },
-                  ...academicFilterOptions.subjectOptions,
-                ]}
-              />
-              <WorkflowField
-                label="From date"
-                value={filters.fromDate}
-                onChange={(value) =>
-                  setFilters((current) => ({
-                    ...current,
-                    fromDate: value,
-                  }))
-                }
-                type="date"
-              />
-              <WorkflowField
-                label="To date"
-                value={filters.toDate}
-                onChange={(value) =>
-                  setFilters((current) => ({
-                    ...current,
-                    toDate: value,
-                  }))
-                }
-                type="date"
-              />
-            </div>
+      {!props.accessToken ? (
+        <WorkflowStateCard message="Sign in to review attendance reports." />
+      ) : (
+        <>
+          <h2 style={{ fontSize: 22, fontWeight: 700, color: webTheme.colors.text, margin: 0 }}>
+            Reports
+          </h2>
 
-            {classroomsQuery.isError ? (
-              <WorkflowBanner
-                tone="danger"
-                message={mapTeacherWebReviewErrorToMessage(
-                  classroomsQuery.error,
-                  "AttendEase couldn't load the report filters.",
-                )}
-              />
-            ) : null}
-
-            <WorkflowSummaryGrid cards={reportOverview.summaryCards} />
-
-            <div style={workflowStyles.stateCard}>
-              <strong style={{ display: "block", marginBottom: 8 }}>Current report scope</strong>
-              <div style={{ lineHeight: 1.7 }}>{reportOverview.filterSummary}</div>
-              <div style={{ marginTop: 10 }}>{reportOverview.availabilityMessage}</div>
-            </div>
+          <div style={workflowStyles.formGrid}>
+            <WorkflowSelectField
+              label="Classroom"
+              value={filters.classroomId}
+              onChange={(value) =>
+                setFilters((current) => ({
+                  ...current,
+                  classroomId: value,
+                }))
+              }
+              options={[
+                { value: "", label: "All classrooms" },
+                ...academicFilterOptions.classroomOptions,
+              ]}
+            />
+            <WorkflowSelectField
+              label="Class"
+              value={filters.classId}
+              onChange={(value) =>
+                setFilters((current) => ({
+                  ...current,
+                  classId: value,
+                }))
+              }
+              options={[{ value: "", label: "All classes" }, ...academicFilterOptions.classOptions]}
+            />
+            <WorkflowSelectField
+              label="Section"
+              value={filters.sectionId}
+              onChange={(value) =>
+                setFilters((current) => ({
+                  ...current,
+                  sectionId: value,
+                }))
+              }
+              options={[
+                { value: "", label: "All sections" },
+                ...academicFilterOptions.sectionOptions,
+              ]}
+            />
+            <WorkflowSelectField
+              label="Subject"
+              value={filters.subjectId}
+              onChange={(value) =>
+                setFilters((current) => ({
+                  ...current,
+                  subjectId: value,
+                }))
+              }
+              options={[
+                { value: "", label: "All subjects" },
+                ...academicFilterOptions.subjectOptions,
+              ]}
+            />
+            <WorkflowField
+              label="From"
+              value={filters.fromDate}
+              onChange={(value) =>
+                setFilters((current) => ({
+                  ...current,
+                  fromDate: value,
+                }))
+              }
+              type="date"
+            />
+            <WorkflowField
+              label="To"
+              value={filters.toDate}
+              onChange={(value) =>
+                setFilters((current) => ({
+                  ...current,
+                  toDate: value,
+                }))
+              }
+              type="date"
+            />
           </div>
-        )}
-      </WebSectionCard>
+
+          {classroomsQuery.isError ? (
+            <WorkflowBanner
+              tone="danger"
+              message={mapTeacherWebReviewErrorToMessage(
+                classroomsQuery.error,
+                "AttendEase couldn't load the report filters.",
+              )}
+            />
+          ) : null}
+
+          <WorkflowSummaryGrid cards={reportOverview.summaryCards} />
+        </>
+      )}
 
       {!props.accessToken ? null : daywiseQuery.isLoading ||
         subjectwiseQuery.isLoading ||
@@ -273,40 +194,44 @@ export function TeacherReportsWorkspace(props: {
           )}
         />
       ) : !reportOverview.hasAnyData ? (
-        <WorkflowStateCard message="No report rows matched the current filter scope." />
+        <WorkflowStateCard message="No report rows matched the current filters." />
       ) : (
         <>
-          <WebSectionCard title="Course rollups" description={reportOverview.subjectSummary}>
-            <div style={workflowStyles.cardGrid}>
-              {reportOverview.subjectRows.map((row) => (
-                <div key={`${row.classroomId}:${row.subjectId}`} style={workflowStyles.rowCard}>
-                  <div style={workflowStyles.buttonRow}>
-                    <WorkflowTonePill label={row.attendanceLabel} tone={row.tone} />
-                  </div>
-                  <strong style={{ display: "block", marginTop: 10 }}>{row.title}</strong>
-                  <div style={{ color: "#64748b", marginTop: 6 }}>{row.courseContextLabel}</div>
-                  <div style={{ color: "#475569", marginTop: 10 }}>{row.sessionSummary}</div>
-                  <div style={{ color: "#64748b", marginTop: 8 }}>
-                    {row.lastSessionAt
-                      ? `Last session ${formatPortalDateTime(row.lastSessionAt)}`
-                      : "No recent session yet"}
-                  </div>
+          <div style={workflowStyles.cardGrid}>
+            {reportOverview.subjectRows.map((row) => (
+              <div key={`${row.classroomId}:${row.subjectId}`} style={workflowStyles.rowCard}>
+                <div style={workflowStyles.buttonRow}>
+                  <WorkflowTonePill label={row.attendanceLabel} tone={row.tone} />
                 </div>
-              ))}
-            </div>
-          </WebSectionCard>
+                <strong style={{ display: "block", marginTop: 10, color: webTheme.colors.text }}>
+                  {row.title}
+                </strong>
+                <div style={{ color: webTheme.colors.textSubtle, marginTop: 6 }}>
+                  {row.courseContextLabel}
+                </div>
+                <div style={{ color: webTheme.colors.textMuted, marginTop: 10 }}>
+                  {row.sessionSummary}
+                </div>
+                <div style={{ color: webTheme.colors.textSubtle, marginTop: 8 }}>
+                  {row.lastSessionAt
+                    ? `Last session ${formatPortalDateTime(row.lastSessionAt)}`
+                    : "No recent session yet"}
+                </div>
+              </div>
+            ))}
+          </div>
 
           <div style={workflowStyles.twoColumn}>
-            <WebSectionCard
-              title="Students needing follow-up"
-              description={reportOverview.studentSummary}
-            >
+            <div style={workflowStyles.grid}>
+              <h3 style={{ fontSize: 16, fontWeight: 600, color: webTheme.colors.text, margin: 0 }}>
+                Students needing follow-up
+              </h3>
               <div style={{ overflowX: "auto" }}>
                 <table style={workflowStyles.table}>
                   <thead>
                     <tr>
                       <th style={workflowStyles.th}>Student</th>
-                      <th style={workflowStyles.th}>Course context</th>
+                      <th style={workflowStyles.th}>Context</th>
                       <th style={workflowStyles.th}>Attendance</th>
                       <th style={workflowStyles.th}>Follow-up</th>
                     </tr>
@@ -320,7 +245,9 @@ export function TeacherReportsWorkspace(props: {
                         <td style={workflowStyles.td}>{row.supportingLabel}</td>
                         <td style={workflowStyles.td}>
                           <div>{row.attendanceLabel}</div>
-                          <div style={{ color: "#64748b", marginTop: 4 }}>{row.sessionSummary}</div>
+                          <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
+                            {row.sessionSummary}
+                          </div>
                         </td>
                         <td style={workflowStyles.td}>
                           <WorkflowTonePill label={row.followUpLabel} tone={row.tone} />
@@ -330,25 +257,32 @@ export function TeacherReportsWorkspace(props: {
                   </tbody>
                 </table>
               </div>
-            </WebSectionCard>
+            </div>
 
-            <WebSectionCard title="Day-wise trend" description={reportOverview.daywiseSummary}>
-              <div style={workflowStyles.grid}>
-                {reportOverview.daywiseRows.map((row) => (
-                  <div
-                    key={`${row.classroomId}:${row.attendanceDate}`}
-                    style={workflowStyles.rowCard}
-                  >
-                    <div style={workflowStyles.buttonRow}>
-                      <WorkflowTonePill label={row.attendanceLabel} tone={row.tone} />
-                    </div>
-                    <strong style={{ display: "block", marginTop: 10 }}>{row.title}</strong>
-                    <div style={{ color: "#475569", marginTop: 6 }}>{row.sessionSummary}</div>
-                    <div style={{ color: "#64748b", marginTop: 8 }}>{row.dateLabel}</div>
+            <div style={workflowStyles.grid}>
+              <h3 style={{ fontSize: 16, fontWeight: 600, color: webTheme.colors.text, margin: 0 }}>
+                Day-wise trend
+              </h3>
+              {reportOverview.daywiseRows.map((row) => (
+                <div
+                  key={`${row.classroomId}:${row.attendanceDate}`}
+                  style={workflowStyles.rowCard}
+                >
+                  <div style={workflowStyles.buttonRow}>
+                    <WorkflowTonePill label={row.attendanceLabel} tone={row.tone} />
                   </div>
-                ))}
-              </div>
-            </WebSectionCard>
+                  <strong style={{ display: "block", marginTop: 10, color: webTheme.colors.text }}>
+                    {row.title}
+                  </strong>
+                  <div style={{ color: webTheme.colors.textMuted, marginTop: 6 }}>
+                    {row.sessionSummary}
+                  </div>
+                  <div style={{ color: webTheme.colors.textSubtle, marginTop: 8 }}>
+                    {row.dateLabel}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div style={workflowStyles.buttonRow}>
@@ -356,10 +290,10 @@ export function TeacherReportsWorkspace(props: {
               href={teacherWorkflowRoutes.sessionHistory}
               style={workflowStyles.secondaryButton}
             >
-              Open session review
+              Session review
             </Link>
             <Link href="/teacher/exports" style={workflowStyles.primaryButton}>
-              Open exports
+              Exports
             </Link>
           </div>
         </>

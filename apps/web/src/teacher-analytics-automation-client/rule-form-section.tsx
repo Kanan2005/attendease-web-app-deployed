@@ -1,4 +1,5 @@
 import type { EmailAutomationRuleSummary } from "@attendease/contracts"
+import { webTheme } from "@attendease/ui-web"
 import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query"
 import type { Dispatch, SetStateAction } from "react"
 
@@ -215,7 +216,9 @@ export function TeacherExistingRulesSection(props: {
                 <tr key={rule.id}>
                   <td style={styles.td}>
                     <strong>{rule.classroomDisplayTitle}</strong>
-                    <div style={{ color: "#64748b", marginTop: 4 }}>{rule.classroomCode}</div>
+                    <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
+                      {rule.classroomCode}
+                    </div>
                   </td>
                   <td style={styles.td}>{rule.thresholdPercent}%</td>
                   <td style={styles.td}>

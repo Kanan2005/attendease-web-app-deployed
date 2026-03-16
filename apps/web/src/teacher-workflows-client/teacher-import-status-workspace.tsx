@@ -339,11 +339,12 @@ export function TeacherImportStatusWorkspace(props: {
                   ...workflowStyles.rowCard,
                   textAlign: "left",
                   cursor: "pointer",
-                  borderColor: selectedJobId === job.id ? "#2563eb" : "#dbe4f0",
+                  borderColor:
+                    selectedJobId === job.id ? webTheme.colors.accent : webTheme.colors.border,
                 }}
               >
                 <strong>{job.sourceFileName}</strong>
-                <div style={{ color: "#64748b", marginTop: 6 }}>
+                <div style={{ color: webTheme.colors.textSubtle, marginTop: 6 }}>
                   {job.status} · {job.validRows}/{job.totalRows} valid
                 </div>
               </button>

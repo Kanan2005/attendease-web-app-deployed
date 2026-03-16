@@ -89,9 +89,7 @@ export function WebChartCard(props: {
           alignContent: "space-between",
         }}
       >
-        <div style={surfaceCardStyles}>
-          {"Chart visualization will render here."}
-        </div>
+        <div style={surfaceCardStyles}>{"Chart visualization will render here."}</div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {props.seriesLabels.map((label) => (
             <span
@@ -140,7 +138,9 @@ export function WebPortalAccessCard(props: {
         Protected page
       </p>
       <h2 style={{ marginTop: 0, color: webTheme.colors.text }}>{props.access.title}</h2>
-      <p style={{ marginTop: 0, lineHeight: 1.6, color: webTheme.colors.textMuted }}>{props.access.message}</p>
+      <p style={{ marginTop: 0, lineHeight: 1.6, color: webTheme.colors.textMuted }}>
+        {props.access.message}
+      </p>
       <Link
         href={props.access.loginHref}
         style={{

@@ -304,7 +304,9 @@ export function TeacherExportsWorkspace(props: {
                   <tr key={job.id}>
                     <td style={workflowStyles.td}>
                       <strong>{job.jobType}</strong>
-                      <div style={{ color: "#64748b", marginTop: 4 }}>{job.id}</div>
+                      <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
+                        {job.id}
+                      </div>
                     </td>
                     <td style={workflowStyles.td}>
                       {job.courseOfferingDisplayTitle ?? job.sessionId ?? "All classroom scope"}
@@ -319,7 +321,7 @@ export function TeacherExportsWorkspace(props: {
                           Download
                         </a>
                       ) : (
-                        <span style={{ color: "#64748b" }}>Pending</span>
+                        <span style={{ color: webTheme.colors.textSubtle }}>Pending</span>
                       )}
                     </td>
                   </tr>

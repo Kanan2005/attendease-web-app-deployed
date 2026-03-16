@@ -104,7 +104,11 @@ const cardVariants = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.06, duration: 0.4, ease: [0.16, 1, 0.3, 1] },
+    transition: {
+      delay: i * 0.06,
+      duration: 0.4,
+      ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
+    },
   }),
 }
 
@@ -162,12 +166,16 @@ export function TeacherClassroomListWorkspace(props: {
         </Link>
       </div>
 
-      {!props.accessToken ? (
-        <WorkflowStateCard message="Sign in to load your classrooms." />
-      ) : null}
+      {!props.accessToken ? <WorkflowStateCard message="Sign in to load your classrooms." /> : null}
 
       {classroomsQuery.isLoading ? (
-        <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))" }}>
+        <div
+          style={{
+            display: "grid",
+            gap: 16,
+            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+          }}
+        >
           {[1, 2, 3].map((i) => (
             <div
               key={i}
@@ -252,15 +260,38 @@ export function TeacherClassroomListWorkspace(props: {
                   </div>
 
                   <div>
-                    <span style={{ color: webTheme.colors.textSubtle, fontSize: 12, fontWeight: 500, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                    <span
+                      style={{
+                        color: webTheme.colors.textSubtle,
+                        fontSize: 12,
+                        fontWeight: 500,
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                      }}
+                    >
                       {classroom.courseCode}
                     </span>
-                    <h3 style={{ margin: "6px 0 0", fontSize: 20, fontWeight: 600, color: webTheme.colors.text, lineHeight: 1.3 }}>
+                    <h3
+                      style={{
+                        margin: "6px 0 0",
+                        fontSize: 20,
+                        fontWeight: 600,
+                        color: webTheme.colors.text,
+                        lineHeight: 1.3,
+                      }}
+                    >
                       {classroom.classroomTitle}
                     </h3>
                   </div>
 
-                  <p style={{ margin: 0, color: webTheme.colors.textMuted, fontSize: 14, lineHeight: 1.5 }}>
+                  <p
+                    style={{
+                      margin: 0,
+                      color: webTheme.colors.textMuted,
+                      fontSize: 14,
+                      lineHeight: 1.5,
+                    }}
+                  >
                     {classroom.scopeSummary}
                   </p>
 

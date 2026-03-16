@@ -1,5 +1,6 @@
 "use client"
 
+import { webTheme } from "@attendease/ui-web"
 import { useQuery } from "@tanstack/react-query"
 import { useMemo, useState } from "react"
 
@@ -286,11 +287,13 @@ export function TeacherAnalyticsWorkspace(props: {
                       <tr key={row.sessionId}>
                         <td style={styles.td}>
                           <strong>{row.classroomDisplayTitle}</strong>
-                          <div style={{ color: "#64748b", marginTop: 4 }}>{row.classroomCode}</div>
+                          <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
+                            {row.classroomCode}
+                          </div>
                         </td>
                         <td style={styles.td}>
                           {row.lectureTitle ?? "No linked lecture"}
-                          <div style={{ color: "#64748b", marginTop: 4 }}>
+                          <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
                             {formatPortalDateTime(row.lectureDate)}
                           </div>
                         </td>
@@ -322,12 +325,12 @@ export function TeacherAnalyticsWorkspace(props: {
               <div style={styles.grid}>
                 <div>
                   <strong>{sessionDrilldownQuery.data.session.classroomDisplayTitle}</strong>
-                  <div style={{ color: "#64748b", marginTop: 4 }}>
+                  <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
                     {sessionDrilldownQuery.data.session.presentCount} present /{" "}
                     {sessionDrilldownQuery.data.session.absentCount} absent
                   </div>
                 </div>
-                <div style={{ color: "#475569" }}>
+                <div style={{ color: webTheme.colors.textMuted }}>
                   Suspicious attempts: {sessionDrilldownQuery.data.session.suspiciousAttemptCount}
                 </div>
                 <div style={{ overflowX: "auto" }}>
@@ -344,7 +347,7 @@ export function TeacherAnalyticsWorkspace(props: {
                         <tr key={row.attendanceRecordId}>
                           <td style={styles.td}>
                             <strong>{row.studentDisplayName}</strong>
-                            <div style={{ color: "#64748b", marginTop: 4 }}>
+                            <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
                               {row.studentRollNumber ?? row.studentEmail}
                             </div>
                           </td>

@@ -4,6 +4,7 @@ import type {
   EmailLogSummary,
   LowAttendanceEmailPreviewResponse,
 } from "@attendease/contracts"
+import { webTheme } from "@attendease/ui-web"
 import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query"
 import type { Dispatch, SetStateAction } from "react"
 
@@ -177,7 +178,7 @@ export function TeacherPreviewSendSection(props: {
           <div style={{ ...styles.split, marginTop: 18 }}>
             <div style={styles.card}>
               <h4 style={{ marginTop: 0 }}>Preview</h4>
-              <p style={{ marginTop: 0, color: "#475569" }}>
+              <p style={{ marginTop: 0, color: webTheme.colors.textMuted }}>
                 {props.previewMutation.data.recipientCount} recipients selected below{" "}
                 {props.previewMutation.data.thresholdPercent}%.
               </p>
@@ -189,7 +190,7 @@ export function TeacherPreviewSendSection(props: {
                   margin: 0,
                   whiteSpace: "pre-wrap",
                   fontFamily: "inherit",
-                  background: "#f8fafc",
+                  background: webTheme.colors.surfaceMuted,
                   borderRadius: 14,
                   padding: 14,
                 }}
@@ -214,7 +215,7 @@ export function TeacherPreviewSendSection(props: {
                         <tr key={recipient.studentId}>
                           <td style={styles.td}>
                             <strong>{recipient.studentDisplayName}</strong>
-                            <div style={{ color: "#64748b", marginTop: 4 }}>
+                            <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
                               {recipient.studentRollNumber ?? "No roll number"}
                             </div>
                           </td>

@@ -33,9 +33,10 @@ export default function ClassroomDetailLayout(props: {
       >
         {tabs.map((tab) => {
           const tabPath = basePath + tab.href
-          const isActive = tab.href === ""
-            ? pathname === basePath || pathname === `${basePath}/`
-            : pathname.startsWith(tabPath)
+          const isActive =
+            tab.href === ""
+              ? pathname === basePath || pathname === `${basePath}/`
+              : pathname.startsWith(tabPath)
 
           return (
             <Link

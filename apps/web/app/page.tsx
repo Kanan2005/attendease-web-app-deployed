@@ -132,7 +132,7 @@ function RoleCard(props: {
           textDecoration: "none",
           fontWeight: 600,
           fontSize: 14,
-          transition: `all 0.15s`,
+          transition: "all 0.15s",
         }}
       >
         {props.primaryLabel}

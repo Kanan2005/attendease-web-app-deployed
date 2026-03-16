@@ -1,6 +1,7 @@
 "use client"
 
 import type { ClassroomRosterMemberSummary } from "@attendease/contracts"
+import { webTheme } from "@attendease/ui-web"
 
 import {
   buildTeacherWebRosterMemberActions,
@@ -54,7 +55,9 @@ export function TeacherRosterStudentsCard(props: {
                     <strong style={{ display: "block", fontSize: 18 }}>
                       {member.studentName ?? member.studentDisplayName}
                     </strong>
-                    <div style={{ color: "#64748b", marginTop: 6, lineHeight: 1.5 }}>
+                    <div
+                      style={{ color: webTheme.colors.textSubtle, marginTop: 6, lineHeight: 1.5 }}
+                    >
                       {buildTeacherWebRosterMemberIdentityText(member)}
                     </div>
                   </div>
@@ -67,7 +70,7 @@ export function TeacherRosterStudentsCard(props: {
                     ) : null}
                   </div>
 
-                  <div style={{ color: "#475569", lineHeight: 1.6 }}>
+                  <div style={{ color: webTheme.colors.textMuted, lineHeight: 1.6 }}>
                     Member since {formatPortalDateTime(member.memberSince)}
                     <br />
                     Joined via {membershipSource.toLowerCase().replaceAll("_", " ")}

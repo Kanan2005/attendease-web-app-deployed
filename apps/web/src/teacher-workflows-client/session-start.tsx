@@ -282,10 +282,10 @@ export function TeacherSessionStartWorkspace(props: {
               <h3 style={{ margin: "12px 0 6px" }}>
                 {selectedClassroom.classroomTitle} ({selectedClassroom.courseCode})
               </h3>
-              <p style={{ margin: 0, color: "#475569", lineHeight: 1.6 }}>
+              <p style={{ margin: 0, color: webTheme.colors.textMuted, lineHeight: 1.6 }}>
                 {selectedClassroom.scopeSummary}
               </p>
-              <p style={{ margin: "10px 0 0", color: "#475569", lineHeight: 1.6 }}>
+              <p style={{ margin: "10px 0 0", color: webTheme.colors.textMuted, lineHeight: 1.6 }}>
                 {selectedClassroom.attendanceModeLabel} · {selectedClassroom.deviceRuleLabel}
               </p>
             </div>
@@ -327,17 +327,17 @@ export function TeacherSessionStartWorkspace(props: {
 
           <div style={workflowStyles.rowCard}>
             <strong style={{ display: "block", marginBottom: 8 }}>Teacher location</strong>
-            <p style={{ margin: 0, color: "#475569", lineHeight: 1.6 }}>
+            <p style={{ margin: 0, color: webTheme.colors.textMuted, lineHeight: 1.6 }}>
               Use the current browser location before you start the session. Students will be
               checked against this location and the allowed distance above.
             </p>
-            <p style={{ margin: "12px 0 0", color: "#0f172a", lineHeight: 1.6 }}>
+            <p style={{ margin: "12px 0 0", color: webTheme.colors.text, lineHeight: 1.6 }}>
               {draft.anchorLatitude && draft.anchorLongitude
                 ? `Locked at ${draft.anchorLatitude}, ${draft.anchorLongitude}`
                 : "Location not captured yet."}
             </p>
             {locationMessage ? (
-              <p style={{ margin: "10px 0 0", color: "#1d4ed8", lineHeight: 1.6 }}>
+              <p style={{ margin: "10px 0 0", color: webTheme.colors.accent, lineHeight: 1.6 }}>
                 {locationMessage}
               </p>
             ) : null}

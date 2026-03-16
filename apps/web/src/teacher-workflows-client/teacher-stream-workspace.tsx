@@ -226,10 +226,10 @@ export function TeacherStreamWorkspace(props: {
                   <span style={workflowStyles.pill}>{announcement.postType}</span>
                 </div>
                 <h4 style={{ marginBottom: 8 }}>{announcement.title ?? "Untitled announcement"}</h4>
-                <p style={{ marginTop: 0, color: "#475569", lineHeight: 1.6 }}>
+                <p style={{ marginTop: 0, color: webTheme.colors.textMuted, lineHeight: 1.6 }}>
                   {announcement.body}
                 </p>
-                <div style={{ color: "#64748b" }}>
+                <div style={{ color: webTheme.colors.textSubtle }}>
                   {announcement.authorDisplayName} · {formatPortalDateTime(announcement.createdAt)}
                 </div>
               </div>

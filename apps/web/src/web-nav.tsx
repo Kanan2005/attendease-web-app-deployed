@@ -95,7 +95,9 @@ export function WebProfileDropdown(props: {
               zIndex: 200,
             }}
           >
-            <div style={{ padding: "12px 14px", borderBottom: `1px solid ${webTheme.colors.border}` }}>
+            <div
+              style={{ padding: "12px 14px", borderBottom: `1px solid ${webTheme.colors.border}` }}
+            >
               <p style={{ margin: 0, fontWeight: 600, color: webTheme.colors.text, fontSize: 14 }}>
                 {displayName}
               </p>
@@ -159,6 +161,8 @@ const dropdownItemStyle: React.CSSProperties = {
   transition: `background ${webTheme.animation.fast}`,
 }
 
-export function WebPortalNav(props: { navItems: Array<{ href: string; label: string; description: string }> }) {
+export function WebPortalNav(props: {
+  navItems: Array<{ href: string; label: string; description: string }>
+}) {
   return null
 }

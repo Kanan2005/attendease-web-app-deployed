@@ -6,6 +6,7 @@ import type {
   EmailDispatchRunSummary,
   EmailLogSummary,
 } from "@attendease/contracts"
+import { webTheme } from "@attendease/ui-web"
 
 import { formatPortalDateTime } from "../web-workflows"
 import { WorkflowBanner, WorkflowStateCard, renderQueryError } from "./shared"
@@ -14,8 +15,12 @@ import { teacherAnalyticsStyles as styles } from "./styles"
 export function MetricCard(props: { label: string; value: string }) {
   return (
     <div style={styles.card}>
-      <p style={{ margin: "0 0 8px", color: "#64748b", fontSize: 14 }}>{props.label}</p>
-      <p style={{ margin: 0, color: "#0f172a", fontSize: 28, fontWeight: 700 }}>{props.value}</p>
+      <p style={{ margin: "0 0 8px", color: webTheme.colors.textSubtle, fontSize: 14 }}>
+        {props.label}
+      </p>
+      <p style={{ margin: 0, color: webTheme.colors.text, fontSize: 28, fontWeight: 700 }}>
+        {props.value}
+      </p>
     </div>
   )
 }
@@ -69,13 +74,18 @@ export function DistributionCard(props: {
         <WorkflowStateCard message="Distribution is not available yet." />
       ) : (
         <div style={styles.grid}>
-          <p style={{ margin: 0, color: "#475569" }}>
+          <p style={{ margin: 0, color: webTheme.colors.textMuted }}>
             Total students in scope: {props.distribution.totalStudents}
           </p>
           {props.distribution.buckets.map((bucket) => (
-            <div key={bucket.bucket} style={{ ...styles.card, background: "#f8fbff" }}>
-              <strong>{bucket.label}</strong>
-              <div style={{ color: "#475569", marginTop: 6 }}>{bucket.studentCount} students</div>
+            <div
+              key={bucket.bucket}
+              style={{ ...styles.card, background: webTheme.colors.surfaceTint }}
+            >
+              <strong style={{ color: webTheme.colors.text }}>{bucket.label}</strong>
+              <div style={{ color: webTheme.colors.textMuted, marginTop: 6 }}>
+                {bucket.studentCount} students
+              </div>
             </div>
           ))}
         </div>
@@ -95,9 +105,14 @@ export function ComparisonCards(props: {
           <WorkflowStateCard message="No classroom comparisons matched the current filters." />
         ) : (
           props.comparisons.classrooms.map((row) => (
-            <div key={row.classroomId} style={{ ...styles.card, background: "#f8fbff" }}>
-              <strong>{row.classroomDisplayTitle}</strong>
-              <div style={{ color: "#64748b", marginTop: 4 }}>{row.classroomCode}</div>
+            <div
+              key={row.classroomId}
+              style={{ ...styles.card, background: webTheme.colors.surfaceTint }}
+            >
+              <strong style={{ color: webTheme.colors.text }}>{row.classroomDisplayTitle}</strong>
+              <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
+                {row.classroomCode}
+              </div>
               <div style={{ marginTop: 8 }}>{row.attendancePercentage}% attendance</div>
             </div>
           ))
@@ -109,10 +124,17 @@ export function ComparisonCards(props: {
           <WorkflowStateCard message="No subject comparisons matched the current filters." />
         ) : (
           props.comparisons.subjects.map((row) => (
-            <div key={row.subjectId} style={{ ...styles.card, background: "#f8fbff" }}>
-              <strong>{row.subjectTitle}</strong>
-              <div style={{ color: "#64748b", marginTop: 4 }}>{row.subjectCode}</div>
-              <div style={{ marginTop: 8 }}>{row.attendancePercentage}% attendance</div>
+            <div
+              key={row.subjectId}
+              style={{ ...styles.card, background: webTheme.colors.surfaceTint }}
+            >
+              <strong style={{ color: webTheme.colors.text }}>{row.subjectTitle}</strong>
+              <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
+                {row.subjectCode}
+              </div>
+              <div style={{ marginTop: 8, color: webTheme.colors.textMuted }}>
+                {row.attendancePercentage}% attendance
+              </div>
             </div>
           ))
         )}
@@ -188,8 +210,10 @@ export function DispatchRunTable(props: {
           {props.runs.map((run) => (
             <tr key={run.id}>
               <td style={styles.td}>
-                <strong>{run.classroomDisplayTitle}</strong>
-                <div style={{ color: "#64748b", marginTop: 4 }}>{run.classroomCode}</div>
+                <strong style={{ color: webTheme.colors.text }}>{run.classroomDisplayTitle}</strong>
+                <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
+                  {run.classroomCode}
+                </div>
               </td>
               <td style={styles.td}>{run.triggerType}</td>
               <td style={styles.td}>{run.status}</td>
@@ -242,8 +266,12 @@ export function EmailLogTable(props: {
           {props.logs.map((log) => (
             <tr key={log.id}>
               <td style={styles.td}>
-                <strong>{log.studentDisplayName ?? log.recipientEmail}</strong>
-                <div style={{ color: "#64748b", marginTop: 4 }}>{log.recipientEmail}</div>
+                <strong style={{ color: webTheme.colors.text }}>
+                  {log.studentDisplayName ?? log.recipientEmail}
+                </strong>
+                <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
+                  {log.recipientEmail}
+                </div>
               </td>
               <td style={styles.td}>{log.status}</td>
               <td style={styles.td}>{log.triggerType ?? "Manual"}</td>

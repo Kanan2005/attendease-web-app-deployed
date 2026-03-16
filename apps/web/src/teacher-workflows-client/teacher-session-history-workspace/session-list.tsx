@@ -1,9 +1,9 @@
 "use client"
 
 import type { AttendanceSessionHistoryItem } from "@attendease/contracts"
+import { webTheme } from "@attendease/ui-web"
 
 import { formatTeacherWebAttendanceModeLabel } from "../../teacher-classroom-management"
-import { WebSectionCard } from "../../web-shell"
 import { formatPortalDateTime } from "../../web-workflows"
 import { WorkflowTonePill, toneForSessionState, workflowStyles } from "../shared"
 
@@ -13,12 +13,10 @@ export function TeacherSessionHistoryList(props: {
   setSelectedSessionId: (sessionId: string) => void
 }) {
   return (
-    <WebSectionCard
-      title="Sessions in view"
-      description="Pick the saved session you want to review. Each card keeps the teaching context, final counts, and correction state together."
-    >
-      <div style={workflowStyles.grid}>
-        {props.sessions.map((session) => (
+    <div style={workflowStyles.grid}>
+      {props.sessions.map((session) => {
+        const isSelected = props.selectedSessionId === session.id
+        return (
           <button
             key={session.id}
             type="button"
@@ -27,9 +25,8 @@ export function TeacherSessionHistoryList(props: {
               ...workflowStyles.rowCard,
               textAlign: "left",
               cursor: "pointer",
-              borderColor:
-                props.selectedSessionId === session.id ? "#2563eb" : workflowStyles.rowCard.border,
-              background: props.selectedSessionId === session.id ? "#eff6ff" : "#ffffff",
+              borderColor: isSelected ? webTheme.colors.accent : workflowStyles.rowCard.border,
+              background: isSelected ? webTheme.colors.accentSoft : webTheme.colors.surfaceRaised,
             }}
           >
             <div style={workflowStyles.buttonRow}>
@@ -41,10 +38,10 @@ export function TeacherSessionHistoryList(props: {
                 tone={session.editability.isEditable ? "success" : "warning"}
               />
             </div>
-            <strong style={{ display: "block", marginTop: 10 }}>
+            <strong style={{ display: "block", marginTop: 10, color: webTheme.colors.text }}>
               {session.classroomDisplayTitle}
             </strong>
-            <div style={{ color: "#475569", marginTop: 6 }}>
+            <div style={{ color: webTheme.colors.textMuted, marginTop: 6 }}>
               {session.lectureTitle ?? "Attendance session"} ·{" "}
               {session.endedAt || session.startedAt || session.lectureDate
                 ? formatPortalDateTime(
@@ -52,25 +49,16 @@ export function TeacherSessionHistoryList(props: {
                   )
                 : "Time not recorded"}
             </div>
-            <div style={{ color: "#64748b", marginTop: 6 }}>
+            <div style={{ color: webTheme.colors.textSubtle, marginTop: 6 }}>
               {session.classCode} · {session.sectionTitle} · {session.subjectTitle}
             </div>
-            <div style={{ color: "#64748b", marginTop: 6 }}>
+            <div style={{ color: webTheme.colors.textSubtle, marginTop: 6 }}>
               {session.presentCount} present / {session.absentCount} absent ·{" "}
               {formatTeacherWebAttendanceModeLabel(session.mode)}
             </div>
-            <div style={{ color: "#64748b", marginTop: 6 }}>
-              {session.editability.isEditable
-                ? `Editable until ${
-                    session.editability.editableUntil
-                      ? formatPortalDateTime(session.editability.editableUntil)
-                      : "the window closes"
-                  }`
-                : "Read-only result"}
-            </div>
           </button>
-        ))}
-      </div>
-    </WebSectionCard>
+        )
+      })}
+    </div>
   )
 }

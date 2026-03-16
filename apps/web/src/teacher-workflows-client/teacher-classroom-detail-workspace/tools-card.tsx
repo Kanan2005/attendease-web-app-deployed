@@ -1,5 +1,6 @@
 "use client"
 
+import { webTheme } from "@attendease/ui-web"
 import Link from "next/link"
 
 import type { ClassroomSummary, LectureSummary } from "@attendease/contracts"
@@ -22,7 +23,7 @@ export function TeacherClassroomNextToolsCard(props: { classroomId: string }) {
         {buildTeacherClassroomLinks(props.classroomId).map((link) => (
           <Link key={link.href} href={link.href} style={workflowStyles.linkCard}>
             <strong style={{ display: "block", marginBottom: 6 }}>{link.label}</strong>
-            <span style={{ color: "#64748b", lineHeight: 1.5 }}>
+            <span style={{ color: webTheme.colors.textSubtle, lineHeight: 1.5 }}>
               {link.label === "Course"
                 ? "Review course settings, join code, and QR launch."
                 : link.label === "Roster"
@@ -54,19 +55,21 @@ export function TeacherClassroomQrLaunchCard(props: {
       <div style={workflowStyles.grid}>
         <div style={workflowStyles.summaryGrid}>
           <div style={workflowStyles.summaryMetric}>
-            <div style={{ color: "#475569", fontSize: 13 }}>Default duration</div>
+            <div style={{ color: webTheme.colors.textMuted, fontSize: 13 }}>Default duration</div>
             <strong style={{ display: "block", marginTop: 6 }}>
               {props.classroom.defaultSessionDurationMinutes} minutes
             </strong>
           </div>
           <div style={workflowStyles.summaryMetric}>
-            <div style={{ color: "#475569", fontSize: 13 }}>Allowed distance</div>
+            <div style={{ color: webTheme.colors.textMuted, fontSize: 13 }}>Allowed distance</div>
             <strong style={{ display: "block", marginTop: 6 }}>
               {props.classroom.defaultGpsRadiusMeters} meters
             </strong>
           </div>
           <div style={workflowStyles.summaryMetric}>
-            <div style={{ color: "#475569", fontSize: 13 }}>Location requirement</div>
+            <div style={{ color: webTheme.colors.textMuted, fontSize: 13 }}>
+              Location requirement
+            </div>
             <strong style={{ display: "block", marginTop: 6 }}>Browser location required</strong>
           </div>
         </div>
@@ -118,7 +121,7 @@ export function TeacherClassroomRecentSessionsCard(props: {
           {props.lectures.slice(0, 5).map((lecture) => (
             <div key={lecture.id} style={workflowStyles.rowCard}>
               <strong>{lecture.title ?? "Untitled class session"}</strong>
-              <div style={{ color: "#64748b", marginTop: 4 }}>
+              <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
                 {formatPortalDateTime(lecture.lectureDate)}
               </div>
             </div>

@@ -3,12 +3,7 @@ import type { ReactNode } from "react"
 
 import { WebProfileDropdown } from "./web-nav"
 import type { WebPortalAccessState, WebPortalPageModel, WebPortalSession } from "./web-portal"
-import {
-  MetricGrid,
-  WebChartCard,
-  WebPortalAccessCard,
-  WebTableCard,
-} from "./web-shell-parts"
+import { MetricGrid, WebChartCard, WebPortalAccessCard, WebTableCard } from "./web-shell-parts"
 import { sectionStyles, shellStyles } from "./web-shell-styles"
 
 export function WebPortalLayout(props: {

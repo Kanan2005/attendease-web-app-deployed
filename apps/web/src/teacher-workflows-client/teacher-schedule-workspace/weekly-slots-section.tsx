@@ -1,5 +1,6 @@
 "use client"
 
+import { webTheme } from "@attendease/ui-web"
 import type { Dispatch, SetStateAction } from "react"
 
 import {
@@ -153,7 +154,7 @@ export function TeacherScheduleWeeklySlotsSection(props: {
                   ]}
                 />
               </div>
-              <div style={{ color: "#64748b", marginTop: 10 }}>
+              <div style={{ color: webTheme.colors.textSubtle, marginTop: 10 }}>
                 {formatPortalMinutesRange(slot.startMinutes, slot.endMinutes)}
               </div>
             </div>

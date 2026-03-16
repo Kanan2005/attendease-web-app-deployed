@@ -1,6 +1,7 @@
 "use client"
 
 import type { ClassroomSummary } from "@attendease/contracts"
+import { webTheme } from "@attendease/ui-web"
 
 import {
   buildTeacherWebClassroomScopeSummary,
@@ -25,17 +26,17 @@ export function TeacherClassroomOverviewCard(props: {
     >
       <div style={workflowStyles.summaryGrid}>
         <div style={workflowStyles.summaryMetric}>
-          <div style={{ color: "#475569", fontSize: 13 }}>Teaching scope</div>
+          <div style={{ color: webTheme.colors.textMuted, fontSize: 13 }}>Teaching scope</div>
           <strong style={{ display: "block", marginTop: 6 }}>{scopeSummary}</strong>
         </div>
         <div style={workflowStyles.summaryMetric}>
-          <div style={{ color: "#475569", fontSize: 13 }}>Join code</div>
+          <div style={{ color: webTheme.colors.textMuted, fontSize: 13 }}>Join code</div>
           <strong style={{ display: "block", marginTop: 6 }}>
             {props.joinCode ?? "Not loaded yet"}
           </strong>
         </div>
         <div style={workflowStyles.summaryMetric}>
-          <div style={{ color: "#475569", fontSize: 13 }}>Attendance mode</div>
+          <div style={{ color: webTheme.colors.textMuted, fontSize: 13 }}>Attendance mode</div>
           <strong style={{ display: "block", marginTop: 6 }}>
             {formatTeacherWebAttendanceModeLabel(props.classroom.defaultAttendanceMode)}
           </strong>
