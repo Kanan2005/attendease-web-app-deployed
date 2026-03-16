@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./animated": "./src/animated.tsx"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json",
@@ -12,5 +13,22 @@
     "lint": "biome check src package.json tsconfig.json",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@expo/vector-icons": "*",
+    "expo-haptics": "*",
+    "expo-linear-gradient": "*",
+    "react": "*",
+    "react-native": "*",
+    "react-native-reanimated": "*"
+  },
+  "devDependencies": {
+    "@expo/vector-icons": "^15.1.1",
+    "@types/react": "^19.2.2",
+    "expo-haptics": "^55.0.8",
+    "expo-linear-gradient": "^55.0.8",
+    "react": "^19.2.4",
+    "react-native": "^0.83.2",
+    "react-native-reanimated": "^4.2.2"
   }
 }

@@ -20,6 +20,7 @@ import {
 } from "@attendease/domain"
 import { webTheme } from "@attendease/ui-web"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { AnimatePresence, motion } from "framer-motion"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -98,6 +99,15 @@ import {
   workflowStyles,
 } from "./shared"
 
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.06, duration: 0.4, ease: [0.16, 1, 0.3, 1] },
+  }),
+}
+
 export function TeacherClassroomListWorkspace(props: {
   accessToken: string | null
 }) {
@@ -120,159 +130,168 @@ export function TeacherClassroomListWorkspace(props: {
     : []
 
   return (
-    <div style={workflowStyles.grid}>
-      <WebSectionCard
-        title="Classroom management"
-        description="Open the classroom you want to teach, update course details, or create a new classroom from the same workspace."
-      >
-        <div style={workflowStyles.summaryGrid}>
-          <div style={workflowStyles.summaryMetric}>
-            <div style={{ color: "#475569", fontSize: 13 }}>Classrooms in view</div>
-            <strong style={{ display: "block", fontSize: 24, marginTop: 6 }}>
-              {classroomCards.length}
-            </strong>
-          </div>
-          <div style={workflowStyles.summaryMetric}>
-            <div style={{ color: "#475569", fontSize: 13 }}>QR-ready classrooms</div>
-            <strong style={{ display: "block", fontSize: 24, marginTop: 6 }}>
-              {
-                classroomCards.filter((classroom) => classroom.attendanceModeLabel === "QR + GPS")
-                  .length
-              }
-            </strong>
-          </div>
-          <div style={workflowStyles.summaryMetric}>
-            <div style={{ color: "#475569", fontSize: 13 }}>Course setup changes</div>
-            <strong style={{ display: "block", fontSize: 24, marginTop: 6 }}>
-              {classroomCards.filter((classroom) => classroom.canEdit).length}
-            </strong>
-          </div>
+    <div style={{ display: "grid", gap: 32 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <h1
+            style={{
+              margin: 0,
+              fontSize: 32,
+              fontWeight: 700,
+              color: webTheme.colors.text,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Your classrooms
+          </h1>
+          <p style={{ margin: "8px 0 0", color: webTheme.colors.textMuted, fontSize: 15 }}>
+            {classroomCards.length} classroom{classroomCards.length !== 1 ? "s" : ""}
+          </p>
         </div>
 
-        <div style={{ ...workflowStyles.buttonRow, marginTop: 16 }}>
-          <Link href={teacherWorkflowRoutes.classroomCreate} style={workflowStyles.primaryButton}>
-            Create classroom
-          </Link>
-          <Link href={teacherWorkflowRoutes.sessionHistory} style={workflowStyles.secondaryButton}>
-            Attendance sessions
-          </Link>
-          <Link href={teacherWorkflowRoutes.imports} style={workflowStyles.secondaryButton}>
-            Import status
-          </Link>
-        </div>
-      </WebSectionCard>
+        <Link
+          href={teacherWorkflowRoutes.classroomCreate}
+          style={{
+            ...workflowStyles.primaryButton,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          + Create classroom
+        </Link>
+      </div>
 
-      <WebSectionCard
-        title="Classrooms"
-        description="Course code, teaching scope, attendance mode, and quick actions stay together so teachers do not bounce between separate tools."
-      >
-        {!props.accessToken ? (
-          <WorkflowStateCard message="Sign in to load your classroom list." />
-        ) : (
-          <div style={workflowStyles.grid}>
-            <label style={{ display: "grid", gap: 6, maxWidth: 260 }}>
-              <span>Filter classrooms</span>
-              <select
-                value={statusFilter}
-                onChange={(event) =>
-                  setStatusFilter(event.target.value as CourseOfferingStatus | "ALL")
-                }
-                style={workflowStyles.input}
+      {!props.accessToken ? (
+        <WorkflowStateCard message="Sign in to load your classrooms." />
+      ) : null}
+
+      {classroomsQuery.isLoading ? (
+        <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))" }}>
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              style={{
+                borderRadius: webTheme.radius.card,
+                background: webTheme.colors.surfaceRaised,
+                border: `1px solid ${webTheme.colors.border}`,
+                height: 200,
+                animation: "pulse 1.5s ease-in-out infinite",
+              }}
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {classroomsQuery.isError ? (
+        <WorkflowBanner
+          tone="danger"
+          message={
+            classroomsQuery.error instanceof Error
+              ? classroomsQuery.error.message
+              : "Failed to load classrooms."
+          }
+        />
+      ) : null}
+
+      {classroomsQuery.data && classroomsQuery.data.length === 0 ? (
+        <div
+          style={{
+            textAlign: "center",
+            padding: "64px 24px",
+            color: webTheme.colors.textMuted,
+          }}
+        >
+          <p style={{ fontSize: 18, fontWeight: 600, color: webTheme.colors.text }}>
+            No classrooms yet
+          </p>
+          <p style={{ marginTop: 8, fontSize: 15 }}>
+            Create your first classroom to get started with attendance.
+          </p>
+        </div>
+      ) : null}
+
+      {classroomCards.length > 0 ? (
+        <div style={workflowStyles.cardGrid}>
+          <AnimatePresence>
+            {classroomCards.map((classroom, index) => (
+              <motion.div
+                key={classroom.classroomId}
+                custom={index}
+                variants={cardVariants}
+                initial="hidden"
+                animate="visible"
+                whileHover={{
+                  scale: 1.02,
+                  borderColor: "rgba(255,255,255,0.15)",
+                  transition: { duration: 0.2 },
+                }}
+                whileTap={{ scale: 0.98 }}
+                style={{
+                  borderRadius: webTheme.radius.card,
+                  border: `1px solid ${webTheme.colors.border}`,
+                  background: webTheme.colors.surfaceRaised,
+                  padding: 24,
+                  cursor: "pointer",
+                  position: "relative",
+                  overflow: "hidden",
+                }}
               >
-                <option value="ALL">All statuses</option>
-                <option value="DRAFT">Draft</option>
-                <option value="ACTIVE">Active</option>
-                <option value="COMPLETED">Completed</option>
-                <option value="ARCHIVED">Archived</option>
-              </select>
-            </label>
-
-            {classroomsQuery.isLoading ? (
-              <WorkflowStateCard message="Loading classrooms..." />
-            ) : null}
-            {classroomsQuery.isError ? (
-              <WorkflowBanner
-                tone="danger"
-                message={
-                  classroomsQuery.error instanceof Error
-                    ? classroomsQuery.error.message
-                    : "Failed to load classrooms."
-                }
-              />
-            ) : null}
-            {classroomsQuery.data && classroomsQuery.data.length === 0 ? (
-              <WorkflowStateCard message="No classrooms matched the selected status filter." />
-            ) : null}
-
-            {classroomCards.length > 0 ? (
-              <div style={workflowStyles.cardGrid}>
-                {classroomCards.map((classroom) => (
-                  <div key={classroom.classroomId} style={workflowStyles.rowCard}>
-                    <div style={{ display: "grid", gap: 10 }}>
-                      <div>
-                        <div style={{ color: "#475569", fontSize: 13 }}>{classroom.courseCode}</div>
-                        <strong style={{ display: "block", fontSize: 20, marginTop: 4 }}>
-                          {classroom.classroomTitle}
-                        </strong>
-                        <p style={{ margin: "8px 0 0", color: "#64748b", lineHeight: 1.5 }}>
-                          {classroom.scopeSummary}
-                        </p>
-                      </div>
-
-                      <div style={workflowStyles.buttonRow}>
-                        <span style={workflowStyles.pill}>{classroom.statusLabel}</span>
-                        <span style={workflowStyles.pill}>{classroom.attendanceModeLabel}</span>
-                      </div>
-
-                      <div style={{ color: "#475569", lineHeight: 1.6 }}>
-                        Join code: {classroom.joinCodeLabel}
-                        <br />
-                        {classroom.deviceRuleLabel}
-                      </div>
-
-                      <div style={workflowStyles.buttonRow}>
-                        <Link
-                          href={teacherWorkflowRoutes.classroomDetail(classroom.classroomId)}
-                          style={workflowStyles.primaryButton}
-                        >
-                          Manage course
-                        </Link>
-                        <Link
-                          href={teacherWorkflowRoutes.classroomRoster(classroom.classroomId)}
-                          style={workflowStyles.secondaryButton}
-                        >
-                          Roster
-                        </Link>
-                        <Link
-                          href={teacherWorkflowRoutes.classroomSchedule(classroom.classroomId)}
-                          style={workflowStyles.secondaryButton}
-                        >
-                          Schedule
-                        </Link>
-                      </div>
-
-                      <div style={workflowStyles.buttonRow}>
-                        <Link
-                          href={teacherWorkflowRoutes.classroomStream(classroom.classroomId)}
-                          style={workflowStyles.secondaryButton}
-                        >
-                          Updates
-                        </Link>
-                        <Link
-                          href={teacherWorkflowRoutes.classroomDetail(classroom.classroomId)}
-                          style={workflowStyles.secondaryButton}
-                        >
-                          Open QR tools
-                        </Link>
-                      </div>
-                    </div>
+                <Link
+                  href={teacherWorkflowRoutes.classroomDetail(classroom.classroomId)}
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                    display: "grid",
+                    gap: 14,
+                  }}
+                >
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <span style={workflowStyles.pill}>{classroom.statusLabel}</span>
+                    <span style={workflowStyles.pill}>{classroom.attendanceModeLabel}</span>
                   </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        )}
-      </WebSectionCard>
+
+                  <div>
+                    <span style={{ color: webTheme.colors.textSubtle, fontSize: 12, fontWeight: 500, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                      {classroom.courseCode}
+                    </span>
+                    <h3 style={{ margin: "6px 0 0", fontSize: 20, fontWeight: 600, color: webTheme.colors.text, lineHeight: 1.3 }}>
+                      {classroom.classroomTitle}
+                    </h3>
+                  </div>
+
+                  <p style={{ margin: 0, color: webTheme.colors.textMuted, fontSize: 14, lineHeight: 1.5 }}>
+                    {classroom.scopeSummary}
+                  </p>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      paddingTop: 10,
+                      borderTop: `1px solid ${webTheme.colors.border}`,
+                    }}
+                  >
+                    <span style={{ color: webTheme.colors.textSubtle, fontSize: 13 }}>
+                      {classroom.joinCodeLabel}
+                    </span>
+                    <span
+                      style={{
+                        color: webTheme.colors.accent,
+                        fontSize: 13,
+                        fontWeight: 600,
+                      }}
+                    >
+                      Open →
+                    </span>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      ) : null}
     </div>
   )
 }

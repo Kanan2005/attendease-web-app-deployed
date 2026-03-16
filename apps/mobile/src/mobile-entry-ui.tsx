@@ -1,7 +1,10 @@
 import { mobileTheme } from "@attendease/ui-mobile"
+import { AnimatedButton, AnimatedCard, GradientHeader } from "@attendease/ui-mobile/animated"
+import { Ionicons } from "@expo/vector-icons"
 import { Link } from "expo-router"
 import type { ReactNode } from "react"
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
+import Animated, { FadeInDown } from "react-native-reanimated"
 
 import { mobileEntryRoutes } from "./mobile-entry-models"
 import type { MobileAuthFormState, MobileEntryCardModel } from "./mobile-entry-models"
@@ -17,26 +20,19 @@ export function MobileAuthScreen(props: {
 }) {
   return (
     <ScrollView contentContainerStyle={styles.screenContent} style={styles.screen}>
-      <View style={styles.heroBlock}>
-        <Text style={styles.eyebrow}>
-          {props.entryRole === "student" ? "Student" : "Teacher"} mobile
-        </Text>
-        <Text style={styles.heroTitle}>{props.formState.title}</Text>
-        <Text style={styles.heroSubtitle}>{props.formState.subtitle}</Text>
-      </View>
+      <GradientHeader
+        eyebrow={props.entryRole === "student" ? "Student" : "Teacher"}
+        title={props.formState.title}
+        subtitle={props.formState.subtitle}
+      />
 
-      <View style={styles.entryCard}>
+      <AnimatedCard index={1}>
         {props.children}
-        <Pressable
-          style={[
-            styles.primaryButton,
-            props.formState.isSubmitting || !props.canSubmit ? styles.disabledButton : null,
-          ]}
-          disabled={props.formState.isSubmitting || !props.canSubmit}
+        <AnimatedButton
+          label={props.formState.submitLabel}
           onPress={props.onSubmit}
-        >
-          <Text style={styles.primaryButtonLabel}>{props.formState.submitLabel}</Text>
-        </Pressable>
+          disabled={props.formState.isSubmitting || !props.canSubmit}
+        />
         <Text style={styles.helperText}>{props.formState.helperText}</Text>
         {props.formState.errorMessage ? (
           <Text style={styles.errorText}>{props.formState.errorMessage}</Text>
@@ -51,41 +47,58 @@ export function MobileAuthScreen(props: {
             <Text style={styles.inlineLinkLabel}>Back to role choice</Text>
           </Pressable>
         </Link>
-      </View>
+      </AnimatedCard>
     </ScrollView>
   )
 }
 
 export function EntryRoleCard(props: { card: MobileEntryCardModel; onSignOut: () => void }) {
   const isStudent = props.card.role === "student"
+  const iconName = isStudent ? "school-outline" : "easel-outline"
 
   return (
-    <View style={styles.entryCard}>
-      <Text style={styles.cardEyebrow}>{isStudent ? "Student" : "Teacher"}</Text>
-      <Text style={styles.cardTitle}>{props.card.title}</Text>
+    <AnimatedCard index={isStudent ? 1 : 2}>
+      <View style={styles.roleHeader}>
+        <View style={styles.roleIconWrap}>
+          <Ionicons name={iconName} size={24} color={mobileTheme.colors.primary} />
+        </View>
+        <Text style={styles.cardEyebrow}>{isStudent ? "Student" : "Teacher"}</Text>
+      </View>
+      <Animated.Text entering={FadeInDown.delay(200).duration(400)} style={styles.cardTitle}>
+        {props.card.title}
+      </Animated.Text>
       <Text style={styles.cardDescription}>{props.card.description}</Text>
       {props.card.sessionSummary ? (
-        <Text style={styles.sessionSummary}>{props.card.sessionSummary}</Text>
+        <View style={styles.sessionBadge}>
+          <Ionicons name="checkmark-circle" size={16} color={mobileTheme.colors.success} />
+          <Text style={styles.sessionSummary}>{props.card.sessionSummary}</Text>
+        </View>
       ) : null}
       <View style={styles.buttonColumn}>
         <Link href={props.card.primaryHref} asChild>
-          <Pressable style={styles.primaryButton}>
-            <Text style={styles.primaryButtonLabel}>{props.card.primaryLabel}</Text>
+          <Pressable>
+            <AnimatedButton label={props.card.primaryLabel} onPress={() => {}} />
           </Pressable>
         </Link>
         {props.card.canSignOut ? (
-          <Pressable style={styles.secondaryButton} onPress={props.onSignOut}>
-            <Text style={styles.secondaryButtonLabel}>{props.card.secondaryLabel}</Text>
-          </Pressable>
+          <AnimatedButton
+            label={props.card.secondaryLabel}
+            variant="secondary"
+            onPress={props.onSignOut}
+          />
         ) : props.card.secondaryHref ? (
           <Link href={props.card.secondaryHref} asChild>
-            <Pressable style={styles.secondaryButton}>
-              <Text style={styles.secondaryButtonLabel}>{props.card.secondaryLabel}</Text>
+            <Pressable>
+              <AnimatedButton
+                label={props.card.secondaryLabel}
+                variant="secondary"
+                onPress={() => {}}
+              />
             </Pressable>
           </Link>
         ) : null}
       </View>
-    </View>
+    </AnimatedCard>
   )
 }
 
@@ -96,64 +109,28 @@ const styles = StyleSheet.create({
   },
   screenContent: {
     padding: mobileTheme.spacing.xl,
+    paddingBottom: mobileTheme.spacing.xxxl,
     gap: mobileTheme.spacing.xl,
   },
-  heroBlock: {
+  roleHeader: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: mobileTheme.spacing.sm,
-    paddingTop: mobileTheme.spacing.xl,
-    paddingHorizontal: mobileTheme.spacing.lg,
-    paddingBottom: mobileTheme.spacing.lg,
-    borderRadius: mobileTheme.radius.card,
-    borderWidth: 1,
-    borderColor: mobileTheme.colors.border,
-    backgroundColor: mobileTheme.colors.surfaceRaised,
-    shadowColor: mobileTheme.colors.primary,
-    shadowOffset: {
-      width: 0,
-      height: 18,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 28,
   },
-  eyebrow: {
-    color: mobileTheme.colors.accent,
-    fontSize: mobileTheme.typography.eyebrow,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-  },
-  heroTitle: {
-    color: mobileTheme.colors.text,
-    fontSize: mobileTheme.typography.hero,
-    fontWeight: "800",
-    lineHeight: 44,
-  },
-  heroSubtitle: {
-    color: mobileTheme.colors.textMuted,
-    fontSize: mobileTheme.typography.body,
-    lineHeight: 24,
-  },
-  entryCard: {
-    gap: mobileTheme.spacing.md,
-    padding: mobileTheme.spacing.xl,
-    backgroundColor: mobileTheme.colors.surfaceRaised,
-    borderRadius: mobileTheme.radius.card,
-    borderWidth: 1,
-    borderColor: mobileTheme.colors.border,
-    shadowColor: mobileTheme.colors.primary,
-    shadowOffset: {
-      width: 0,
-      height: 18,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 32,
+  roleIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: mobileTheme.radius.full,
+    backgroundColor: mobileTheme.colors.surfaceHero,
+    alignItems: "center",
+    justifyContent: "center",
   },
   cardEyebrow: {
-    color: mobileTheme.colors.accent,
+    color: mobileTheme.colors.primary,
     fontSize: mobileTheme.typography.bodySmall,
     fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 0.6,
+    letterSpacing: 1,
   },
   cardTitle: {
     color: mobileTheme.colors.text,
@@ -165,51 +142,24 @@ const styles = StyleSheet.create({
     fontSize: mobileTheme.typography.body,
     lineHeight: 24,
   },
+  sessionBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: mobileTheme.colors.successSoft,
+    borderRadius: mobileTheme.radius.chip,
+    paddingHorizontal: mobileTheme.spacing.md,
+    paddingVertical: mobileTheme.spacing.xs,
+    alignSelf: "flex-start",
+  },
   sessionSummary: {
-    color: mobileTheme.colors.text,
+    color: mobileTheme.colors.success,
     fontSize: mobileTheme.typography.bodySmall,
     fontWeight: "600",
-    backgroundColor: mobileTheme.colors.surfaceHero,
-    borderRadius: mobileTheme.radius.button,
-    paddingHorizontal: mobileTheme.spacing.md,
-    paddingVertical: mobileTheme.spacing.sm,
   },
   buttonColumn: {
     gap: mobileTheme.spacing.sm,
-  },
-  primaryButton: {
-    borderRadius: mobileTheme.radius.button,
-    backgroundColor: mobileTheme.colors.primary,
-    paddingVertical: mobileTheme.spacing.md,
-    alignItems: "center",
-    shadowColor: mobileTheme.colors.primaryStrong,
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.14,
-    shadowRadius: 16,
-  },
-  disabledButton: {
-    opacity: 0.7,
-  },
-  primaryButtonLabel: {
-    color: mobileTheme.colors.primaryContrast,
-    fontSize: mobileTheme.typography.body,
-    fontWeight: "700",
-  },
-  secondaryButton: {
-    borderRadius: mobileTheme.radius.button,
-    borderWidth: 1,
-    borderColor: mobileTheme.colors.border,
-    backgroundColor: mobileTheme.colors.surfaceRaised,
-    paddingVertical: mobileTheme.spacing.md,
-    alignItems: "center",
-  },
-  secondaryButtonLabel: {
-    color: mobileTheme.colors.text,
-    fontSize: mobileTheme.typography.body,
-    fontWeight: "700",
+    marginTop: mobileTheme.spacing.sm,
   },
   helperText: {
     color: mobileTheme.colors.textMuted,
@@ -225,7 +175,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   inlineLinkLabel: {
-    color: mobileTheme.colors.accent,
+    color: mobileTheme.colors.primary,
     fontSize: mobileTheme.typography.bodySmall,
     fontWeight: "700",
   },
@@ -233,10 +183,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: mobileTheme.colors.borderStrong,
     borderRadius: mobileTheme.radius.button,
-    paddingHorizontal: mobileTheme.spacing.md,
+    paddingHorizontal: mobileTheme.spacing.lg,
     paddingVertical: mobileTheme.spacing.md,
-    backgroundColor: mobileTheme.colors.surfaceRaised,
+    backgroundColor: mobileTheme.colors.surfaceMuted,
     color: mobileTheme.colors.text,
+    fontSize: mobileTheme.typography.body,
   },
   helperNote: {
     color: mobileTheme.colors.textMuted,

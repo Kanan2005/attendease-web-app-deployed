@@ -18,6 +18,8 @@ import {
   updateAttendanceEditDraft,
 } from "@attendease/domain"
 import { mobileTheme } from "@attendease/ui-mobile"
+import { AnimatedCard, GradientHeader } from "@attendease/ui-mobile/animated"
+import { Ionicons } from "@expo/vector-icons"
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link, useRouter } from "expo-router"
 import { useEffect, useState } from "react"
@@ -31,6 +33,7 @@ import {
   TextInput,
   View,
 } from "react-native"
+import Animated, { FadeInDown } from "react-native-reanimated"
 
 import { buildTeacherSchedulingPreview } from "../academic-management"
 import {
@@ -128,10 +131,7 @@ export function TeacherScreen(props: { title: string; subtitle: string; children
       contentContainerStyle={styles.screenContent}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={styles.headerBlock}>
-        <Text style={styles.screenTitle}>{props.title}</Text>
-        <Text style={styles.screenSubtitle}>{props.subtitle}</Text>
-      </View>
+      <GradientHeader title={props.title} subtitle={props.subtitle} eyebrow="Teacher" />
       {props.children}
     </ScrollView>
   )
@@ -167,10 +167,13 @@ export function TeacherStatusBanner(props: {
   }
 }) {
   return (
-    <View style={[styles.statusBanner, statusCardToneStyle(props.status.tone)]}>
+    <Animated.View
+      entering={FadeInDown.duration(400)}
+      style={[styles.statusBanner, statusCardToneStyle(props.status.tone)]}
+    >
       <Text style={styles.statusBannerTitle}>{props.status.title}</Text>
       <Text style={styles.statusText}>{props.status.message}</Text>
-    </View>
+    </Animated.View>
   )
 }
 
@@ -199,36 +202,44 @@ export function TeacherNavAction(props: {
 
 export function TeacherCard(props: { title: string; subtitle?: string; children: ReactNode }) {
   return (
-    <View style={styles.card}>
+    <AnimatedCard>
       <Text style={styles.cardTitle}>{props.title}</Text>
       {props.subtitle ? <Text style={styles.cardSubtitle}>{props.subtitle}</Text> : null}
       <View style={styles.cardBody}>{props.children}</View>
-    </View>
+    </AnimatedCard>
   )
 }
 
 export function TeacherLoadingCard(props: { label: string }) {
   return (
-    <View style={styles.statusCard}>
+    <Animated.View entering={FadeInDown.duration(300)} style={styles.statusCard}>
       <ActivityIndicator color={mobileTheme.colors.primary} />
       <Text style={styles.statusText}>{props.label}</Text>
-    </View>
+    </Animated.View>
   )
 }
 
 export function TeacherErrorCard(props: { label: string }) {
   return (
-    <View style={[styles.statusCard, styles.errorCard]}>
+    <Animated.View
+      entering={FadeInDown.duration(300)}
+      style={[styles.statusCard, styles.errorCard]}
+    >
+      <Ionicons name="alert-circle" size={20} color={mobileTheme.colors.danger} />
       <Text style={styles.errorText}>{props.label}</Text>
-    </View>
+    </Animated.View>
   )
 }
 
 export function TeacherEmptyCard(props: { label: string }) {
   return (
-    <View style={[styles.statusCard, styles.emptyCard]}>
+    <Animated.View
+      entering={FadeInDown.duration(300)}
+      style={[styles.statusCard, styles.emptyCard]}
+    >
+      <Ionicons name="folder-open-outline" size={20} color={mobileTheme.colors.textSubtle} />
       <Text style={styles.statusText}>{props.label}</Text>
-    </View>
+    </Animated.View>
   )
 }
 

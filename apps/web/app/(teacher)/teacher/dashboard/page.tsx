@@ -1,6 +1,8 @@
-import { buildTeacherDashboardPageModel } from "../../../../src/web-portal"
-import { WebPortalPage } from "../../../../src/web-shell"
+import { TeacherClassroomListWorkspace } from "../../../../src/teacher-workflows-client"
+import { getWebPortalSession } from "../../../../src/web-session"
 
-export default function TeacherDashboardPage() {
-  return <WebPortalPage model={buildTeacherDashboardPageModel()} />
+export default async function TeacherDashboardPage() {
+  const session = await getWebPortalSession()
+
+  return <TeacherClassroomListWorkspace accessToken={session?.accessToken ?? null} />
 }

@@ -11,8 +11,6 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
 import expo.modules.ReactActivityDelegateWrapper
 
 class MainActivity : ReactActivity() {
-  private var skippedInitialWindowFocus = false
-
   override fun onCreate(savedInstanceState: Bundle?) {
     // Set the theme to AppTheme BEFORE onCreate to support
     // coloring the background, status bar, and navigation bar.
@@ -26,15 +24,6 @@ class MainActivity : ReactActivity() {
    * rendering of the component.
    */
   override fun getMainComponentName(): String = "main"
-
-  override fun onWindowFocusChanged(hasFocus: Boolean) {
-    if (hasFocus && !skippedInitialWindowFocus) {
-      skippedInitialWindowFocus = true
-      return
-    }
-
-    super.onWindowFocusChanged(hasFocus)
-  }
 
   /**
    * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]

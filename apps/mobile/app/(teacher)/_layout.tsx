@@ -1,4 +1,6 @@
-import { Redirect, Stack } from "expo-router"
+import { mobileTheme } from "@attendease/ui-mobile"
+import { Ionicons } from "@expo/vector-icons"
+import { Redirect, Tabs } from "expo-router"
 
 import { mobileEntryRoutes, resolveMobileRoleGate } from "../../src/mobile-entry-models"
 import { useTeacherSession } from "../../src/teacher-session"
@@ -12,96 +14,69 @@ export default function TeacherLayout() {
   }
 
   return (
-    <Stack
+    <Tabs
       screenOptions={{
-        headerShown: true,
-        headerStyle: {
-          backgroundColor: "#f8fafc",
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: mobileTheme.colors.tabBar,
+          borderTopColor: mobileTheme.colors.border,
+          borderTopWidth: 1,
+          height: 64,
+          paddingBottom: 8,
+          paddingTop: 6,
         },
-        headerTintColor: "#0f172a",
-        headerTitleStyle: {
-          fontWeight: "700",
+        tabBarActiveTintColor: mobileTheme.colors.tabActive,
+        tabBarInactiveTintColor: mobileTheme.colors.tabInactive,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: "600",
         },
       }}
     >
-      <Stack.Screen
+      <Tabs.Screen
         name="index"
         options={{
           title: "Home",
+          tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
         }}
       />
-      <Stack.Screen
+      <Tabs.Screen
         name="classrooms/index"
         options={{
           title: "Classrooms",
+          tabBarIcon: ({ color, size }) => <Ionicons name="school" size={size} color={color} />,
         }}
       />
-      <Stack.Screen
-        name="sessions/index"
-        options={{
-          title: "Session History",
-        }}
-      />
-      <Stack.Screen
+      <Tabs.Screen
         name="bluetooth/create"
         options={{
-          title: "Bluetooth Attendance",
+          title: "Session",
+          tabBarIcon: ({ color, size }) => <Ionicons name="bluetooth" size={size} color={color} />,
         }}
       />
-      <Stack.Screen
-        name="bluetooth/active/[sessionId]"
-        options={{
-          title: "Live Bluetooth Session",
-        }}
-      />
-      <Stack.Screen
-        name="sessions/[sessionId]"
-        options={{
-          title: "Session Detail",
-        }}
-      />
-      <Stack.Screen
+      <Tabs.Screen
         name="reports/index"
         options={{
           title: "Reports",
+          tabBarIcon: ({ color, size }) => <Ionicons name="bar-chart" size={size} color={color} />,
         }}
       />
-      <Stack.Screen
+      <Tabs.Screen
         name="exports/index"
         options={{
           title: "Exports",
+          tabBarIcon: ({ color, size }) => <Ionicons name="download" size={size} color={color} />,
         }}
       />
-      <Stack.Screen
-        name="classrooms/[classroomId]"
-        options={{
-          title: "Classroom Detail",
-        }}
-      />
-      <Stack.Screen
-        name="classrooms/[classroomId]/roster"
-        options={{
-          title: "Classroom Roster",
-        }}
-      />
-      <Stack.Screen
-        name="classrooms/[classroomId]/schedule"
-        options={{
-          title: "Classroom Schedule",
-        }}
-      />
-      <Stack.Screen
-        name="classrooms/[classroomId]/announcements"
-        options={{
-          title: "Announcements",
-        }}
-      />
-      <Stack.Screen
-        name="classrooms/[classroomId]/lectures"
-        options={{
-          title: "Lectures",
-        }}
-      />
-    </Stack>
+      {/* Hidden detail screens */}
+      <Tabs.Screen name="sessions/index" options={{ href: null }} />
+      <Tabs.Screen name="sessions/[sessionId]" options={{ href: null }} />
+      <Tabs.Screen name="bluetooth/active/[sessionId]" options={{ href: null }} />
+      <Tabs.Screen name="classrooms/[classroomId]" options={{ href: null }} />
+      <Tabs.Screen name="classrooms/[classroomId]/roster" options={{ href: null }} />
+      <Tabs.Screen name="classrooms/[classroomId]/schedule" options={{ href: null }} />
+      <Tabs.Screen name="classrooms/[classroomId]/announcements" options={{ href: null }} />
+      <Tabs.Screen name="classrooms/[classroomId]/lectures" options={{ href: null }} />
+    </Tabs>
   )
 }

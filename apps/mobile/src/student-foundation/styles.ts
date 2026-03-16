@@ -8,25 +8,19 @@ export const styles = StyleSheet.create({
   },
   screenContent: {
     paddingHorizontal: mobileTheme.spacing.xl,
-    paddingTop: mobileTheme.spacing.xl,
-    paddingBottom: mobileTheme.spacing.xxl,
+    paddingTop: mobileTheme.spacing.lg,
+    paddingBottom: mobileTheme.spacing.xxxl,
     gap: mobileTheme.spacing.lg,
   },
   headerBlock: {
     gap: mobileTheme.spacing.sm,
-    paddingHorizontal: mobileTheme.spacing.md,
-    paddingVertical: mobileTheme.spacing.lg,
+    paddingHorizontal: mobileTheme.spacing.lg,
+    paddingVertical: mobileTheme.spacing.xl,
     borderRadius: mobileTheme.radius.card,
     borderWidth: 1,
-    borderColor: mobileTheme.colors.border,
-    backgroundColor: mobileTheme.colors.surfaceRaised,
-    shadowColor: mobileTheme.colors.primary,
-    shadowOffset: {
-      width: 0,
-      height: 18,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 28,
+    borderColor: mobileTheme.colors.borderAccent,
+    backgroundColor: mobileTheme.colors.surfaceHero,
+    ...mobileTheme.shadow.glow,
   },
   screenTitle: {
     color: mobileTheme.colors.text,
@@ -39,10 +33,11 @@ export const styles = StyleSheet.create({
     lineHeight: 24,
   },
   cardEyebrow: {
-    fontSize: 12,
+    fontSize: mobileTheme.typography.eyebrow,
     fontWeight: "700",
     letterSpacing: 1.2,
     textTransform: "uppercase",
+    color: mobileTheme.colors.primary,
   },
   card: {
     backgroundColor: mobileTheme.colors.surfaceRaised,
@@ -51,17 +46,11 @@ export const styles = StyleSheet.create({
     gap: mobileTheme.spacing.md,
     borderWidth: 1,
     borderColor: mobileTheme.colors.border,
-    shadowColor: mobileTheme.colors.primary,
-    shadowOffset: {
-      width: 0,
-      height: 18,
-    },
-    shadowOpacity: 0.09,
-    shadowRadius: 32,
+    ...mobileTheme.shadow.card,
   },
   cardTitle: {
     color: mobileTheme.colors.text,
-    fontSize: 22,
+    fontSize: mobileTheme.typography.title,
     fontWeight: "700",
   },
   cardSubtitle: {
@@ -73,7 +62,7 @@ export const styles = StyleSheet.create({
     gap: 10,
   },
   spotlightPrimary: {
-    borderColor: mobileTheme.colors.borderStrong,
+    borderColor: mobileTheme.colors.borderAccent,
     backgroundColor: mobileTheme.colors.surfaceHero,
   },
   spotlightSuccess: {
@@ -90,9 +79,9 @@ export const styles = StyleSheet.create({
   },
   spotlightTitle: {
     color: mobileTheme.colors.text,
-    fontSize: 26,
-    fontWeight: "700",
-    lineHeight: 32,
+    fontSize: 24,
+    fontWeight: "800",
+    lineHeight: 30,
   },
   spotlightMessage: {
     color: mobileTheme.colors.textMuted,
@@ -106,15 +95,15 @@ export const styles = StyleSheet.create({
   },
   navButton: {
     borderRadius: mobileTheme.radius.button,
-    backgroundColor: mobileTheme.colors.surfaceRaised,
-    paddingHorizontal: mobileTheme.spacing.md,
+    backgroundColor: mobileTheme.colors.surfaceTint,
+    paddingHorizontal: mobileTheme.spacing.lg,
     paddingVertical: mobileTheme.spacing.md,
     borderWidth: 1,
     borderColor: mobileTheme.colors.border,
   },
   navButtonLabel: {
     color: mobileTheme.colors.text,
-    fontSize: 14,
+    fontSize: mobileTheme.typography.bodySmall,
     fontWeight: "700",
   },
   cardGrid: {
@@ -125,23 +114,23 @@ export const styles = StyleSheet.create({
   metricCard: {
     minWidth: "47%",
     flexGrow: 1,
-    borderRadius: 20,
+    borderRadius: mobileTheme.radius.card,
     backgroundColor: mobileTheme.colors.surfaceTint,
-    padding: mobileTheme.spacing.md,
-    gap: 6,
+    padding: mobileTheme.spacing.lg,
+    gap: 4,
     borderWidth: 1,
     borderColor: mobileTheme.colors.border,
   },
   metricLabel: {
     color: mobileTheme.colors.textSubtle,
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: mobileTheme.typography.eyebrow,
+    fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   metricValue: {
-    fontSize: 22,
-    fontWeight: "700",
+    fontSize: mobileTheme.typography.title,
+    fontWeight: "800",
   },
   primaryTone: {
     color: mobileTheme.colors.primary,
@@ -157,27 +146,27 @@ export const styles = StyleSheet.create({
   },
   listRow: {
     gap: 4,
-    paddingVertical: 4,
+    paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: mobileTheme.colors.border,
   },
   linkRow: {
     gap: 4,
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: mobileTheme.colors.border,
   },
   selectionRow: {
     gap: 4,
     padding: mobileTheme.spacing.md,
-    borderRadius: 18,
+    borderRadius: mobileTheme.radius.card,
     borderWidth: 1,
     borderColor: mobileTheme.colors.border,
     backgroundColor: mobileTheme.colors.surfaceRaised,
   },
   selectedRow: {
-    borderColor: mobileTheme.colors.accent,
-    backgroundColor: mobileTheme.colors.accentSoft,
+    borderColor: mobileTheme.colors.primary,
+    backgroundColor: "rgba(0, 212, 170, 0.08)",
   },
   listTitle: {
     color: mobileTheme.colors.text,
@@ -186,30 +175,31 @@ export const styles = StyleSheet.create({
   },
   listMeta: {
     color: mobileTheme.colors.textMuted,
-    fontSize: 13,
+    fontSize: mobileTheme.typography.caption,
     lineHeight: 18,
   },
   bodyText: {
     color: mobileTheme.colors.text,
-    fontSize: 14,
+    fontSize: mobileTheme.typography.bodySmall,
     lineHeight: 20,
   },
   input: {
     borderWidth: 1,
     borderColor: mobileTheme.colors.borderStrong,
     borderRadius: mobileTheme.radius.button,
-    paddingHorizontal: mobileTheme.spacing.md,
+    paddingHorizontal: mobileTheme.spacing.lg,
     paddingVertical: mobileTheme.spacing.md,
-    backgroundColor: mobileTheme.colors.surfaceRaised,
+    backgroundColor: mobileTheme.colors.surfaceMuted,
     color: mobileTheme.colors.text,
+    fontSize: mobileTheme.typography.body,
   },
   cameraPreviewFrame: {
     minHeight: 260,
-    borderRadius: 18,
+    borderRadius: mobileTheme.radius.card,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: mobileTheme.colors.borderStrong,
-    backgroundColor: mobileTheme.colors.primary,
+    backgroundColor: mobileTheme.colors.surfaceMuted,
   },
   cameraPreview: {
     flex: 1,
@@ -218,9 +208,10 @@ export const styles = StyleSheet.create({
   primaryButton: {
     borderRadius: mobileTheme.radius.button,
     backgroundColor: mobileTheme.colors.primary,
-    paddingHorizontal: mobileTheme.spacing.md,
-    paddingVertical: 15,
+    paddingHorizontal: mobileTheme.spacing.lg,
+    paddingVertical: mobileTheme.spacing.lg,
     alignItems: "center",
+    ...mobileTheme.shadow.glow,
   },
   primaryButtonLabel: {
     color: mobileTheme.colors.primaryContrast,
@@ -232,8 +223,8 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: mobileTheme.colors.border,
     backgroundColor: mobileTheme.colors.surfaceRaised,
-    paddingHorizontal: mobileTheme.spacing.md,
-    paddingVertical: 15,
+    paddingHorizontal: mobileTheme.spacing.lg,
+    paddingVertical: mobileTheme.spacing.lg,
     alignItems: "center",
   },
   secondaryButtonLabel: {
@@ -242,7 +233,7 @@ export const styles = StyleSheet.create({
     fontWeight: "700",
   },
   statusCard: {
-    borderRadius: 20,
+    borderRadius: mobileTheme.radius.card,
     padding: mobileTheme.spacing.lg,
     backgroundColor: mobileTheme.colors.surfaceRaised,
     borderWidth: 1,
@@ -255,7 +246,7 @@ export const styles = StyleSheet.create({
   },
   statusText: {
     color: mobileTheme.colors.textMuted,
-    fontSize: 14,
+    fontSize: mobileTheme.typography.bodySmall,
     lineHeight: 20,
   },
   errorCard: {
@@ -267,7 +258,7 @@ export const styles = StyleSheet.create({
     backgroundColor: mobileTheme.colors.surfaceTint,
   },
   infoCard: {
-    borderColor: mobileTheme.colors.borderStrong,
+    borderColor: mobileTheme.colors.borderAccent,
     backgroundColor: mobileTheme.colors.surfaceHero,
   },
   successCard: {
@@ -280,12 +271,12 @@ export const styles = StyleSheet.create({
   },
   errorText: {
     color: mobileTheme.colors.danger,
-    fontSize: 14,
+    fontSize: mobileTheme.typography.bodySmall,
     lineHeight: 20,
   },
   successText: {
     color: mobileTheme.colors.success,
-    fontSize: 14,
+    fontSize: mobileTheme.typography.bodySmall,
     lineHeight: 20,
   },
 })

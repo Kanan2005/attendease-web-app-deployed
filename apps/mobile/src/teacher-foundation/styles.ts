@@ -8,25 +8,19 @@ export const styles = StyleSheet.create({
   },
   screenContent: {
     paddingHorizontal: mobileTheme.spacing.xl,
-    paddingTop: mobileTheme.spacing.xl,
-    paddingBottom: mobileTheme.spacing.xxl,
+    paddingTop: mobileTheme.spacing.lg,
+    paddingBottom: mobileTheme.spacing.xxxl,
     gap: mobileTheme.spacing.lg,
   },
   headerBlock: {
     gap: mobileTheme.spacing.sm,
-    paddingHorizontal: mobileTheme.spacing.md,
-    paddingVertical: mobileTheme.spacing.lg,
+    paddingHorizontal: mobileTheme.spacing.lg,
+    paddingVertical: mobileTheme.spacing.xl,
     borderRadius: mobileTheme.radius.card,
     borderWidth: 1,
-    borderColor: mobileTheme.colors.border,
-    backgroundColor: mobileTheme.colors.surfaceRaised,
-    shadowColor: mobileTheme.colors.primary,
-    shadowOffset: {
-      width: 0,
-      height: 18,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 28,
+    borderColor: mobileTheme.colors.borderAccent,
+    backgroundColor: mobileTheme.colors.surfaceHero,
+    ...mobileTheme.shadow.glow,
   },
   screenTitle: {
     color: mobileTheme.colors.text,
@@ -45,17 +39,11 @@ export const styles = StyleSheet.create({
     gap: mobileTheme.spacing.md,
     borderWidth: 1,
     borderColor: mobileTheme.colors.border,
-    shadowColor: mobileTheme.colors.primary,
-    shadowOffset: {
-      width: 0,
-      height: 18,
-    },
-    shadowOpacity: 0.09,
-    shadowRadius: 32,
+    ...mobileTheme.shadow.card,
   },
   cardTitle: {
     color: mobileTheme.colors.text,
-    fontSize: 22,
+    fontSize: mobileTheme.typography.title,
     fontWeight: "700",
   },
   cardSubtitle: {
@@ -72,17 +60,11 @@ export const styles = StyleSheet.create({
     gap: 10,
   },
   statusBanner: {
-    borderRadius: 18,
-    padding: 18,
+    borderRadius: mobileTheme.radius.card,
+    padding: mobileTheme.spacing.lg,
     gap: 6,
     borderWidth: 1,
-    shadowColor: mobileTheme.colors.primary,
-    shadowOffset: {
-      width: 0,
-      height: 12,
-    },
-    shadowOpacity: 0.06,
-    shadowRadius: 20,
+    ...mobileTheme.shadow.card,
   },
   statusBannerTitle: {
     color: mobileTheme.colors.text,
@@ -91,7 +73,7 @@ export const styles = StyleSheet.create({
   },
   primaryStatusBanner: {
     backgroundColor: mobileTheme.colors.surfaceHero,
-    borderColor: mobileTheme.colors.borderStrong,
+    borderColor: mobileTheme.colors.borderAccent,
   },
   successStatusBanner: {
     backgroundColor: mobileTheme.colors.successSoft,
@@ -107,8 +89,8 @@ export const styles = StyleSheet.create({
   },
   navButton: {
     borderRadius: mobileTheme.radius.button,
-    backgroundColor: mobileTheme.colors.surfaceRaised,
-    paddingHorizontal: mobileTheme.spacing.md,
+    backgroundColor: mobileTheme.colors.surfaceTint,
+    paddingHorizontal: mobileTheme.spacing.lg,
     paddingVertical: mobileTheme.spacing.md,
     borderWidth: 1,
     borderColor: mobileTheme.colors.border,
@@ -116,19 +98,19 @@ export const styles = StyleSheet.create({
   primaryNavButton: {
     borderRadius: mobileTheme.radius.button,
     backgroundColor: mobileTheme.colors.primary,
-    paddingHorizontal: mobileTheme.spacing.md,
+    paddingHorizontal: mobileTheme.spacing.lg,
     paddingVertical: mobileTheme.spacing.md,
     borderWidth: 1,
     borderColor: mobileTheme.colors.primary,
   },
   navButtonLabel: {
     color: mobileTheme.colors.text,
-    fontSize: 14,
+    fontSize: mobileTheme.typography.bodySmall,
     fontWeight: "700",
   },
   primaryNavButtonLabel: {
     color: mobileTheme.colors.primaryContrast,
-    fontSize: 14,
+    fontSize: mobileTheme.typography.bodySmall,
     fontWeight: "700",
   },
   cardGrid: {
@@ -139,23 +121,23 @@ export const styles = StyleSheet.create({
   metricCard: {
     minWidth: "47%",
     flexGrow: 1,
-    borderRadius: 20,
+    borderRadius: mobileTheme.radius.card,
     backgroundColor: mobileTheme.colors.surfaceTint,
-    padding: mobileTheme.spacing.md,
-    gap: 6,
+    padding: mobileTheme.spacing.lg,
+    gap: 4,
     borderWidth: 1,
     borderColor: mobileTheme.colors.border,
   },
   metricLabel: {
     color: mobileTheme.colors.textSubtle,
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: mobileTheme.typography.eyebrow,
+    fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   metricValue: {
-    fontSize: 22,
-    fontWeight: "700",
+    fontSize: mobileTheme.typography.title,
+    fontWeight: "800",
   },
   primaryTone: {
     color: mobileTheme.colors.primary,
@@ -171,27 +153,27 @@ export const styles = StyleSheet.create({
   },
   listRow: {
     gap: 4,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: mobileTheme.colors.border,
   },
   linkRow: {
     gap: 4,
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: mobileTheme.colors.border,
   },
   highlightCard: {
     gap: 6,
-    borderRadius: 20,
+    borderRadius: mobileTheme.radius.card,
     backgroundColor: mobileTheme.colors.surfaceTint,
-    padding: mobileTheme.spacing.md,
+    padding: mobileTheme.spacing.lg,
     borderWidth: 1,
     borderColor: mobileTheme.colors.border,
   },
   selectedRow: {
-    borderRadius: 14,
-    backgroundColor: mobileTheme.colors.accentSoft,
+    borderRadius: mobileTheme.radius.button,
+    backgroundColor: "rgba(0, 212, 170, 0.08)",
     paddingHorizontal: 12,
   },
   memberCard: {
@@ -207,12 +189,12 @@ export const styles = StyleSheet.create({
   },
   listMeta: {
     color: mobileTheme.colors.textMuted,
-    fontSize: 13,
+    fontSize: mobileTheme.typography.caption,
     lineHeight: 18,
   },
   sectionTitle: {
     color: mobileTheme.colors.text,
-    fontSize: 14,
+    fontSize: mobileTheme.typography.bodySmall,
     fontWeight: "700",
   },
   sessionSection: {
@@ -221,9 +203,9 @@ export const styles = StyleSheet.create({
   },
   sessionStudentCard: {
     gap: 6,
-    borderRadius: 20,
+    borderRadius: mobileTheme.radius.card,
     backgroundColor: mobileTheme.colors.surfaceTint,
-    padding: mobileTheme.spacing.md,
+    padding: mobileTheme.spacing.lg,
     borderWidth: 1,
     borderColor: mobileTheme.colors.border,
   },
@@ -234,7 +216,7 @@ export const styles = StyleSheet.create({
     gap: 10,
   },
   statusChip: {
-    borderRadius: 999,
+    borderRadius: mobileTheme.radius.chip,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
@@ -251,23 +233,23 @@ export const styles = StyleSheet.create({
     backgroundColor: mobileTheme.colors.dangerSoft,
   },
   statusChipText: {
-    fontSize: 12,
+    fontSize: mobileTheme.typography.eyebrow,
     fontWeight: "700",
     color: mobileTheme.colors.text,
   },
   pendingText: {
-    color: mobileTheme.colors.accent,
-    fontSize: 13,
+    color: mobileTheme.colors.primary,
+    fontSize: mobileTheme.typography.caption,
     fontWeight: "600",
   },
   bodyText: {
     color: mobileTheme.colors.text,
-    fontSize: 14,
+    fontSize: mobileTheme.typography.bodySmall,
     lineHeight: 20,
   },
   fieldLabel: {
     color: mobileTheme.colors.text,
-    fontSize: 13,
+    fontSize: mobileTheme.typography.caption,
     fontWeight: "700",
     letterSpacing: 0.2,
   },
@@ -276,24 +258,25 @@ export const styles = StyleSheet.create({
   },
   selectionCard: {
     gap: 6,
-    borderRadius: 20,
+    borderRadius: mobileTheme.radius.card,
     backgroundColor: mobileTheme.colors.surfaceRaised,
-    padding: mobileTheme.spacing.md,
+    padding: mobileTheme.spacing.lg,
     borderWidth: 1,
     borderColor: mobileTheme.colors.border,
   },
   selectionCardActive: {
-    backgroundColor: mobileTheme.colors.accentSoft,
-    borderColor: mobileTheme.colors.accent,
+    backgroundColor: "rgba(0, 212, 170, 0.08)",
+    borderColor: mobileTheme.colors.primary,
   },
   input: {
     borderWidth: 1,
     borderColor: mobileTheme.colors.borderStrong,
     borderRadius: mobileTheme.radius.button,
-    paddingHorizontal: mobileTheme.spacing.md,
+    paddingHorizontal: mobileTheme.spacing.lg,
     paddingVertical: mobileTheme.spacing.md,
-    backgroundColor: mobileTheme.colors.surfaceRaised,
+    backgroundColor: mobileTheme.colors.surfaceMuted,
     color: mobileTheme.colors.text,
+    fontSize: mobileTheme.typography.body,
   },
   inputRow: {
     flexDirection: "row",
@@ -309,9 +292,10 @@ export const styles = StyleSheet.create({
   primaryButton: {
     borderRadius: mobileTheme.radius.button,
     backgroundColor: mobileTheme.colors.primary,
-    paddingHorizontal: mobileTheme.spacing.md,
-    paddingVertical: 15,
+    paddingHorizontal: mobileTheme.spacing.lg,
+    paddingVertical: mobileTheme.spacing.lg,
     alignItems: "center",
+    ...mobileTheme.shadow.glow,
   },
   primaryButtonLabel: {
     color: mobileTheme.colors.primaryContrast,
@@ -321,8 +305,8 @@ export const styles = StyleSheet.create({
   dangerButton: {
     borderRadius: mobileTheme.radius.button,
     backgroundColor: mobileTheme.colors.danger,
-    paddingHorizontal: mobileTheme.spacing.md,
-    paddingVertical: 15,
+    paddingHorizontal: mobileTheme.spacing.lg,
+    paddingVertical: mobileTheme.spacing.lg,
     alignItems: "center",
   },
   secondaryButton: {
@@ -330,8 +314,8 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: mobileTheme.colors.border,
     backgroundColor: mobileTheme.colors.surfaceRaised,
-    paddingHorizontal: mobileTheme.spacing.md,
-    paddingVertical: 15,
+    paddingHorizontal: mobileTheme.spacing.lg,
+    paddingVertical: mobileTheme.spacing.lg,
     alignItems: "center",
   },
   secondaryButtonLabel: {
@@ -340,17 +324,17 @@ export const styles = StyleSheet.create({
     fontWeight: "700",
   },
   selectedActionButton: {
-    borderColor: mobileTheme.colors.accent,
-    backgroundColor: mobileTheme.colors.accentSoft,
+    borderColor: mobileTheme.colors.primary,
+    backgroundColor: "rgba(0, 212, 170, 0.08)",
   },
   disabledButton: {
-    opacity: 0.55,
+    opacity: 0.5,
   },
   disabledSecondaryButton: {
-    opacity: 0.55,
+    opacity: 0.5,
   },
   statusCard: {
-    borderRadius: 20,
+    borderRadius: mobileTheme.radius.card,
     padding: mobileTheme.spacing.lg,
     backgroundColor: mobileTheme.colors.surfaceRaised,
     borderWidth: 1,
@@ -360,7 +344,7 @@ export const styles = StyleSheet.create({
   },
   statusText: {
     color: mobileTheme.colors.textMuted,
-    fontSize: 14,
+    fontSize: mobileTheme.typography.bodySmall,
     lineHeight: 20,
   },
   errorCard: {
@@ -373,12 +357,12 @@ export const styles = StyleSheet.create({
   },
   errorText: {
     color: mobileTheme.colors.danger,
-    fontSize: 14,
+    fontSize: mobileTheme.typography.bodySmall,
     lineHeight: 20,
   },
   successText: {
     color: mobileTheme.colors.success,
-    fontSize: 14,
+    fontSize: mobileTheme.typography.bodySmall,
     lineHeight: 20,
   },
 })

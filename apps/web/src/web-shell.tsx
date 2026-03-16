@@ -1,16 +1,13 @@
 import { webTheme } from "@attendease/ui-web"
 import type { ReactNode } from "react"
 
-import { WebPortalNav } from "./web-nav"
+import { WebProfileDropdown } from "./web-nav"
 import type { WebPortalAccessState, WebPortalPageModel, WebPortalSession } from "./web-portal"
 import {
   MetricGrid,
-  QuickActions,
-  SpotlightSections,
   WebChartCard,
   WebPortalAccessCard,
   WebTableCard,
-  formatRoleLabel,
 } from "./web-shell-parts"
 import { sectionStyles, shellStyles } from "./web-shell-styles"
 
@@ -22,46 +19,55 @@ export function WebPortalLayout(props: {
   navItems: Array<{ href: string; label: string; description: string }>
   scopeDescription?: string
 }) {
-  const accountName =
-    props.session?.displayName?.trim() || props.session?.email?.trim() || "Signed-out account"
-  const accountRole = props.session ? formatRoleLabel(props.session.activeRole) : null
-
   return (
     <main style={shellStyles.frame}>
-      <aside style={shellStyles.sidebar}>
-        <div style={{ display: "grid", gap: 10 }}>
-          <p style={sectionStyles.rolePill}>AttendEase</p>
-          <div>
-            <h1 style={{ margin: "0 0 6px", color: "#1f2937", fontSize: 30 }}>
-              {props.scopeLabel}
-            </h1>
-            <p style={sectionStyles.sectionMetaText}>
-              {props.scopeDescription ?? "Open the right workspace and keep daily work moving."}
-            </p>
-          </div>
+      <nav style={shellStyles.topNav}>
+        <div style={shellStyles.topNavLeft}>
+          <a
+            href={props.scopeLabel === "Admin" ? "/admin/dashboard" : "/teacher/dashboard"}
+            style={{
+              textDecoration: "none",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
+            <span
+              style={{
+                color: webTheme.colors.accent,
+                fontSize: 18,
+                fontWeight: 800,
+                letterSpacing: "-0.03em",
+              }}
+            >
+              AttendEase
+            </span>
+          </a>
+          <span
+            style={{
+              width: 1,
+              height: 24,
+              background: webTheme.colors.border,
+            }}
+          />
+          <a
+            href={props.scopeLabel === "Admin" ? "/admin/dashboard" : "/teacher/dashboard"}
+            style={{
+              textDecoration: "none",
+              color: webTheme.colors.textMuted,
+              fontSize: 14,
+              fontWeight: 500,
+              transition: `color ${webTheme.animation.fast}`,
+            }}
+          >
+            Dashboard
+          </a>
         </div>
 
-        <section
-          style={{
-            ...shellStyles.surface,
-            display: "grid",
-            gap: 6,
-            padding: 18,
-            boxShadow: "none",
-            background: "linear-gradient(180deg, rgba(250,244,236,0.9), rgba(244,236,222,0.72))",
-          }}
-        >
-          <p style={sectionStyles.sectionHeader}>Account</p>
-          <strong style={{ color: "#111827" }}>{accountName}</strong>
-          <p style={sectionStyles.sectionMetaText}>
-            {props.session
-              ? `${props.session.email ?? "Signed in"} · ${accountRole}`
-              : "Sign in to open a teacher or admin workspace."}
-          </p>
-        </section>
-
-        <WebPortalNav navItems={props.navItems} />
-      </aside>
+        <div style={shellStyles.topNavRight}>
+          <WebProfileDropdown session={props.session} scopeLabel={props.scopeLabel} />
+        </div>
+      </nav>
 
       <section style={shellStyles.body}>
         {!props.access.allowed ? <WebPortalAccessCard access={props.access} /> : props.children}
@@ -79,22 +85,13 @@ export function WebPortalPage(props: {
 
   return (
     <section style={{ display: "grid", gap: 24 }}>
-      <header
-        style={{
-          ...shellStyles.surface,
-          padding: webTheme.spacing.xl,
-        }}
-      >
+      <header style={{ padding: "8px 0" }}>
         <p style={sectionStyles.rolePill}>{props.model.eyebrow}</p>
         <h2 style={sectionStyles.sectionTitleLarge}>{props.model.title}</h2>
         <p style={sectionStyles.sectionDescription}>{props.model.description}</p>
       </header>
 
       {props.model.metrics.length > 0 ? <MetricGrid metrics={props.model.metrics} /> : null}
-      {props.model.spotlightSections?.length ? (
-        <SpotlightSections sections={props.model.spotlightSections} />
-      ) : null}
-      {props.model.actions.length > 0 ? <QuickActions actions={props.model.actions} /> : null}
 
       {hasTables || hasCharts ? (
         <div
@@ -134,17 +131,6 @@ export function WebPortalPage(props: {
       ) : null}
 
       {props.children}
-
-      {props.model.notes.length > 0 ? (
-        <div style={{ ...shellStyles.surface, display: "grid", gap: 10 }}>
-          <h3 style={sectionStyles.sectionTitle}>Keep in mind</h3>
-          {props.model.notes.map((note) => (
-            <p key={note} style={sectionStyles.sectionMetaText}>
-              {note}
-            </p>
-          ))}
-        </div>
-      ) : null}
     </section>
   )
 }

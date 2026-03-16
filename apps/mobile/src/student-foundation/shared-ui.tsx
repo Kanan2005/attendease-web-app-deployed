@@ -2,6 +2,8 @@ import { createAuthApiClient } from "@attendease/auth"
 import { loadMobileEnv } from "@attendease/config"
 import type { AttendanceMode, TrustedDeviceAttendanceReadyResponse } from "@attendease/contracts"
 import { mobileTheme } from "@attendease/ui-mobile"
+import { AnimatedCard, GradientHeader, StatusPill } from "@attendease/ui-mobile/animated"
+import { Ionicons } from "@expo/vector-icons"
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link } from "expo-router"
 import { useEffect, useState } from "react"
@@ -15,6 +17,7 @@ import {
   TextInput,
   View,
 } from "react-native"
+import Animated, { FadeInDown } from "react-native-reanimated"
 
 import { getMobileAttendanceListPollInterval } from "../attendance-live"
 import {
@@ -102,10 +105,7 @@ export function StudentScreen(props: {
       contentContainerStyle={styles.screenContent}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={styles.headerBlock}>
-        <Text style={styles.screenTitle}>{props.title}</Text>
-        <Text style={styles.screenSubtitle}>{props.subtitle}</Text>
-      </View>
+      <GradientHeader title={props.title} subtitle={props.subtitle} eyebrow="Student" />
       {props.children}
     </ScrollView>
   )
@@ -113,20 +113,18 @@ export function StudentScreen(props: {
 
 export function StudentQuickActions() {
   return (
-    <StudentCard
-      title="Go to"
-      subtitle="Move quickly between attendance, reports, account help, and classroom access."
-    >
+    <AnimatedCard index={2}>
+      <Text style={styles.cardTitle}>Quick actions</Text>
       <View style={styles.actionGrid}>
         <StudentNavAction href={studentRoutes.attendance} label="Attendance" />
         <StudentNavAction href={studentRoutes.classrooms} label="Classrooms" />
-        <StudentNavAction href={studentRoutes.join} label="Join classroom" />
+        <StudentNavAction href={studentRoutes.join} label="Join" />
         <StudentNavAction href={studentRoutes.reports} label="Reports" />
-        <StudentNavAction href={studentRoutes.history} label="Attendance history" />
+        <StudentNavAction href={studentRoutes.history} label="History" />
         <StudentNavAction href={studentRoutes.profile} label="Profile" />
-        <StudentNavAction href={studentRoutes.deviceStatus} label="Device status" />
+        <StudentNavAction href={studentRoutes.deviceStatus} label="Device" />
       </View>
-    </StudentCard>
+    </AnimatedCard>
   )
 }
 
@@ -134,7 +132,7 @@ export function StudentDashboardSpotlightCard(props: {
   spotlight: ReturnType<typeof buildStudentDashboardModel>["spotlight"]
 }) {
   return (
-    <View style={[styles.card, spotlightToneStyle(props.spotlight.tone)]}>
+    <AnimatedCard index={0} glow style={spotlightToneStyle(props.spotlight.tone)}>
       <Text style={[styles.cardEyebrow, toneColorStyle(props.spotlight.tone)]}>Student home</Text>
       <Text style={styles.spotlightTitle}>{props.spotlight.title}</Text>
       <Text style={styles.spotlightMessage}>{props.spotlight.message}</Text>
@@ -150,7 +148,7 @@ export function StudentDashboardSpotlightCard(props: {
           />
         ) : null}
       </View>
-    </View>
+    </AnimatedCard>
   )
 }
 
@@ -191,11 +189,11 @@ export function resolveStudentDashboardActionHref(action: StudentDashboardAction
 
 export function StudentCard(props: { title: string; subtitle?: string; children: ReactNode }) {
   return (
-    <View style={styles.card}>
+    <AnimatedCard>
       <Text style={styles.cardTitle}>{props.title}</Text>
       {props.subtitle ? <Text style={styles.cardSubtitle}>{props.subtitle}</Text> : null}
       <View style={styles.cardBody}>{props.children}</View>
-    </View>
+    </AnimatedCard>
   )
 }
 
@@ -210,35 +208,46 @@ export function StudentStatusBanner(props: { status: StudentScreenStatus }) {
           : styles.infoCard
 
   return (
-    <View style={[styles.statusCard, bannerStyle]}>
+    <Animated.View entering={FadeInDown.duration(400)} style={[styles.statusCard, bannerStyle]}>
       <Text style={styles.cardTitle}>{props.status.title}</Text>
       <Text style={styles.statusText}>{props.status.message}</Text>
-    </View>
+    </Animated.View>
   )
 }
 
 export function StudentLoadingCard(props: { label: string; compact?: boolean }) {
   return (
-    <View style={[styles.statusCard, props.compact ? styles.compactStatusCard : null]}>
+    <Animated.View
+      entering={FadeInDown.duration(300)}
+      style={[styles.statusCard, props.compact ? styles.compactStatusCard : null]}
+    >
       <ActivityIndicator color={mobileTheme.colors.primary} />
       <Text style={styles.statusText}>{props.label}</Text>
-    </View>
+    </Animated.View>
   )
 }
 
 export function StudentErrorCard(props: { label: string }) {
   return (
-    <View style={[styles.statusCard, styles.errorCard]}>
+    <Animated.View
+      entering={FadeInDown.duration(300)}
+      style={[styles.statusCard, styles.errorCard]}
+    >
+      <Ionicons name="alert-circle" size={20} color={mobileTheme.colors.danger} />
       <Text style={styles.errorText}>{props.label}</Text>
-    </View>
+    </Animated.View>
   )
 }
 
 export function StudentEmptyCard(props: { label: string }) {
   return (
-    <View style={[styles.statusCard, styles.emptyCard]}>
+    <Animated.View
+      entering={FadeInDown.duration(300)}
+      style={[styles.statusCard, styles.emptyCard]}
+    >
+      <Ionicons name="folder-open-outline" size={20} color={mobileTheme.colors.textSubtle} />
       <Text style={styles.statusText}>{props.label}</Text>
-    </View>
+    </Animated.View>
   )
 }
 

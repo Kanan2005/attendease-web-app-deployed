@@ -125,12 +125,14 @@ function RoleCard(props: {
           justifyContent: "center",
           alignItems: "center",
           marginTop: webTheme.spacing.sm,
-          padding: "12px 16px",
+          padding: "12px 20px",
           borderRadius: webTheme.radius.button,
-          background: webTheme.colors.primary,
-          color: "#ffffff",
+          background: webTheme.colors.accent,
+          color: "#0D0D0D",
           textDecoration: "none",
-          fontWeight: 700,
+          fontWeight: 600,
+          fontSize: 14,
+          transition: `all 0.15s`,
         }}
       >
         {props.primaryLabel}
@@ -139,9 +141,10 @@ function RoleCard(props: {
         <Link
           href={props.secondaryHref}
           style={{
-            color: webTheme.colors.primary,
+            color: webTheme.colors.accent,
             textDecoration: "none",
-            fontWeight: 700,
+            fontWeight: 600,
+            fontSize: 14,
           }}
         >
           {props.secondaryLabel}

@@ -9,12 +9,12 @@ import {
 
 describe("mobile theme tokens", () => {
   it("exposes the shared mobile design tokens", () => {
-    expect(mobileTheme.colors.primary).toBe("#17181d")
-    expect(mobileTheme.colors.accent).toBe("#ea5b2a")
-    expect(mobileTheme.colors.successSoft).toBe("#edf8f1")
-    expect(mobileTheme.colors.dangerBorder).toBe("#efb9a9")
-    expect(mobileTheme.radius.card).toBe(28)
-    expect(mobileTheme.typography.hero).toBe(38)
+    expect(mobileTheme.colors.primary).toBe("#00D4AA")
+    expect(mobileTheme.colors.accent).toBe("#FF6B6B")
+    expect(mobileTheme.colors.successSoft).toBe("rgba(0, 230, 118, 0.12)")
+    expect(mobileTheme.colors.dangerBorder).toBe("rgba(255, 82, 82, 0.25)")
+    expect(mobileTheme.radius.card).toBe(16)
+    expect(mobileTheme.typography.hero).toBe(32)
   })
 
   it("flags developer-facing copy in mobile surfaces", () => {

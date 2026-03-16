@@ -1,4 +1,5 @@
 import { mobileTheme } from "@attendease/ui-mobile"
+import { GradientHeader } from "@attendease/ui-mobile/animated"
 import { Redirect } from "expo-router"
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native"
 
@@ -30,13 +31,11 @@ export function MobileEntryLandingScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.screenContent} style={styles.screen}>
-      <View style={styles.heroBlock}>
-        <Text style={styles.eyebrow}>AttendEase</Text>
-        <Text style={styles.heroTitle}>Choose your space</Text>
-        <Text style={styles.heroSubtitle}>
-          Student and teacher experiences stay separate, but both live inside the same app.
-        </Text>
-      </View>
+      <GradientHeader
+        eyebrow="AttendEase"
+        title="Choose your space"
+        subtitle="Student and teacher experiences stay separate, but both live inside the same app."
+      />
 
       <EntryRoleCard
         card={studentCard}
@@ -269,27 +268,7 @@ const styles = StyleSheet.create({
   },
   screenContent: {
     padding: mobileTheme.spacing.xl,
+    paddingBottom: mobileTheme.spacing.xxxl,
     gap: mobileTheme.spacing.xl,
-  },
-  heroBlock: {
-    gap: mobileTheme.spacing.sm,
-    paddingTop: mobileTheme.spacing.xl,
-  },
-  eyebrow: {
-    color: mobileTheme.colors.accent,
-    fontSize: mobileTheme.typography.eyebrow,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-  },
-  heroTitle: {
-    color: mobileTheme.colors.text,
-    fontSize: mobileTheme.typography.title,
-    fontWeight: "800",
-  },
-  heroSubtitle: {
-    color: mobileTheme.colors.textMuted,
-    fontSize: mobileTheme.typography.body,
-    lineHeight: 24,
   },
 })
