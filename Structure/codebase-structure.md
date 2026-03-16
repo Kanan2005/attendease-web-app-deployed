@@ -12,7 +12,7 @@ Keep this file short and move detailed ownership maps into the companion docs be
 - `apps/web`
   - Next.js teacher and admin portal routes, layouts, and workspaces.
 - `apps/worker`
-  - BullMQ job processors and queue-backed automation.
+  - Polling-based outbox processors for exports, analytics, imports, announcements, and email automation.
 - `packages/auth`
   - shared API client and auth-session helpers.
 - `packages/contracts`

@@ -26,6 +26,13 @@ Still pending outside reset implementation:
 - real-device QR, GPS, and Bluetooth signoff
 - production validation for Google OIDC, SES, Sentry, and OTEL
 
+## Quality Status
+
+- Typecheck: all 16 packages pass
+- Lint: all packages pass (Biome)
+- Tests: 222 API tests + 331 unit tests passing
+- Workspace validation: passing
+
 ## Current Reset Product State
 
 - separate student and teacher entry inside one shared mobile app

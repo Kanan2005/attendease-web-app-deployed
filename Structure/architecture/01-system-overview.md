@@ -52,7 +52,7 @@ flowchart LR
   Web["Teacher + Admin Web App"]
   API["NestJS API"]
   WS["Realtime Gateway"]
-  Worker["Worker / Queue Consumers"]
+  Worker["Worker / Outbox Poller"]
   DB["PostgreSQL"]
   Redis["Redis"]
   S3["Object Storage"]
@@ -68,7 +68,6 @@ flowchart LR
   API --> DB
   API --> Redis
   API --> WS
-  Worker --> Redis
   Worker --> DB
   Worker --> S3
   Worker --> Email
@@ -107,39 +106,44 @@ The codebase should be organized around clear ownership boundaries.
 
 ```text
 apps/api/src/modules/
-  auth/
-  academic/
-  classrooms/
-  scheduling/
-  announcements/
-  devices/
-  admin/
-  sessions/
-  attendance/
-  qr/
-  bluetooth/
-  history/
-  reports/
-  exports/
-  analytics/
-  automation/
-  audit/
-  realtime/
+  auth/          # login, registration, Google OIDC, session management, guards
+  academic/      # semesters, classrooms, scheduling, roster, join codes, imports, announcements
+  attendance/    # QR sessions, Bluetooth sessions, history, GPS validation, manual edits
+  devices/       # device registration, trust evaluation, binding policy
+  admin/         # classroom governance, student governance, device recovery
+  reports/       # daywise, subjectwise, student percentage reports
+  exports/       # CSV/PDF export job creation and retrieval
+  analytics/     # attendance trend, distribution, comparison, and mode analytics
+  automation/    # low-attendance email rules, preview, manual send, run logs
+
+apps/api/src/infrastructure/
+  # request context middleware, auth/roles/rate-limit/trusted-device guards,
+  # exception filter, structured logging, OpenTelemetry, Sentry, feature flags
+
+apps/api/src/health/
+  # /health, /health/ready, /health/queues endpoints
 
 apps/mobile/src/
-  app/
-  features/
-  services/
-  store/
-  hooks/
-  components/
-  native/
+  student-session.tsx       # student auth context provider
+  teacher-session.tsx        # teacher auth context provider
+  student-foundation/        # student screen implementations and query hooks
+  teacher-foundation/        # teacher screen implementations and query hooks
+  bluetooth-attendance-*.ts  # BLE advertiser/scanner models and hooks
+  student-workflow-models*.ts # student view-model builders
+  teacher-models.ts          # teacher dashboard and summary models
+  device-trust.ts            # device attestation and gate logic
+  auth.ts                    # mobile auth bootstrap
+  mobile-entry-screens.tsx   # role chooser landing
 
 apps/web/src/
-  app/
-  features/
-  components/
-  lib/
+  teacher-workflows-client/         # teacher workspace components (classrooms, sessions, reports, exports)
+  admin-workflows-client/           # admin workspace components (students, classrooms, semesters, imports)
+  admin-device-support-console/     # admin device recovery console panels
+  teacher-analytics-automation-client/ # analytics dashboard and email automation workspaces
+  qr-session-shell.tsx              # live QR attendance controller with projector mode
+  web-auth-session.ts               # cookie-based session management
+  web-auth-entry.tsx                # login/register entry UI
+  web-portal*.ts                    # page models, navigation, session parsing
 
 packages/
   auth/
@@ -202,46 +206,27 @@ Owns:
 - in-app notifications
 - optional email or push fan-out
 
-### Sessions Module
-
-Owns:
-
-- session creation
-- session state transitions
-- session roster snapshot creation
-- session end and finalization
-
 ### Attendance Module
 
-Owns:
+Owns QR, Bluetooth, session lifecycle, history, and manual corrections within a single module:
 
-- student mark-attendance actions
-- duplicate prevention
-- final session attendance state
-- manual edits
+- QR session creation and rolling QR token generation
+- Bluetooth session creation and BLE rotating identifier generation
+- session state transitions and finalization
+- student mark-attendance actions with duplicate prevention
+- GPS validation and location anchoring
+- manual edits within the 24-hour edit window
+- live session discovery for students and teachers
+- student and teacher attendance history
+- attendance realtime event publishing (stub)
 
-### QR Module
-
-Owns:
-
-- rolling QR token generation
-- QR validation rules
-- projector payload generation
-
-### Bluetooth Module
-
-Owns:
-
-- BLE rotating identifier generation
-- session advertisement verification
-- BLE mark-attendance verification
-
-### Devices and Security Module
+### Devices Module
 
 Owns:
 
 - trusted device registration
 - device-to-student binding
+- device binding policy and attendance-readiness checks
 - anti-account-switch enforcement for attendance
 - suspicious event logging
 
@@ -345,10 +330,9 @@ Stores:
 
 Stores:
 
-- BullMQ queues
-- short-lived session cache
-- websocket pub/sub
 - rate-limit counters
+- websocket pub/sub
+- short-lived session cache
 
 ### Object Storage
 

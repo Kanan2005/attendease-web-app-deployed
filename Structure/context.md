@@ -10,7 +10,7 @@ Keep it short, factual, and implementation-focused.
 - Premium reset UI is in place across mobile and web through `packages/ui-mobile` and `packages/ui-web`.
 - Deterministic audit artifacts live under `Structure/full-product-screenshot-audit.md` and `Structure/artifacts/full-product-audit`.
 - Last updated on: `2026-03-16`
-- Updated by: `Codex`
+- Updated by: `Copilot`
 
 ## Reset Track Status
 
@@ -73,9 +73,9 @@ Keep it short, factual, and implementation-focused.
   - native build/install/open succeeded
   - `MainActivity` resumed successfully
   - the landing screen rendered with split student/teacher entry actions confirmed through `uiautomator dump`
-- Lint is still not green:
-  - remaining failures are formatting/import-order issues concentrated in `packages/db/src/seed.*` and `apps/mobile/src/student-foundation/*`
-  - this is now the main outstanding repo-quality gate after test stabilization
+- Lint is now green:
+  - all 119 formatting/import-order/useImportType issues across `packages/db`, `apps/mobile`, and `apps/web` were resolved
+  - Biome check passes across all packages with zero errors
 
 ## Validation Snapshot
 
@@ -105,11 +105,17 @@ Keep it short, factual, and implementation-focused.
 - Keep admin as login-only plus governance/recovery, not self-registration.
 - Reuse the existing backend and domain truth instead of rebuilding flows from scratch.
 
+## Post-Cleanup Validation Summary
+
+- All lint errors resolved: 119 Biome format/import-order/useImportType issues fixed across `packages/db`, `apps/mobile`, and `apps/web`.
+- All integration test failures resolved: DB connection pool exhaustion (8 failures across 4 test files) fixed by capping `PrismaPg` pool size and improving connection cleanup in test teardown.
+- Android build artifacts removed from tracked files and added to `.gitignore`.
+- Full `pnpm -w run check` passes: workspace validation, lint, typecheck (16/16), and tests (222 API + 331 unit).
+
 ## Exact Next Pickup Point
 
-- Immediate cleanup work:
+- Remaining cleanup work:
   - split the remaining large tests and docs listed in `Structure/line-count-cleanup-plan.md`
-  - keep generated Android/CMake artifacts out of the repo target
-- Product follow-up after cleanup:
+- Product follow-up:
   - run real-device QR, GPS, and Bluetooth validation
-  - validate production credentials and release-readiness integrations
+  - validate production credentials and release-readiness integrations (Google OIDC, SES, Sentry, OTEL)

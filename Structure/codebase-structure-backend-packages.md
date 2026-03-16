@@ -23,14 +23,22 @@
 
 ## Worker
 
-- `apps/worker/src/jobs/export-job.processor.ts`
-  - export queue orchestration.
-- `apps/worker/src/jobs/email-automation.processor.ts`
-  - scheduled/manual email dispatch orchestration.
+The worker uses a polling-based outbox pattern (no BullMQ at runtime). A `setInterval` runs `runWorkerCycle()` each tick, processing all job families in parallel.
+
+- `apps/worker/src/jobs/roster-import.processor.ts`
+  - roster import validation and application.
+- `apps/worker/src/jobs/announcement-fanout.processor.ts`
+  - announcement notification fan-out via outbox events.
 - `apps/worker/src/jobs/analytics-refresh.processor.ts`
-  - analytics refresh orchestration.
-- Companion `*.common.ts`, `*.loaders.ts`, `*.dispatch.ts`, and `*.builders.ts`
+  - attendance analytics aggregate rebuild.
+- `apps/worker/src/jobs/export-job.processor.ts`
+  - CSV/PDF export generation and S3 upload.
+- `apps/worker/src/jobs/email-automation.processor.ts`
+  - scheduled/manual low-attendance email dispatch.
+- Companion `*.common.ts`, `*.loaders.ts`, `*.dispatch.ts`, `*.builders.ts`, and `*.recipients.ts`
   - split support modules for each worker job family.
+- `apps/worker/src/infrastructure/`
+  - `worker-logger.ts` (structured logging) and `worker-monitoring.ts` (OpenTelemetry + Sentry).
 
 ## Shared Packages
 
