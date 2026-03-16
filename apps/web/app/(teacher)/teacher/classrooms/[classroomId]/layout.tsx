@@ -16,7 +16,7 @@ const tabs = [
 
 export default function ClassroomDetailLayout(props: {
   children: ReactNode
-  params: { classroomId: string }
+  params: Promise<{ classroomId: string }>
 }) {
   const pathname = usePathname() ?? ""
   const basePath = pathname.replace(/\/(lectures|roster|stream|schedule|imports)$/, "")
