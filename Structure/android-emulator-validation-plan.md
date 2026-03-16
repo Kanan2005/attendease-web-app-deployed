@@ -338,7 +338,7 @@ Record only, do not overclaim:
 Because the current release blockers include student and teacher mobile report truth mismatch:
 
 1. first run the mobile report remediation playbook
-   - `Structure/phase_promptioing/18-mobile-report-blockers-prompt.md`
+   - `Structure/phase_prompting/18-mobile-report-blockers-prompt.md`
 2. then run the Android emulator validation playbook
 3. then rerun the affected release-readiness evidence
 4. finally run real-device QR and Bluetooth checks

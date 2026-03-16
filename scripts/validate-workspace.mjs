@@ -1,6 +1,8 @@
 import fs from "node:fs"
 import path from "node:path"
 
+import { validateLineCounts } from "./line-count-validator.mjs"
+
 const rootDirectory = process.cwd()
 
 const workspaceGroups = [
@@ -337,6 +339,8 @@ for (const architectureFileName of [
     "Structure",
   )
 }
+
+validateLineCounts(rootDirectory, errors)
 
 if (errors.length > 0) {
   console.error("Workspace validation failed:")

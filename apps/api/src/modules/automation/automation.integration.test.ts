@@ -1,6 +1,4 @@
-import { hashPassword } from "@attendease/auth/password"
 import {
-  authSessionResponseSchema,
   emailAutomationRuleResponseSchema,
   emailAutomationRulesResponseSchema,
   emailDispatchRunsResponseSchema,
@@ -22,6 +20,7 @@ import {
   seedAuthIntegrationData,
 } from "../../test/integration-helpers.js"
 import { GoogleOidcService } from "../auth/google-oidc.service.js"
+import { login, request, seedForeignTeacher } from "./automation.integration.test-support.js"
 
 describe("Email automation integration", () => {
   const originalEnv = {
@@ -76,7 +75,7 @@ describe("Email automation integration", () => {
     await app.init()
     await app.getHttpAdapter().getInstance().ready()
 
-    await seedForeignTeacher()
+    await seedForeignTeacher(getPrisma())
   })
 
   beforeEach(() => {
@@ -109,14 +108,14 @@ describe("Email automation integration", () => {
   })
 
   it("creates teacher automation rules and lists them within teacher scope", async () => {
-    const teacherSession = await login({
+    const teacherSession = await login(getApp(), {
       email: authIntegrationFixtures.teacher.email,
       password: authIntegrationFixtures.teacher.password,
       platform: "WEB",
       requestedRole: "TEACHER",
     })
 
-    const createResponse = await request("POST", "/automation/email/rules", {
+    const createResponse = await request(getApp(), "POST", "/automation/email/rules", {
       token: teacherSession.tokens.accessToken,
       payload: {
         classroomId: developmentSeedIds.courseOfferings.physics,
@@ -141,10 +140,10 @@ describe("Email automation integration", () => {
     })
 
     const [listResponse, updateResponse] = await Promise.all([
-      request("GET", "/automation/email/rules", {
+      request(getApp(), "GET", "/automation/email/rules", {
         token: teacherSession.tokens.accessToken,
       }),
-      request("PATCH", `/automation/email/rules/${createdRule.id}`, {
+      request(getApp(), "PATCH", `/automation/email/rules/${createdRule.id}`, {
         token: teacherSession.tokens.accessToken,
         payload: {
           status: "PAUSED",
@@ -163,7 +162,7 @@ describe("Email automation integration", () => {
   })
 
   it("renders previews, queues manual sends, and exposes dispatch runs from final attendance truth", async () => {
-    const teacherSession = await login({
+    const teacherSession = await login(getApp(), {
       email: authIntegrationFixtures.teacher.email,
       password: authIntegrationFixtures.teacher.password,
       platform: "WEB",
@@ -171,7 +170,7 @@ describe("Email automation integration", () => {
     })
 
     const [previewResponse, manualSendResponse] = await Promise.all([
-      request("POST", "/automation/email/preview", {
+      request(getApp(), "POST", "/automation/email/preview", {
         token: teacherSession.tokens.accessToken,
         payload: {
           ruleId: developmentSeedIds.emailAutomation.rule,
@@ -182,7 +181,7 @@ describe("Email automation integration", () => {
             "Hello {{studentName}}, attendance in {{classroomTitle}} is {{attendancePercentage}}.",
         },
       }),
-      request("POST", "/automation/email/send-manual", {
+      request(getApp(), "POST", "/automation/email/send-manual", {
         token: teacherSession.tokens.accessToken,
         payload: {
           ruleId: developmentSeedIds.emailAutomation.rule,
@@ -216,12 +215,22 @@ describe("Email automation integration", () => {
     })
 
     const [runsResponse, logsResponse, dispatchRun] = await Promise.all([
-      request("GET", `/automation/email/runs?ruleId=${developmentSeedIds.emailAutomation.rule}`, {
-        token: teacherSession.tokens.accessToken,
-      }),
-      request("GET", `/automation/email/logs?ruleId=${developmentSeedIds.emailAutomation.rule}`, {
-        token: teacherSession.tokens.accessToken,
-      }),
+      request(
+        getApp(),
+        "GET",
+        `/automation/email/runs?ruleId=${developmentSeedIds.emailAutomation.rule}`,
+        {
+          token: teacherSession.tokens.accessToken,
+        },
+      ),
+      request(
+        getApp(),
+        "GET",
+        `/automation/email/logs?ruleId=${developmentSeedIds.emailAutomation.rule}`,
+        {
+          token: teacherSession.tokens.accessToken,
+        },
+      ),
       getPrisma().emailDispatchRun.findUnique({
         where: {
           id: queuedRun.dispatchRun.id,
@@ -255,14 +264,14 @@ describe("Email automation integration", () => {
 
   it("enforces teacher scope and route-role boundaries", async () => {
     const [studentSession, foreignTeacherSession] = await Promise.all([
-      login({
+      login(getApp(), {
         email: authIntegrationFixtures.studentOne.email,
         password: authIntegrationFixtures.studentOne.password,
         platform: "MOBILE",
         requestedRole: "STUDENT",
         device: authIntegrationFixtures.studentOne.device,
       }),
-      login({
+      login(getApp(), {
         email: "foreign.teacher@attendease.dev",
         password: "ForeignTeacherPass123!",
         platform: "WEB",
@@ -271,10 +280,10 @@ describe("Email automation integration", () => {
     ])
 
     const [studentResponse, foreignTeacherResponse] = await Promise.all([
-      request("GET", "/automation/email/rules", {
+      request(getApp(), "GET", "/automation/email/rules", {
         token: studentSession.tokens.accessToken,
       }),
-      request("POST", "/automation/email/preview", {
+      request(getApp(), "POST", "/automation/email/preview", {
         token: foreignTeacherSession.tokens.accessToken,
         payload: {
           ruleId: developmentSeedIds.emailAutomation.rule,
@@ -297,105 +306,11 @@ describe("Email automation integration", () => {
     return prisma
   }
 
-  async function seedForeignTeacher() {
-    const passwordHash = await hashPassword("ForeignTeacherPass123!")
-
-    await getPrisma().user.upsert({
-      where: {
-        email: "foreign.teacher@attendease.dev",
-      },
-      update: {
-        displayName: "Foreign Teacher",
-        status: "ACTIVE",
-      },
-      create: {
-        id: "seed_user_teacher_foreign",
-        email: "foreign.teacher@attendease.dev",
-        displayName: "Foreign Teacher",
-        status: "ACTIVE",
-      },
-    })
-
-    await getPrisma().userRole.upsert({
-      where: {
-        userId_role: {
-          userId: "seed_user_teacher_foreign",
-          role: "TEACHER",
-        },
-      },
-      update: {},
-      create: {
-        userId: "seed_user_teacher_foreign",
-        role: "TEACHER",
-      },
-    })
-
-    await getPrisma().userCredential.upsert({
-      where: {
-        userId: "seed_user_teacher_foreign",
-      },
-      update: {
-        passwordHash,
-      },
-      create: {
-        userId: "seed_user_teacher_foreign",
-        passwordHash,
-      },
-    })
-  }
-
-  async function login(input: {
-    email: string
-    password: string
-    platform: "WEB" | "MOBILE"
-    requestedRole: "ADMIN" | "TEACHER" | "STUDENT"
-    device?: {
-      installId: string
-      platform: "ANDROID" | "IOS"
-      publicKey: string
-      deviceModel?: string | null
-      osVersion?: string | null
-      appVersion?: string | null
-    }
-  }) {
-    const response = await request("POST", "/auth/login", {
-      payload: input,
-    })
-
-    expect(response.statusCode).toBe(201)
-
-    return authSessionResponseSchema.parse(response.body)
-  }
-
-  async function request(
-    method: "GET" | "POST" | "PATCH",
-    path: string,
-    options: {
-      token?: string
-      payload?: unknown
-      headers?: Record<string, string>
-    } = {},
-  ) {
+  function getApp() {
     if (!app) {
-      throw new Error("Nest application is not initialized.")
+      throw new Error("Nest app is not initialized.")
     }
 
-    const requestBuilder = app.inject({
-      method,
-      url: path,
-      headers: {
-        ...(options.token ? { authorization: `Bearer ${options.token}` } : {}),
-        ...(options.headers ?? {}),
-      },
-      ...(options.payload !== undefined && options.payload !== null
-        ? { payload: options.payload }
-        : {}),
-    })
-    const response = await requestBuilder
-
-    return {
-      statusCode: response.statusCode,
-      body: response.json(),
-    }
+    return app
   }
 })

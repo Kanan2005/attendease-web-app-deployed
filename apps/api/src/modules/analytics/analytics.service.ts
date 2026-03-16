@@ -1,5 +1,4 @@
 import type {
-  AnalyticsClassComparisonRow,
   AnalyticsComparisonsResponse,
   AnalyticsDistributionResponse,
   AnalyticsFilters,
@@ -7,16 +6,11 @@ import type {
   AnalyticsSessionDrilldownResponse,
   AnalyticsStudentTimelineParams,
   AnalyticsStudentTimelineResponse,
-  AnalyticsSubjectComparisonRow,
   AnalyticsTrendResponse,
   AttendanceSessionParams,
 } from "@attendease/contracts"
-import type { Prisma } from "@attendease/db"
-import {
-  buildAttendanceDistribution,
-  calculatePresentAttendancePercentage,
-} from "@attendease/domain"
-import { ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common"
+import { buildAttendanceDistribution } from "@attendease/domain"
+import { Inject, Injectable } from "@nestjs/common"
 
 import { DatabaseService } from "../../database/database.service.js"
 import { AttendanceHistoryService } from "../attendance/attendance-history.service.js"
@@ -28,38 +22,18 @@ import {
   sumSessionDateKey,
   toAnalyticsStudentTimelineItem,
 } from "./analytics.models.js"
+import {
+  buildAttendanceSessionWhere,
+  buildComparisonsFromRows,
+  buildCourseOfferingWhere,
+  ensureStudentTimelineAccess,
+  getSessionActivityAt,
+  isWithinRange,
+  normalizeDateFilter,
+  resolveFilters,
+} from "./analytics.service.helpers.js"
 
 const finalizedSessionStatuses = ["ENDED", "EXPIRED"] as const
-
-type ResolvedAnalyticsFilters = AnalyticsFilters & {
-  resolvedClassId?: string | undefined
-  resolvedSectionId?: string | undefined
-  resolvedSubjectId?: string | undefined
-}
-
-function normalizeDateFilter(input: string | undefined): Date | null {
-  return input ? new Date(input) : null
-}
-
-function isWithinRange(value: Date, from: Date | null, to: Date | null) {
-  if (from && value < from) {
-    return false
-  }
-
-  if (to && value > to) {
-    return false
-  }
-
-  return true
-}
-
-function getSessionActivityAt(session: {
-  endedAt: Date | null
-  startedAt: Date | null
-  createdAt: Date
-}): Date {
-  return session.endedAt ?? session.startedAt ?? session.createdAt
-}
 
 @Injectable()
 export class AnalyticsService {
@@ -74,7 +48,12 @@ export class AnalyticsService {
     auth: AuthRequestContext,
     filters: AnalyticsFilters,
   ): Promise<AnalyticsTrendResponse> {
-    const resolvedFilters = await this.resolveFilters(auth, filters)
+    const resolvedFilters = await resolveFilters({
+      auth,
+      filters,
+      database: this.database,
+      reportsService: this.reportsService,
+    })
     const [dailyRows, sessions] = await Promise.all([
       this.database.prisma.analyticsDailyAttendance.findMany({
         where: {
@@ -83,7 +62,7 @@ export class AnalyticsService {
             ...(filters.to ? { lte: new Date(filters.to) } : {}),
           },
           courseOffering: {
-            ...this.buildCourseOfferingWhere(auth, resolvedFilters),
+            ...buildCourseOfferingWhere(auth, resolvedFilters),
           },
         },
         orderBy: {
@@ -92,7 +71,7 @@ export class AnalyticsService {
       }),
       this.database.prisma.attendanceSession.findMany({
         where: {
-          ...this.buildAttendanceSessionWhere(auth, resolvedFilters),
+          ...buildAttendanceSessionWhere(auth, resolvedFilters),
           status: {
             in: [...finalizedSessionStatuses],
           },
@@ -153,7 +132,12 @@ export class AnalyticsService {
     auth: AuthRequestContext,
     filters: AnalyticsFilters,
   ): Promise<AnalyticsComparisonsResponse> {
-    const resolvedFilters = await this.resolveFilters(auth, filters)
+    const resolvedFilters = await resolveFilters({
+      auth,
+      filters,
+      database: this.database,
+      reportsService: this.reportsService,
+    })
     const allowedTeacherSubjectScopes =
       auth.activeRole === "TEACHER"
         ? await this.database.prisma.teacherAssignment.findMany({
@@ -186,7 +170,7 @@ export class AnalyticsService {
             ...(filters.to ? { lte: new Date(filters.to) } : {}),
           },
           courseOffering: {
-            ...this.buildCourseOfferingWhere(auth, resolvedFilters),
+            ...buildCourseOfferingWhere(auth, resolvedFilters),
           },
         },
         include: {
@@ -235,67 +219,22 @@ export class AnalyticsService {
       }),
     ])
 
-    const classroomsMap = new Map<string, AnalyticsClassComparisonRow>()
-
-    for (const row of classroomRows) {
-      const current = classroomsMap.get(row.courseOfferingId) ?? {
-        classroomId: row.courseOffering.id,
-        classroomCode: row.courseOffering.code,
-        classroomDisplayTitle: row.courseOffering.displayTitle,
-        totalSessions: 0,
-        presentCount: 0,
-        absentCount: 0,
-        attendancePercentage: 0,
-      }
-
-      current.totalSessions += 1
-      current.presentCount += row.presentCount
-      current.absentCount += row.absentCount
-      current.attendancePercentage = calculatePresentAttendancePercentage({
-        presentCount: current.presentCount,
-        absentCount: current.absentCount,
-      })
-      classroomsMap.set(row.courseOfferingId, current)
-    }
-
-    const subjectsMap = new Map<string, AnalyticsSubjectComparisonRow>()
-
-    for (const row of subjectRows) {
-      const current = subjectsMap.get(row.subjectId) ?? {
-        subjectId: row.subject.id,
-        subjectCode: row.subject.code,
-        subjectTitle: row.subject.title,
-        totalSessions: 0,
-        presentCount: 0,
-        absentCount: 0,
-        attendancePercentage: 0,
-      }
-
-      current.totalSessions += row.totalSessions
-      current.presentCount += row.presentCount
-      current.absentCount += row.absentCount
-      current.attendancePercentage = calculatePresentAttendancePercentage({
-        presentCount: current.presentCount,
-        absentCount: current.absentCount,
-      })
-      subjectsMap.set(row.subjectId, current)
-    }
-
-    return {
-      classrooms: [...classroomsMap.values()].sort((left, right) =>
-        left.classroomCode.localeCompare(right.classroomCode),
-      ),
-      subjects: [...subjectsMap.values()].sort((left, right) =>
-        left.subjectCode.localeCompare(right.subjectCode),
-      ),
-    }
+    return buildComparisonsFromRows({
+      classroomRows,
+      subjectRows,
+    })
   }
 
   async getModeUsageAnalytics(
     auth: AuthRequestContext,
     filters: AnalyticsFilters,
   ): Promise<AnalyticsModeUsageResponse> {
-    const resolvedFilters = await this.resolveFilters(auth, filters)
+    const resolvedFilters = await resolveFilters({
+      auth,
+      filters,
+      database: this.database,
+      reportsService: this.reportsService,
+    })
     const rows = await this.database.prisma.analyticsModeUsageDaily.findMany({
       where: {
         usageDate: {
@@ -303,7 +242,7 @@ export class AnalyticsService {
           ...(filters.to ? { lte: new Date(filters.to) } : {}),
         },
         courseOffering: {
-          ...this.buildCourseOfferingWhere(auth, resolvedFilters),
+          ...buildCourseOfferingWhere(auth, resolvedFilters),
         },
       },
       orderBy: [{ usageDate: "asc" }, { mode: "asc" }],
@@ -324,8 +263,18 @@ export class AnalyticsService {
     params: AnalyticsStudentTimelineParams,
     filters: AnalyticsFilters,
   ): Promise<AnalyticsStudentTimelineResponse> {
-    const resolvedFilters = await this.resolveFilters(auth, filters)
-    await this.ensureStudentTimelineAccess(auth, params.studentId, resolvedFilters)
+    const resolvedFilters = await resolveFilters({
+      auth,
+      filters,
+      database: this.database,
+      reportsService: this.reportsService,
+    })
+    await ensureStudentTimelineAccess({
+      auth,
+      studentId: params.studentId,
+      filters: resolvedFilters,
+      database: this.database,
+    })
 
     const fromDate = normalizeDateFilter(filters.from)
     const toDate = normalizeDateFilter(filters.to)
@@ -333,7 +282,7 @@ export class AnalyticsService {
       where: {
         studentId: params.studentId,
         session: {
-          ...this.buildAttendanceSessionWhere(auth, resolvedFilters),
+          ...buildAttendanceSessionWhere(auth, resolvedFilters),
           status: {
             in: [...finalizedSessionStatuses],
           },
@@ -410,105 +359,5 @@ export class AnalyticsService {
       session,
       students,
     }
-  }
-
-  private async resolveFilters(
-    auth: AuthRequestContext,
-    filters: AnalyticsFilters,
-  ): Promise<ResolvedAnalyticsFilters> {
-    await this.reportsService.assertTeacherReportAccess(auth, filters)
-
-    if (!filters.classroomId) {
-      return {
-        ...filters,
-        resolvedClassId: filters.classId,
-        resolvedSectionId: filters.sectionId,
-        resolvedSubjectId: filters.subjectId,
-      }
-    }
-
-    const classroom = await this.database.prisma.courseOffering.findUnique({
-      where: {
-        id: filters.classroomId,
-      },
-      select: {
-        classId: true,
-        sectionId: true,
-        subjectId: true,
-      },
-    })
-
-    if (!classroom) {
-      throw new NotFoundException("Course offering not found.")
-    }
-
-    return {
-      ...filters,
-      resolvedClassId: filters.classId ?? classroom.classId,
-      resolvedSectionId: filters.sectionId ?? classroom.sectionId,
-      resolvedSubjectId: filters.subjectId ?? classroom.subjectId,
-    }
-  }
-
-  private buildCourseOfferingWhere(
-    auth: AuthRequestContext,
-    filters: ResolvedAnalyticsFilters,
-  ): Prisma.CourseOfferingWhereInput {
-    return {
-      ...(auth.activeRole === "TEACHER" ? { primaryTeacherId: auth.userId } : {}),
-      ...(filters.classroomId ? { id: filters.classroomId } : {}),
-      ...(filters.resolvedClassId ? { classId: filters.resolvedClassId } : {}),
-      ...(filters.resolvedSectionId ? { sectionId: filters.resolvedSectionId } : {}),
-      ...(filters.resolvedSubjectId ? { subjectId: filters.resolvedSubjectId } : {}),
-    }
-  }
-
-  private buildAttendanceSessionWhere(
-    auth: AuthRequestContext,
-    filters: ResolvedAnalyticsFilters,
-  ): Prisma.AttendanceSessionWhereInput {
-    return {
-      ...(auth.activeRole === "TEACHER" ? { teacherId: auth.userId } : {}),
-      ...(filters.classroomId ? { courseOfferingId: filters.classroomId } : {}),
-      ...(filters.resolvedClassId ? { classId: filters.resolvedClassId } : {}),
-      ...(filters.resolvedSectionId ? { sectionId: filters.resolvedSectionId } : {}),
-      ...(filters.resolvedSubjectId ? { subjectId: filters.resolvedSubjectId } : {}),
-    }
-  }
-
-  private async ensureStudentTimelineAccess(
-    auth: AuthRequestContext,
-    studentId: string,
-    filters: ResolvedAnalyticsFilters,
-  ) {
-    const accessibleEnrollment = await this.database.prisma.enrollment.findFirst({
-      where: {
-        studentId,
-        ...(filters.classroomId ? { courseOfferingId: filters.classroomId } : {}),
-        ...(filters.resolvedClassId ? { classId: filters.resolvedClassId } : {}),
-        ...(filters.resolvedSectionId ? { sectionId: filters.resolvedSectionId } : {}),
-        ...(filters.resolvedSubjectId ? { subjectId: filters.resolvedSubjectId } : {}),
-        ...(auth.activeRole === "TEACHER"
-          ? {
-              courseOffering: {
-                primaryTeacherId: auth.userId,
-              },
-            }
-          : {}),
-      },
-      select: {
-        id: true,
-      },
-    })
-
-    if (accessibleEnrollment) {
-      return
-    }
-
-    if (auth.activeRole === "TEACHER") {
-      throw new ForbiddenException("The teacher cannot access analytics for the requested student.")
-    }
-
-    throw new NotFoundException("Student analytics were not found.")
   }
 }

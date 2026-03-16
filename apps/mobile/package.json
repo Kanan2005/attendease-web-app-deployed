@@ -7,7 +7,7 @@
     "dev": "expo start --clear",
     "start": "expo start",
     "build": "expo export --platform web --output-dir dist",
-    "lint": "biome check app src modules package.json tsconfig.json app.json babel.config.js metro.config.js",
+    "lint": "biome check app src modules/attendease-bluetooth/index.js modules/attendease-bluetooth/package.json modules/attendease-bluetooth/expo-module.config.json modules/attendease-bluetooth/android/build.gradle package.json tsconfig.json app.json babel.config.js metro.config.js",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "vitest run"
   },

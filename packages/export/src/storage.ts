@@ -27,10 +27,7 @@ export type S3ExportStorageConfig = {
   forcePathStyle?: boolean
 }
 
-export function resolveSignedUrlEndpoint(
-  endpoint: string,
-  publicEndpoint?: string,
-): string {
+export function resolveSignedUrlEndpoint(endpoint: string, publicEndpoint?: string): string {
   return publicEndpoint ?? endpoint
 }
 

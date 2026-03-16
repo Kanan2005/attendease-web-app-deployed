@@ -1,45 +1,24 @@
 "use client"
 
-import type { ClassroomStatus, SemesterSummary, UserStatus } from "@attendease/contracts"
-import { webTheme } from "@attendease/ui-web"
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
-import Link from "next/link"
+import type { AdminUpdateStudentStatusRequest } from "@attendease/contracts"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { startTransition, useEffect, useState } from "react"
 
-import {
-  buildAdminClassroomArchiveReadiness,
-  buildAdminClassroomGovernanceImpactModel,
-  buildAdminClassroomGovernanceListCard,
-  buildAdminClassroomGovernanceSummaryMessage,
-} from "../admin-classroom-governance"
-import { formatAdminSupportLabel } from "../admin-device-support"
 import {
   buildAdminStudentManagementSummaryMessage,
   buildAdminStudentStatusActionLabel,
   buildAdminStudentStatusActionReadiness,
 } from "../admin-student-management"
-import { createWebAuthBootstrap } from "../auth"
-import { WebSectionCard } from "../web-shell"
-import {
-  adminWorkflowRoutes,
-  buildImportMonitorRows,
-  formatPortalDateTime,
-  webWorkflowQueryKeys,
-} from "../web-workflows"
+import { webWorkflowQueryKeys } from "../web-workflows"
 
-import {
-  Banner,
-  Field,
-  SemesterForm,
-  StateCard,
-  type AdminStudentStatusFilter,
-  bootstrap,
-  styles,
-} from './shared'
+import { type AdminStudentStatusFilter, bootstrap } from "./shared"
+import { StudentManagementWorkspaceContent } from "./student-management-content"
 
-export function AdminStudentManagementWorkspace(props: {
-  accessToken: string | null
-}) {
+type AdminStudentNextStatus = AdminUpdateStudentStatusRequest["nextStatus"]
+
+type ActionReadiness = ReturnType<typeof buildAdminStudentStatusActionReadiness>
+
+export function AdminStudentManagementWorkspace(props: { accessToken: string | null }) {
   const queryClient = useQueryClient()
   const [query, setQuery] = useState("")
   const [accountStatus, setAccountStatus] = useState<AdminStudentStatusFilter>("ALL")
@@ -115,7 +94,7 @@ export function AdminStudentManagementWorkspace(props: {
   })
 
   const updateStudentStatus = useMutation({
-    mutationFn: async (nextStatus: "ACTIVE" | "BLOCKED" | "ARCHIVED") => {
+    mutationFn: async (nextStatus: AdminStudentNextStatus) => {
       if (!props.accessToken || !selectedStudentId) {
         throw new Error("Select a student support case before you change account access.")
       }
@@ -160,339 +139,59 @@ export function AdminStudentManagementWorkspace(props: {
         detail.actions.canReactivate ? "ACTIVE" : null,
         detail.actions.canDeactivate ? "BLOCKED" : null,
         detail.actions.canArchive ? "ARCHIVED" : null,
-      ].filter((value): value is "ACTIVE" | "BLOCKED" | "ARCHIVED" => value !== null)
+      ].filter((value): value is AdminStudentNextStatus => value !== null)
     : []
 
+  const actionReadinessByStatus = actionOptions.reduce<
+    Partial<Record<AdminStudentNextStatus, ActionReadiness>>
+  >((acc, nextStatus) => {
+    if (!detail) {
+      return acc
+    }
+
+    acc[nextStatus] = buildAdminStudentStatusActionReadiness({
+      currentStatus: detail.student.status,
+      nextStatus,
+      reason: actionReason,
+      acknowledged: highRiskAcknowledged,
+    })
+
+    return acc
+  }, {})
+
   return (
-    <div style={styles.grid}>
-      <WebSectionCard
-        title="Student Support"
-        description="Search students, inspect account and attendance-phone state, and decide whether recovery or governance action is needed."
-      >
-        {!props.accessToken ? (
-          <StateCard message="Sign in as an admin to open student support and account governance." />
-        ) : (
-          <div style={styles.grid}>
-            <div style={styles.formGrid}>
-              <Field label="Search students" value={query} onChange={setQuery} />
-              <label style={{ display: "grid", gap: 6 }}>
-                <span>Account status</span>
-                <select
-                  value={accountStatus}
-                  onChange={(event) =>
-                    setAccountStatus(event.target.value as AdminStudentStatusFilter)
-                  }
-                  style={styles.input}
-                >
-                  <option value="ALL">All accounts</option>
-                  <option value="ACTIVE">Active</option>
-                  <option value="BLOCKED">Blocked</option>
-                  <option value="ARCHIVED">Archived</option>
-                  <option value="PENDING">Pending</option>
-                  <option value="SUSPENDED">Suspended</option>
-                </select>
-              </label>
-            </div>
-
-            <div style={styles.buttonRow}>
-              <button
-                type="button"
-                onClick={() =>
-                  setSubmittedFilters({
-                    query: query.trim(),
-                    accountStatus,
-                  })
-                }
-                disabled={studentsQuery.isFetching}
-                style={styles.primaryButton}
-              >
-                {studentsQuery.isFetching ? "Searching..." : "Search students"}
-              </button>
-              <Link href={adminWorkflowRoutes.devices} style={styles.secondaryButton}>
-                Open device recovery
-              </Link>
-            </div>
-
-            {studentsQuery.isLoading ? (
-              <StateCard message="Loading student support cases..." />
-            ) : null}
-            {studentsQuery.isError ? (
-              <Banner
-                tone="danger"
-                message={
-                  studentsQuery.error instanceof Error
-                    ? studentsQuery.error.message
-                    : "Failed to load student support cases."
-                }
-              />
-            ) : null}
-
-            {studentsQuery.data && studentsQuery.data.length > 0 ? (
-              <div style={{ display: "grid", gap: 12 }}>
-                {studentsQuery.data.map((record) => (
-                  <button
-                    key={record.student.id}
-                    type="button"
-                    onClick={() => setSelectedStudentId(record.student.id)}
-                    style={{
-                      ...styles.rowCard,
-                      textAlign: "left",
-                      cursor: "pointer",
-                      background:
-                        selectedStudentId === record.student.id
-                          ? "rgba(37, 99, 235, 0.08)"
-                          : "#ffffff",
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                      <div>
-                        <strong>{record.student.displayName}</strong>
-                        <div style={{ color: "#64748b", marginTop: 4 }}>
-                          {record.student.email}
-                          {record.student.rollNumber ? ` · ${record.student.rollNumber}` : ""}
-                        </div>
-                      </div>
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        <span style={styles.pill}>
-                          {formatAdminSupportLabel(record.student.status)}
-                        </span>
-                        <span style={styles.pill}>
-                          {formatAdminSupportLabel(record.attendanceDeviceState)}
-                        </span>
-                      </div>
-                    </div>
-                    <div style={{ color: "#475569", marginTop: 10, lineHeight: 1.6 }}>
-                      {record.enrollmentCounts.activeCount} active classroom
-                      {record.enrollmentCounts.activeCount === 1 ? "" : "s"} ·{" "}
-                      {record.enrollmentCounts.pendingCount} pending ·{" "}
-                      {record.enrollmentCounts.blockedCount} blocked ·{" "}
-                      {record.enrollmentCounts.droppedCount} dropped
-                    </div>
-                    {record.latestAdminAction ? (
-                      <div style={{ color: "#475569", marginTop: 8 }}>
-                        Latest admin action:{" "}
-                        {formatAdminSupportLabel(record.latestAdminAction.actionType)}
-                      </div>
-                    ) : null}
-                    {record.latestSecurityEvent ? (
-                      <div style={{ color: "#475569", marginTop: 4 }}>
-                        Latest risk event:{" "}
-                        {formatAdminSupportLabel(record.latestSecurityEvent.eventType)}
-                      </div>
-                    ) : null}
-                  </button>
-                ))}
-              </div>
-            ) : !studentsQuery.isLoading ? (
-              <StateCard message="No student accounts matched the current search yet." />
-            ) : null}
-          </div>
-        )}
-      </WebSectionCard>
-
-      <WebSectionCard
-        title="Selected Student"
-        description="Keep account state, classroom context, and device context together before you approve recovery or change access."
-      >
-        {detailQuery.isLoading ? (
-          <StateCard message="Loading student account context..." />
-        ) : detailQuery.isError ? (
-          <Banner
-            tone="danger"
-            message={
-              detailQuery.error instanceof Error
-                ? detailQuery.error.message
-                : "Failed to load the selected student account."
-            }
-          />
-        ) : detail ? (
-          <div style={styles.grid}>
-            <div style={styles.rowCard}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                <div>
-                  <strong>{detail.student.displayName}</strong>
-                  <div style={{ color: "#64748b", marginTop: 4 }}>
-                    {detail.student.email}
-                    {detail.student.rollNumber ? ` · ${detail.student.rollNumber}` : ""}
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <span style={styles.pill}>{formatAdminSupportLabel(detail.student.status)}</span>
-                  <span style={styles.pill}>
-                    {formatAdminSupportLabel(detail.attendanceDeviceState)}
-                  </span>
-                </div>
-              </div>
-              <div style={{ marginTop: 12, color: "#475569", lineHeight: 1.7 }}>
-                Last login:{" "}
-                {detail.student.lastLoginAt
-                  ? formatPortalDateTime(detail.student.lastLoginAt)
-                  : "No recorded sign-in yet"}
-                <br />
-                Student record created: {formatPortalDateTime(detail.student.createdAt)}
-                <br />
-                Program: {detail.student.programName ?? "Not provided"}
-                <br />
-                Current semester: {detail.student.currentSemester ?? "Not provided"}
-                <br />
-                Attendance device enforcement:{" "}
-                {detail.student.attendanceDisabled ? "Attendance disabled" : "Attendance enabled"}
-              </div>
-            </div>
-
-            <div style={styles.rowCard}>
-              <strong>Attendance phone context</strong>
-              <div style={{ color: "#475569", marginTop: 10, lineHeight: 1.7 }}>
-                Active phone: {detail.activeBinding?.device.installId ?? "None"}
-                <br />
-                Pending replacement: {detail.pendingBinding?.device.installId ?? "None"}
-                <br />
-                Active classrooms: {detail.enrollmentCounts.activeCount}
-                <br />
-                Pending classrooms: {detail.enrollmentCounts.pendingCount}
-              </div>
-              <div style={{ marginTop: 12 }}>
-                <Link href={adminWorkflowRoutes.devices} style={styles.secondaryButton}>
-                  Open device recovery desk
-                </Link>
-              </div>
-            </div>
-
-            <div style={styles.rowCard}>
-              <strong>Recent classrooms</strong>
-              {detail.recentClassrooms.length > 0 ? (
-                <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
-                  {detail.recentClassrooms.map((classroom) => (
-                    <div
-                      key={classroom.enrollmentId}
-                      style={{ borderTop: "1px solid #eef2f7", paddingTop: 10 }}
-                    >
-                      <strong>{classroom.classroomTitle}</strong>
-                      <div style={{ color: "#64748b", marginTop: 4 }}>
-                        {classroom.courseCode} ·{" "}
-                        {formatAdminSupportLabel(classroom.membershipStatus)} ·{" "}
-                        {classroom.semesterTitle}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div style={{ color: "#64748b", marginTop: 10 }}>
-                  No classroom memberships recorded yet.
-                </div>
-              )}
-            </div>
-
-            <div style={styles.rowCard}>
-              <strong>Recent risk and admin history</strong>
-              <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
-                <div>
-                  <div style={{ fontWeight: 700, marginBottom: 6 }}>Security events</div>
-                  {detail.securityEvents.slice(0, 3).length > 0 ? (
-                    detail.securityEvents.slice(0, 3).map((event) => (
-                      <div key={event.id} style={{ color: "#475569", lineHeight: 1.6 }}>
-                        {formatAdminSupportLabel(event.eventType)} ·{" "}
-                        {formatPortalDateTime(event.createdAt)}
-                      </div>
-                    ))
-                  ) : (
-                    <div style={{ color: "#64748b" }}>No recent security events.</div>
-                  )}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 700, marginBottom: 6 }}>Admin actions</div>
-                  {detail.adminActions.slice(0, 3).length > 0 ? (
-                    detail.adminActions.slice(0, 3).map((action) => (
-                      <div key={action.id} style={{ color: "#475569", lineHeight: 1.6 }}>
-                        {formatAdminSupportLabel(action.actionType)} ·{" "}
-                        {formatPortalDateTime(action.createdAt)}
-                      </div>
-                    ))
-                  ) : (
-                    <div style={{ color: "#64748b" }}>No recent admin actions.</div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <StateCard message="Select a student support case to inspect account state and device context." />
-        )}
-      </WebSectionCard>
-
-      <WebSectionCard
-        title="Student Governance Actions"
-        description="Use safe reasons and explicit acknowledgement before you deactivate, reactivate, or archive a student account."
-      >
-        {!detail ? (
-          <StateCard message="Select a student before you change account access." />
-        ) : (
-          <div style={styles.grid}>
-            <label style={{ display: "grid", gap: 6 }}>
-              <span>Admin reason</span>
-              <textarea
-                value={actionReason}
-                onChange={(event) => setActionReason(event.target.value)}
-                style={{ ...styles.input, minHeight: 110 }}
-              />
-            </label>
-            <label style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              <input
-                type="checkbox"
-                checked={highRiskAcknowledged}
-                onChange={(event) => setHighRiskAcknowledged(event.target.checked)}
-              />
-              <span>
-                I verified the student request and reviewed account, classroom, and device context.
-              </span>
-            </label>
-            <div style={{ display: "grid", gap: 12 }}>
-              {actionOptions.map((nextStatus) => {
-                const readiness = buildAdminStudentStatusActionReadiness({
-                  currentStatus: detail.student.status,
-                  nextStatus,
-                  reason: actionReason,
-                  acknowledged: highRiskAcknowledged,
-                })
-
-                return (
-                  <div key={nextStatus} style={styles.rowCard}>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: 12,
-                        alignItems: "center",
-                      }}
-                    >
-                      <div>
-                        <strong>{buildAdminStudentStatusActionLabel(nextStatus)}</strong>
-                        <div style={{ color: "#475569", marginTop: 4 }}>{readiness.message}</div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => updateStudentStatus.mutate(nextStatus)}
-                        disabled={!readiness.allowed || updateStudentStatus.isPending}
-                        style={
-                          nextStatus === "ARCHIVED" || nextStatus === "BLOCKED"
-                            ? styles.dangerButton
-                            : styles.primaryButton
-                        }
-                      >
-                        {updateStudentStatus.isPending
-                          ? "Saving..."
-                          : buildAdminStudentStatusActionLabel(nextStatus)}
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-      </WebSectionCard>
-
-      {statusMessage ? <Banner tone="info" message={statusMessage} /> : null}
-    </div>
+    <StudentManagementWorkspaceContent
+      accessToken={props.accessToken}
+      query={query}
+      accountStatus={accountStatus}
+      onQueryChange={setQuery}
+      onAccountStatusChange={setAccountStatus}
+      onSearch={() =>
+        setSubmittedFilters({
+          query: query.trim(),
+          accountStatus,
+        })
+      }
+      isSearching={studentsQuery.isFetching}
+      studentsLoading={studentsQuery.isLoading}
+      studentsData={studentsQuery.data}
+      studentsError={studentsQuery.error}
+      studentsErrorExists={studentsQuery.isError}
+      selectedStudentId={selectedStudentId}
+      onSelectStudent={setSelectedStudentId}
+      detailLoading={detailQuery.isLoading}
+      detailData={detailQuery.data ?? null}
+      detailError={detailQuery.error}
+      detailErrorExists={detailQuery.isError}
+      actionReason={actionReason}
+      onReasonChange={setActionReason}
+      highRiskAcknowledged={highRiskAcknowledged}
+      onHighRiskAcknowledgedChange={setHighRiskAcknowledged}
+      actionOptions={actionOptions}
+      actionReadinessByStatus={actionReadinessByStatus}
+      onApplyStatus={(nextStatus) => updateStudentStatus.mutate(nextStatus)}
+      isApplyingStatus={updateStudentStatus.isPending}
+      statusMessage={statusMessage}
+    />
   )
 }

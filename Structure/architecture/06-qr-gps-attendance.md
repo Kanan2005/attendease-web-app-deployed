@@ -371,40 +371,13 @@ Still deferred:
 - `GET /sessions/:id/live`
 - any dedicated QR-token refresh route
 
-## Testing Strategy
+## Validation Notes
 
-The current backend core now has dedicated automated coverage for:
+QR-specific testing coverage, manual validation notes, and completion outcomes now live in
+[`./06-qr-gps-attendance-validation.md`](./06-qr-gps-attendance-validation.md).
 
-- rolling QR issuance and slice-window validation
-- tamper detection and session mismatch rejection
-- GPS anchor resolution
-- GPS radius and accuracy rejection
-- QR session creation with roster snapshot records
-- successful attendance mark with counter updates, audit rows, outbox rows, and realtime seam calls
-- duplicate mark rejection
-- expired token rejection
-- future-slice rejection
-- low-accuracy GPS rejection
-- out-of-radius rejection
-- suspicious-location `security_events` without counter corruption
-- auto-expiry during student mark attempts with session-state publish
-- session-end rejection after the session closes
+In short:
 
-Current test files:
-
-- `apps/api/src/modules/attendance/qr-token.service.test.ts`
-- `apps/api/src/modules/attendance/gps-validator.service.test.ts`
-- `apps/api/src/modules/attendance/location-anchor.service.test.ts`
-- `apps/api/src/modules/attendance/qr-attendance.integration.test.ts`
-- `apps/mobile/src/student-attendance.test.ts`
-- `apps/web/src/web-workflows.test.ts`
-
-Current automated coverage is unit plus integration coverage only; browser and device verification are still manual until later E2E phases land.
-
-## Implementation Outcome
-
-When this architecture is complete:
-
-- teachers can run rolling QR projector sessions
-- students can only mark while within the valid time and location window
-- live count updates correctly on teacher web
+- backend QR issuance, GPS validation, suspicious-event persistence, and session-state transitions are covered in automated tests
+- student mobile and teacher web route behavior are covered in targeted client tests
+- final camera, GPS accuracy, and real-world classroom scanning still require physical-device validation

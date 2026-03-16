@@ -10,7 +10,7 @@
     "health": "tsx src/health.ts",
     "lint": "biome check src package.json tsconfig.json tsconfig.build.json",
     "typecheck": "tsc --project tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --maxWorkers=1 --minWorkers=1"
   },
   "dependencies": {
     "@attendease/config": "workspace:*",

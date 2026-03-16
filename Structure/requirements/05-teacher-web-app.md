@@ -92,16 +92,12 @@ Admin semester management, device recovery, and support work belong to admin web
 
 ## Shared Visual And Copy Foundation
 
-The reset track now also locks these web presentation rules:
+The reset track locks a shared web presentation system, concise role-specific copy, premium but
+compact portal chrome, and product-facing labels such as `Classroom`, `Course code`, `Roster`,
+`Students`, `Class session`, and `Attendance session`.
 
-- shared web typography, spacing, surface hierarchy, and CTA emphasis should come from `packages/ui-web`
-- teacher and admin landing or sign-in surfaces should explain role ownership clearly instead of exposing internal environment or scaffold wording
-- teacher portal chrome should stay compact, with a left navigation rail, a small account summary, and no oversized explainer cards that repeat what the route already says
-- table, chart, and metric surfaces should use concise product-facing labels so later data can plug in without rewriting the frame
-- user-facing copy must avoid words such as `shell`, `foundation`, `readiness`, `bootstrap`, or `local verification`
-- product copy should use `Classroom`, `Course code`, `Roster`, `Students`, `Class session`, and `Attendance session`; internal `course offering`, `enrollment`, and `lecture` terms must stay out of normal teacher/admin-facing UI
-- the current premium teacher/admin web look is already implemented through the shared `packages/ui-web` tokens, so later work should extend that foundation instead of introducing isolated per-page styling systems
-- the current screenshot-audit source of truth for these surfaces is `Structure/full-product-screenshot-audit.md` plus `Structure/artifacts/full-product-audit/web`
+Detailed implementation and acceptance notes now live in
+[`./05-teacher-web-app-notes.md`](./05-teacher-web-app-notes.md).
 
 ## Expected Main Areas
 
@@ -133,31 +129,8 @@ The teacher web app is expected to include:
 - email automation settings and logs
 - admin device-support page for recovery actions
 
-The current web app must keep these areas inside clear teacher versus admin navigation
-boundaries so later operational work can extend the same route tree without restructuring the app.
-
-The current implementation should already expose these route-level workspace pages:
-
-- `/login`
-- `/register`
-- `/admin/login`
-- `/teacher/classrooms`
-- `/teacher/classrooms/new`
-- `/teacher/classrooms/:classroomId`
-- `/teacher/classrooms/:classroomId/roster`
-- `/teacher/classrooms/:classroomId/imports`
-- `/teacher/classrooms/:classroomId/schedule`
-- `/teacher/classrooms/:classroomId/stream`
-- `/teacher/classrooms/:classroomId/lectures`
-- `/teacher/sessions/start`
-- `/teacher/sessions/active/:sessionId`
-- `/teacher/sessions/active/:sessionId/projector`
-- `/admin/semesters`
-- `/admin/devices`
-- `/admin/imports`
-
-If a protected route is opened without a valid web session, the UI should render an explicit
-sign-in-required or role-required state instead of failing silently.
+The current web app must keep these areas inside clear teacher versus admin navigation boundaries
+so later operational work can extend the same route tree without restructuring the app.
 
 Reset classroom CRUD contract note:
 
@@ -168,38 +141,7 @@ Reset classroom CRUD contract note:
 - teacher web classroom forms and actions should use those response labels and permissions instead
   of re-deriving edit or archive capability locally
 
-Current reset implementation note:
-
-- the teacher classroom list now behaves like a single classroom-management workspace instead of a
-  route index plus disconnected utilities
-- classroom list cards now keep these items together:
-  - `courseCode`
-  - `classroomTitle`
-  - teaching-scope summary
-  - attendance mode
-  - join-code status
-  - direct actions for course, roster, schedule, updates, and QR tools
-- the teacher create flow now loads allowed teaching scopes from teacher assignments and asks only
-  for:
-  - teaching scope
-  - classroom title
-  - course code
-  - attendance defaults
-- the teacher classroom detail flow now focuses on:
-  - course settings
-  - join-code reset
-  - archive action
-  - QR handoff
-  - nearby links into roster, schedule, updates, imports, and class sessions
-- the teacher QR + GPS launch flow now lives at `/teacher/sessions/start` and asks only for:
-  - classroom
-  - session duration
-  - allowed distance
-  - teacher browser location
-- classroom detail should now hand off into `/teacher/sessions/start?classroomId=...` instead of
-  keeping raw QR anchor fields inside the course workspace
-- teacher web should keep course management short and task-oriented instead of exposing raw
-  semester, class, section, or subject IDs in normal form controls
+Detailed classroom-management implementation notes now live in the companion requirement note.
 
 Teacher-only and admin-only areas must remain clearly segregated. Admin pages must not be reachable
 from a teacher-only session, while teacher pages may still be available to an admin-capable session
@@ -377,26 +319,7 @@ The history page must allow the teacher to:
 - filter by class, section, subject, or date
 - open a session to view the full attendance list
 
-Current implementation note:
-
-- the teacher web history route now loads shared session history, session detail, and session-student list data from the live attendance API
-- the same route now also saves manual attendance corrections through the shared `PATCH /sessions/:sessionId/attendance` API
-- the history route now also relies on the same shared live-session status model used by the active QR screen, so `ACTIVE`, `ENDED`, and `EXPIRED` transitions stay aligned while polling
-- the history filters now stay on one page and can narrow by:
-  - classroom
-  - class
-  - section
-  - subject
-  - session status
-  - attendance mode
-  - date range
-- the session-review detail now keeps:
-  - present and absent student lists
-  - correction-open versus read-only state
-  - pending correction count
-  - correction summary
-  - suspicious-attempt summary
-  visible together instead of pushing teachers into a generic detail table first
+Detailed session-history implementation notes now live in the companion requirement note.
 
 ## Manual Edit Expectations
 
@@ -407,24 +330,13 @@ Within the allowed edit window, the teacher web app must allow:
 
 After the window ends, the UI must clearly indicate read-only state.
 
-Current reset implementation note:
-
-- teacher web manual corrections now happen directly inside grouped `Present students` and `Absent students` sections
-- quick actions now read as `Mark present` or `Mark absent`
-- pending corrections stay visible before save
-- successful save now refreshes history totals and invalidates teacher web report queries so reports stay aligned with the corrected final truth
+Detailed manual-correction implementation notes now live in the companion requirement note.
 
 ## Reports and Export Expectations
 
 The teacher web app must provide all basic report and export capabilities available on mobile, plus comprehensive exports and advanced analysis tools.
 
-Current reset implementation note:
-
-- teacher web reports now use one shared filter scope for:
-  - course rollups
-  - student follow-up rows
-  - day-wise attendance trend rows
-- the report page now keeps `Open session review` and `Open exports` close to the filtered output so teachers can move from review into correction or export without hunting through the portal
+Detailed reporting implementation notes now live in the companion requirement note.
 
 ## Admin Device Support Expectations
 
@@ -477,18 +389,5 @@ The teacher web app must provide:
 
 ## Acceptance Expectations
 
-This part of the app is successful when:
-
-- the teacher and admin route groups are protected by auth-aware layout boundaries
-- teacher-only sessions cannot open admin routes, and protected-route login handoff keeps the next-path context intact
-- login, teacher, and admin routes are stable and ready for later operational feature work
-- dashboard, classroom, semester, session-history, reports, exports, analytics, email automation, devices, and imports routes all bootstrap cleanly
-- teacher classroom CRUD, semester management, roster, imports, schedule, stream, and admin device-support workflows are already wired to the current backend with explicit loading and error states
-- the admin dashboard keeps student support, device recovery, imports, and semesters visibly separated
-- the admin device area keeps student support and account governance separate from guarded recovery actions
-- the admin academic-governance area lets an admin search classrooms, review archive impact, and
-  archive a classroom safely with a recorded reason instead of hard-deleting history
-- the active-session control route and projector route already exist with stable component boundaries for the later QR + GPS implementation
-- a teacher can run a QR session from the browser
-- a projected rolling QR can be used by students in class
-- the teacher can manage history, edits, reports, analytics, and email operations from the same web portal
+Detailed route, workflow, and acceptance notes now live in
+[`./05-teacher-web-app-notes.md`](./05-teacher-web-app-notes.md).

@@ -1,10 +1,8 @@
-import {
-  type ClassroomJoinCodeSummary,
-  type JoinClassroomRequest,
-  type ResetClassroomJoinCodeRequest,
-  type StudentClassroomMembershipSummary,
-  classroomJoinCodeSummarySchema,
-  studentClassroomMembershipSummarySchema,
+import type {
+  ClassroomJoinCodeSummary,
+  JoinClassroomRequest,
+  ResetClassroomJoinCodeRequest,
+  StudentClassroomMembershipSummary,
 } from "@attendease/contracts"
 import { type PrismaTransactionClient, queueOutboxEvent, runInTransaction } from "@attendease/db"
 import {
@@ -18,9 +16,16 @@ import {
 
 import { DatabaseService } from "../../database/database.service.js"
 import type { AuthRequestContext } from "../auth/auth.types.js"
-import { createActiveJoinCodeWithRetries, toInclusiveDayEnd } from "./academic.helpers.js"
+import { createActiveJoinCodeWithRetries } from "./academic.helpers.js"
 import type { ClassroomAccessContext } from "./classrooms.service.js"
 import { ClassroomsService } from "./classrooms.service.js"
+import {
+  assertClassroomAllowsRosterMutations,
+  assertClassroomAllowsStudentJoin,
+  resolveJoinCodeExpiry,
+  toJoinCodeSummary,
+  toStudentClassroomMembershipSummary,
+} from "./join-codes.service.models.js"
 
 type JoinCodeQueryClient = DatabaseService["prisma"] | PrismaTransactionClient
 
@@ -38,7 +43,7 @@ export class JoinCodesService {
     await this.classroomsService.requireAccessibleClassroom(auth, classroomId)
 
     const joinCode = await this.getNormalizedActiveJoinCode(this.database.prisma, classroomId)
-    return this.toJoinCodeSummary(joinCode)
+    return toJoinCodeSummary(joinCode)
   }
 
   async resetClassroomJoinCode(
@@ -48,7 +53,7 @@ export class JoinCodesService {
   ): Promise<ClassroomJoinCodeSummary> {
     const classroom = await this.requireMutableRosterClassroom(auth, classroomId)
     const now = new Date()
-    const expiresAt = this.resolveJoinCodeExpiry(classroom.semester.endDate, request.expiresAt, now)
+    const expiresAt = resolveJoinCodeExpiry(classroom.semester.endDate, request.expiresAt, now)
 
     const joinCode = await runInTransaction(this.database.prisma, async (transaction) => {
       const previousJoinCode = await this.getNormalizedActiveJoinCode(transaction, classroomId, now)
@@ -88,14 +93,11 @@ export class JoinCodesService {
       return nextJoinCode
     })
 
-    return classroomJoinCodeSummarySchema.parse({
-      id: joinCode.id,
-      courseOfferingId: joinCode.courseOfferingId,
-      classroomId: joinCode.courseOfferingId,
-      code: joinCode.code,
-      status: joinCode.status,
-      expiresAt: joinCode.expiresAt.toISOString(),
-    })
+    const summary = toJoinCodeSummary(joinCode)
+    if (!summary) {
+      throw new BadRequestException("Join code could not be resolved after reset.")
+    }
+    return summary
   }
 
   async joinClassroom(
@@ -164,7 +166,7 @@ export class JoinCodesService {
         throw new BadRequestException("Join code is no longer active.")
       }
 
-      this.assertClassroomAllowsStudentJoin({
+      assertClassroomAllowsStudentJoin({
         status: joinCode.courseOffering.status,
         semester: joinCode.courseOffering.semester,
       })
@@ -223,7 +225,7 @@ export class JoinCodesService {
         },
       })
 
-      return this.toStudentClassroomMembershipSummary(
+      return toStudentClassroomMembershipSummary(
         {
           id: joinCode.courseOffering.id,
           semesterId: joinCode.courseOffering.semesterId,
@@ -284,58 +286,8 @@ export class JoinCodesService {
     classroomId: string,
   ): Promise<ClassroomAccessContext> {
     const classroom = await this.classroomsService.requireAccessibleClassroom(auth, classroomId)
-    this.assertClassroomAllowsRosterMutations(classroom)
+    assertClassroomAllowsRosterMutations(classroom)
     return classroom
-  }
-
-  private assertClassroomAllowsRosterMutations(
-    classroom: Pick<ClassroomAccessContext, "status" | "semester">,
-  ) {
-    if (classroom.status === "COMPLETED" || classroom.status === "ARCHIVED") {
-      throw new BadRequestException(
-        "Join codes cannot be changed for completed or archived classrooms.",
-      )
-    }
-
-    if (classroom.semester.status === "CLOSED" || classroom.semester.status === "ARCHIVED") {
-      throw new BadRequestException(
-        "Join codes cannot be changed inside a closed or archived semester.",
-      )
-    }
-  }
-
-  private assertClassroomAllowsStudentJoin(classroom: {
-    status: "DRAFT" | "ACTIVE" | "COMPLETED" | "ARCHIVED"
-    semester: {
-      status: "DRAFT" | "ACTIVE" | "CLOSED" | "ARCHIVED"
-    }
-  }) {
-    if (classroom.status === "COMPLETED" || classroom.status === "ARCHIVED") {
-      throw new BadRequestException("This classroom is no longer open for student joins.")
-    }
-
-    if (classroom.semester.status === "CLOSED" || classroom.semester.status === "ARCHIVED") {
-      throw new BadRequestException("This semester is no longer open for student joins.")
-    }
-  }
-
-  private resolveJoinCodeExpiry(
-    semesterEndDate: Date,
-    requestedExpiresAt: string | undefined,
-    now: Date,
-  ): Date {
-    const semesterEnd = toInclusiveDayEnd(semesterEndDate)
-    const expiresAt = requestedExpiresAt ? new Date(requestedExpiresAt) : semesterEnd
-
-    if (Number.isNaN(expiresAt.getTime()) || expiresAt <= now) {
-      throw new BadRequestException("Join code expiry must be in the future.")
-    }
-
-    if (expiresAt > semesterEnd) {
-      throw new BadRequestException("Join code expiry must fall inside the semester window.")
-    }
-
-    return expiresAt
   }
 
   private async getNormalizedActiveJoinCode(
@@ -371,76 +323,5 @@ export class JoinCodesService {
     }
 
     return joinCode
-  }
-
-  private toJoinCodeSummary(
-    input: {
-      id: string
-      courseOfferingId: string
-      code: string
-      status: "ACTIVE" | "EXPIRED" | "REVOKED"
-      expiresAt: Date
-    } | null,
-  ): ClassroomJoinCodeSummary | null {
-    if (!input) {
-      return null
-    }
-
-    return classroomJoinCodeSummarySchema.parse({
-      id: input.id,
-      courseOfferingId: input.courseOfferingId,
-      classroomId: input.courseOfferingId,
-      code: input.code,
-      status: input.status,
-      expiresAt: input.expiresAt.toISOString(),
-    })
-  }
-
-  private toStudentClassroomMembershipSummary(
-    classroom: {
-      id: string
-      semesterId: string
-      classId: string
-      sectionId: string
-      subjectId: string
-      primaryTeacherId: string
-      code: string
-      displayTitle: string
-      status: "DRAFT" | "ACTIVE" | "COMPLETED" | "ARCHIVED"
-      defaultAttendanceMode: "QR_GPS" | "BLUETOOTH" | "MANUAL"
-      timezone: string
-      requiresTrustedDevice: boolean
-    },
-    enrollment: {
-      id: string
-      status: "ACTIVE" | "PENDING" | "DROPPED" | "BLOCKED"
-      source: "JOIN_CODE" | "IMPORT" | "MANUAL" | "ADMIN"
-      joinedAt: Date
-      droppedAt: Date | null
-    },
-  ): StudentClassroomMembershipSummary {
-    return studentClassroomMembershipSummarySchema.parse({
-      id: classroom.id,
-      classroomId: classroom.id,
-      semesterId: classroom.semesterId,
-      classId: classroom.classId,
-      sectionId: classroom.sectionId,
-      subjectId: classroom.subjectId,
-      primaryTeacherId: classroom.primaryTeacherId,
-      code: classroom.code,
-      displayTitle: classroom.displayTitle,
-      classroomStatus: classroom.status,
-      defaultAttendanceMode: classroom.defaultAttendanceMode,
-      timezone: classroom.timezone,
-      requiresTrustedDevice: classroom.requiresTrustedDevice,
-      enrollmentId: enrollment.id,
-      membershipId: enrollment.id,
-      enrollmentStatus: enrollment.status,
-      membershipStatus: enrollment.status,
-      enrollmentSource: enrollment.source,
-      membershipSource: enrollment.source,
-      joinedAt: enrollment.joinedAt.toISOString(),
-      droppedAt: enrollment.droppedAt?.toISOString() ?? null,
-    })
   }
 }

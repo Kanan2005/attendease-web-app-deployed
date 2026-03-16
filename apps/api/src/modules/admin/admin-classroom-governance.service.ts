@@ -18,6 +18,7 @@ import { BadRequestException, Inject, Injectable } from "@nestjs/common"
 import { DatabaseService } from "../../database/database.service.js"
 import { ClassroomsService } from "../academic/classrooms.service.js"
 import type { AuthRequestContext } from "../auth/auth.types.js"
+import { buildClassroomSearchWhere } from "./admin-classroom-governance.search.js"
 
 const classroomGovernanceInclude = {
   joinCodes: {
@@ -91,7 +92,7 @@ export class AdminAcademicGovernanceService {
       where: {
         ...(filters.semesterId ? { semesterId: filters.semesterId } : {}),
         ...(filters.status ? { status: filters.status } : {}),
-        ...(filters.query ? { OR: this.buildClassroomSearchWhere(filters.query) } : {}),
+        ...(filters.query ? { OR: buildClassroomSearchWhere(filters.query) } : {}),
       },
       include: this.getClassroomSummaryInclude(),
       take: filters.limit,
@@ -149,115 +150,6 @@ export class AdminAcademicGovernanceService {
 
   private getClassroomSummaryInclude(): Prisma.CourseOfferingInclude {
     return classroomGovernanceInclude
-  }
-
-  private buildClassroomSearchWhere(query: string): Prisma.CourseOfferingWhereInput[] {
-    const trimmed = query.trim()
-
-    return [
-      {
-        code: {
-          contains: trimmed,
-          mode: "insensitive",
-        },
-      },
-      {
-        displayTitle: {
-          contains: trimmed,
-          mode: "insensitive",
-        },
-      },
-      {
-        semester: {
-          is: {
-            OR: [
-              {
-                code: {
-                  contains: trimmed,
-                  mode: "insensitive",
-                },
-              },
-              {
-                title: {
-                  contains: trimmed,
-                  mode: "insensitive",
-                },
-              },
-            ],
-          },
-        },
-      },
-      {
-        academicClass: {
-          is: {
-            OR: [
-              {
-                code: {
-                  contains: trimmed,
-                  mode: "insensitive",
-                },
-              },
-              {
-                title: {
-                  contains: trimmed,
-                  mode: "insensitive",
-                },
-              },
-            ],
-          },
-        },
-      },
-      {
-        section: {
-          is: {
-            OR: [
-              {
-                code: {
-                  contains: trimmed,
-                  mode: "insensitive",
-                },
-              },
-              {
-                title: {
-                  contains: trimmed,
-                  mode: "insensitive",
-                },
-              },
-            ],
-          },
-        },
-      },
-      {
-        subject: {
-          is: {
-            OR: [
-              {
-                code: {
-                  contains: trimmed,
-                  mode: "insensitive",
-                },
-              },
-              {
-                title: {
-                  contains: trimmed,
-                  mode: "insensitive",
-                },
-              },
-            ],
-          },
-        },
-      },
-      {
-        primaryTeacher: {
-          is: {
-            displayName: {
-              contains: trimmed,
-              mode: "insensitive",
-            },
-          },
-        },
-      },
-    ]
   }
 
   private async loadGovernanceMap(classroomIds: string[]) {

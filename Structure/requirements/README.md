@@ -5,6 +5,7 @@ This folder breaks the main product requirement into smaller requirement documen
 ## How to Use This Folder
 
 - Start with the root document: [`requirement.md`](../../requirement.md)
+- Use the long-form baseline reference when you need the original detailed catalog: [`requirement-baseline-reference.md`](../../requirement-baseline-reference.md)
 - Use this folder when defining detailed expectations for a specific module
 - Treat these documents as area-specific requirement sheets
 - Keep cross-cutting rules consistent across all files

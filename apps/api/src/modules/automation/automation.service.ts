@@ -9,14 +9,12 @@ import type {
   EmailLogsResponse,
   LowAttendanceEmailPreviewRequest,
   LowAttendanceEmailPreviewResponse,
-  LowAttendanceEmailRecipientSummary,
   ManualLowAttendanceEmailSendRequest,
   ManualLowAttendanceEmailSendResponse,
   UpdateEmailAutomationRuleRequest,
 } from "@attendease/contracts"
-import { type Prisma, isUniqueConstraintError } from "@attendease/db"
 import { toDispatchDateForRule, toManualDispatchDateRange } from "@attendease/domain"
-import { ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common"
+import { ConflictException, Inject, Injectable } from "@nestjs/common"
 import {
   buildLowAttendanceEmailPreview,
   toEmailAutomationRuleSummary,
@@ -27,30 +25,12 @@ import {
 import { DatabaseService } from "../../database/database.service.js"
 import type { AuthRequestContext } from "../auth/auth.types.js"
 import { ReportsService } from "../reports/reports.service.js"
-
-type RuleWithCourse = Prisma.EmailAutomationRuleGetPayload<{
-  include: {
-    courseOffering: {
-      select: {
-        id: true
-        code: true
-        displayTitle: true
-        primaryTeacherId: true
-        subject: {
-          select: {
-            id: true
-            code: true
-            title: true
-          }
-        }
-      }
-    }
-  }
-}>
-
-type TeacherPercentageRow = Awaited<
-  ReturnType<ReportsService["listTeacherStudentPercentageReport"]>
->[number]
+import {
+  assertRuleScopeAccess,
+  createAutomatedDispatchRunIfDue,
+  getRuleOrThrow,
+  resolveLowAttendanceRecipients,
+} from "./automation.service.helpers.js"
 
 @Injectable()
 export class AutomationService {
@@ -104,7 +84,11 @@ export class AutomationService {
   }
 
   async createRule(auth: AuthRequestContext, request: CreateEmailAutomationRuleRequest) {
-    await this.assertRuleScopeAccess(auth, request.classroomId)
+    await assertRuleScopeAccess({
+      reportsService: this.reportsService,
+      auth,
+      classroomId: request.classroomId,
+    })
 
     const existing = await this.database.prisma.emailAutomationRule.findFirst({
       where: {
@@ -158,8 +142,15 @@ export class AutomationService {
     params: EmailAutomationRuleParams,
     request: UpdateEmailAutomationRuleRequest,
   ) {
-    const rule = await this.getRuleOrThrow(params.ruleId)
-    await this.assertRuleScopeAccess(auth, rule.courseOfferingId)
+    const rule = await getRuleOrThrow({
+      database: this.database,
+      ruleId: params.ruleId,
+    })
+    await assertRuleScopeAccess({
+      reportsService: this.reportsService,
+      auth,
+      classroomId: rule.courseOfferingId,
+    })
 
     const updated = await this.database.prisma.emailAutomationRule.update({
       where: {
@@ -208,14 +199,26 @@ export class AutomationService {
     auth: AuthRequestContext,
     request: LowAttendanceEmailPreviewRequest,
   ): Promise<LowAttendanceEmailPreviewResponse> {
-    const rule = await this.getRuleOrThrow(request.ruleId)
-    await this.assertRuleScopeAccess(auth, rule.courseOfferingId)
+    const rule = await getRuleOrThrow({
+      database: this.database,
+      ruleId: request.ruleId,
+    })
+    await assertRuleScopeAccess({
+      reportsService: this.reportsService,
+      auth,
+      classroomId: rule.courseOfferingId,
+    })
 
     const thresholdPercent = request.thresholdPercent ?? rule.thresholdPercent.toNumber()
-    const recipients = await this.resolveLowAttendanceRecipients(auth, rule.courseOfferingId, {
-      thresholdPercent,
-      ...(request.from ? { from: request.from } : {}),
-      ...(request.to ? { to: request.to } : {}),
+    const recipients = await resolveLowAttendanceRecipients({
+      reportsService: this.reportsService,
+      auth,
+      classroomId: rule.courseOfferingId,
+      options: {
+        thresholdPercent,
+        ...(request.from ? { from: request.from } : {}),
+        ...(request.to ? { to: request.to } : {}),
+      },
     })
 
     return buildLowAttendanceEmailPreview({
@@ -233,8 +236,15 @@ export class AutomationService {
     auth: AuthRequestContext,
     request: ManualLowAttendanceEmailSendRequest,
   ): Promise<ManualLowAttendanceEmailSendResponse> {
-    const rule = await this.getRuleOrThrow(request.ruleId)
-    await this.assertRuleScopeAccess(auth, rule.courseOfferingId)
+    const rule = await getRuleOrThrow({
+      database: this.database,
+      ruleId: request.ruleId,
+    })
+    await assertRuleScopeAccess({
+      reportsService: this.reportsService,
+      auth,
+      classroomId: rule.courseOfferingId,
+    })
 
     const dispatchDate = toDispatchDateForRule(new Date(), rule.timezone)
     const run = await this.database.prisma.emailDispatchRun.create({
@@ -363,109 +373,10 @@ export class AutomationService {
     ruleId: string
     now: Date
   }): Promise<"CREATED" | "SKIPPED"> {
-    const rule = await this.database.prisma.emailAutomationRule.findUnique({
-      where: {
-        id: input.ruleId,
-      },
+    return createAutomatedDispatchRunIfDue({
+      database: this.database,
+      ruleId: input.ruleId,
+      now: input.now,
     })
-
-    if (!rule || rule.status !== "ACTIVE") {
-      return "SKIPPED"
-    }
-
-    try {
-      await this.database.prisma.emailDispatchRun.create({
-        data: {
-          ruleId: rule.id,
-          triggerType: "AUTOMATED",
-          dispatchDate: toDispatchDateForRule(input.now, rule.timezone),
-          status: "QUEUED",
-        },
-      })
-
-      await this.database.prisma.emailAutomationRule.update({
-        where: {
-          id: rule.id,
-        },
-        data: {
-          lastEvaluatedAt: input.now,
-        },
-      })
-
-      return "CREATED"
-    } catch (error) {
-      if (isUniqueConstraintError(error)) {
-        return "SKIPPED"
-      }
-
-      throw error
-    }
-  }
-
-  private async getRuleOrThrow(ruleId: string): Promise<RuleWithCourse> {
-    const rule = await this.database.prisma.emailAutomationRule.findUnique({
-      where: {
-        id: ruleId,
-      },
-      include: {
-        courseOffering: {
-          select: {
-            id: true,
-            code: true,
-            displayTitle: true,
-            primaryTeacherId: true,
-            subject: {
-              select: {
-                id: true,
-                code: true,
-                title: true,
-              },
-            },
-          },
-        },
-      },
-    })
-
-    if (!rule) {
-      throw new NotFoundException("Email automation rule not found.")
-    }
-
-    return rule
-  }
-
-  private async assertRuleScopeAccess(auth: AuthRequestContext, classroomId: string) {
-    await this.reportsService.assertTeacherReportAccess(auth, {
-      classroomId,
-    })
-  }
-
-  private async resolveLowAttendanceRecipients(
-    auth: AuthRequestContext,
-    classroomId: string,
-    options: {
-      from?: string
-      to?: string
-      thresholdPercent: number
-    },
-  ): Promise<LowAttendanceEmailRecipientSummary[]> {
-    const rows = await this.reportsService.listTeacherStudentPercentageReport(auth, {
-      classroomId,
-      ...(options.from ? { from: options.from } : {}),
-      ...(options.to ? { to: options.to } : {}),
-    })
-
-    return rows
-      .filter((row) => row.attendancePercentage < options.thresholdPercent)
-      .map((row) => this.toRecipientSummary(row))
-  }
-
-  private toRecipientSummary(row: TeacherPercentageRow): LowAttendanceEmailRecipientSummary {
-    return {
-      studentId: row.studentId,
-      studentEmail: row.studentEmail,
-      studentDisplayName: row.studentDisplayName,
-      studentRollNumber: row.studentRollNumber,
-      attendancePercentage: row.attendancePercentage,
-    }
   }
 }

@@ -106,270 +106,18 @@ Use:
 - `pnpm audit:screenshots:web` to refresh deterministic teacher/admin web audit artifacts
 - `pnpm manual:mobile:emulator -- --device emulator-5554 --port 8101` when the Android emulator should use localhost API routing instead of the current LAN IP
 
-Outputs:
+Do not treat emulator/browser screenshots as final proof for QR camera scan success, GPS accuracy/range enforcement, or BLE advertiser/scanner proximity truth.
 
-- `Structure/full-product-screenshot-audit.md`
-- `Structure/artifacts/full-product-audit/mobile`
-- `Structure/artifacts/full-product-audit/web`
-
-Interpretation rules:
-
-- `PASS` means the expected screen/state was captured successfully
-- `FAIL` means a product defect was reproduced and should be recorded with repro notes
-- `BLOCKED` means code or environment prevented the expected state
-- `MANUAL-REQUIRED` means hardware-only proof is still outstanding even when the UI route is captured
-
-Do not treat emulator/browser screenshots as final proof for:
-
-- QR camera scan success
-- GPS accuracy or range enforcement
-- BLE advertiser/scanner proximity truth
+Detailed audit-output and interpretation notes now live in
+[`./testing-strategy-validation-inventory.md`](./testing-strategy-validation-inventory.md).
 
 ## Current Test Placement
 
-- Shared packages: `packages/*/src/*.test.ts`
-- API shell tests: `apps/api/src/**/*.test.ts`
-- Web shell tests: `apps/web/src/**/*.test.ts`
-- Mobile shell tests: `apps/mobile/src/**/*.test.ts`
-- Worker shell tests: `apps/worker/src/**/*.test.ts`
+Shared packages use `packages/*/src/*.test.ts`, app shell tests stay under each app `src/`
+directory, and integration tests use `*.integration.test.ts` where the runtime boundary matters.
 
-## Test Layers By Phase
-
-### Unit Tests
-
-Use unit tests for:
-
-- contracts and schema validation
-- domain rules and policy helpers
-- environment loaders
-- formatting and export helpers
-- query-shaping helpers
-- small UI-free app helpers
-- product-language and naming-alias helpers that keep classroom, roster, and class-session terminology stable across layers
-
-Convention:
-
-- colocate as `*.test.ts` beside the source file
-
-### Integration Tests
-
-Add integration tests when a phase introduces:
-
-- API controllers with request/response behavior
-- database transactions
-- Prisma repositories or migration-sensitive logic
-- worker processors
-- queue flows
-- realtime gateway behavior
-
-Expected tools:
-
-- Vitest for orchestration
-- Supertest for HTTP flows
-- real local services via Docker Compose or test-specific containers when practical
-
-Suggested placement:
-
-- `apps/api/src/**/*.integration.test.ts`
-- `apps/worker/src/**/*.integration.test.ts`
-- `packages/db/src/**/*.integration.test.ts`
-
-Current DB integration location:
-
-- `packages/db/src/integration.test.ts`
-
-Current DB helper/unit coverage:
-
-- `packages/db/src/client.test.ts`
-- `packages/db/src/transactions.test.ts`
-- `packages/db/src/audit.test.ts`
-- `packages/db/src/schema.test.ts`
-
-Current API auth and scope coverage:
-
-- `apps/api/src/modules/auth/auth.guard.test.ts`
-- `apps/api/src/modules/auth/roles.guard.test.ts`
-- `apps/api/src/modules/auth/auth.service.test.ts`
-- `apps/api/src/modules/auth/auth.integration.test.ts`
-- `apps/api/src/modules/devices/device-binding-policy.service.test.ts`
-- `apps/api/src/modules/devices/trusted-device.guard.test.ts`
-- `apps/api/src/modules/devices/devices.integration.test.ts`
-- `apps/api/src/modules/admin/admin-device-support.integration.test.ts`
-- `apps/api/src/modules/academic/assignments.service.test.ts`
-- `apps/api/src/modules/academic/enrollments.service.test.ts`
-- `apps/api/src/modules/academic/semesters.service.test.ts`
-- `apps/api/src/modules/academic/classrooms.service.test.ts`
-- `apps/api/src/modules/academic/scheduling.service.test.ts`
-- `apps/api/src/modules/academic/lectures.service.test.ts`
-- `apps/api/src/modules/academic/academic-management.integration.test.ts`
-- `apps/api/src/modules/academic/join-codes.service.test.ts`
-- `apps/api/src/modules/academic/announcements.service.test.ts`
-- `apps/api/src/modules/academic/roster-imports.service.test.ts`
-- `apps/api/src/modules/academic/roster.service.test.ts`
-- `apps/api/src/modules/academic/classroom-roster.integration.test.ts`
-- `apps/api/src/modules/attendance/attendance-history.models.test.ts`
-- `apps/api/src/modules/attendance/attendance-history.integration.test.ts`
-- `apps/api/src/modules/reports/reports.models.test.ts`
-- `apps/api/src/modules/reports/reports.integration.test.ts`
-- `apps/api/src/modules/exports/exports.integration.test.ts`
-- `apps/api/src/modules/analytics/analytics.models.test.ts`
-- `apps/api/src/modules/analytics/analytics.integration.test.ts`
-- `apps/api/src/infrastructure/request-context.middleware.test.ts`
-- `apps/api/src/infrastructure/api-exception.filter.test.ts`
-- `apps/api/src/infrastructure/api-logger.service.test.ts`
-- `apps/api/src/infrastructure/rate-limit.guard.test.ts`
-- `apps/api/src/infrastructure/non-functional.integration.test.ts`
-- `apps/api/src/health/health.service.test.ts`
-- `apps/api/src/modules/attendance/bluetooth-token.service.test.ts`
-- `apps/api/src/modules/attendance/bluetooth-attendance.integration.test.ts`
-- `apps/worker/src/infrastructure/worker-logger.test.ts`
-- `apps/worker/src/jobs/roster-import.processor.test.ts`
-- `apps/worker/src/jobs/announcement-fanout.processor.test.ts`
-- `apps/worker/src/jobs/export-job.processor.test.ts`
-- `apps/worker/src/jobs/analytics-refresh.processor.test.ts`
-
-Current shared/client auth coverage:
-
-- `packages/auth/src/client.test.ts`
-- `packages/auth/src/reset-client.test.ts`
-- `packages/domain/src/academic-language.test.ts`
-- `packages/contracts/src/reset-contracts.test.ts`
-- `packages/contracts/src/index.test.ts`
-- `packages/ui-mobile/src/index.test.ts`
-- `packages/ui-web/src/index.test.ts`
-- `apps/web/src/auth.test.ts`
-- `apps/web/src/web-auth-entry.test.ts`
-- `apps/web/src/web-auth-session.test.ts`
-- `apps/web/src/admin-device-support.test.ts`
-- `apps/web/src/academic-management.test.ts`
-- `apps/web/src/classroom-communications.test.ts`
-- `apps/web/src/teacher-classroom-management.test.ts`
-- `apps/web/src/teacher-qr-session-management.test.ts`
-- `apps/web/src/teacher-review-workflows.test.ts`
-- `apps/web/src/teacher-roster-management.test.ts`
-- `apps/web/src/web-portal.test.ts`
-- `apps/web/src/web-workflows.test.ts`
-- `apps/mobile/src/auth.test.ts`
-- `apps/mobile/src/academic-management.test.ts`
-- `apps/mobile/src/classroom-communications.test.ts`
-- `apps/mobile/src/device-trust.test.ts`
-- `apps/mobile/src/mobile-entry.test.ts`
-- `apps/mobile/src/shell.test.ts`
-- `apps/mobile/src/bluetooth-attendance.test.ts`
-- `apps/mobile/src/native/bluetooth/AttendEaseBluetooth.test.ts`
-- `apps/mobile/src/student-query.test.ts`
-- `apps/mobile/src/student-routes.test.ts`
-- `apps/mobile/src/student-view-state.test.ts`
-- `apps/mobile/src/student-attendance.test.ts`
-- `apps/mobile/src/student-workflow-models.test.ts`
-- `apps/mobile/src/teacher-session.test.ts`
-- `apps/mobile/src/teacher-routes.test.ts`
-- `apps/mobile/src/teacher-query.test.ts`
-- `apps/mobile/src/teacher-models.test.ts`
-- `apps/mobile/src/teacher-view-state.test.ts`
-- `apps/mobile/src/teacher-roster-management.test.ts`
-- `apps/mobile/src/teacher-operational.test.ts`
-- `apps/mobile/src/teacher-schedule-draft.test.ts`
-- `packages/auth/src/client.test.ts` now also covers student classroom list/join and teacher roster/join-code route shaping
-- `packages/auth/src/client.test.ts` now also covers classroom stream and roster-import route shaping
-- `packages/auth/src/client.test.ts` now also covers reset-era classroom CRUD alias validation for
-  `courseCode` and `classroomTitle`
-- `packages/auth/src/client.test.ts` now also covers reset-era classroom student alias validation
-  for `membershipStatus`, `studentIdentifier`, and explicit classroom-student removal
-- `packages/auth/src/client.test.ts` now also covers export job create/list/detail route shaping
-- `packages/export/src/index.test.ts` now covers session CSV, student-percentage CSV, comprehensive CSV, and session PDF output builders
-- `apps/web/src/web-portal.test.ts` now also guards the reset-era shared portal navigation and shared copy model against developer-facing placeholder language
-- `apps/web/src/web-auth-entry.test.ts` now guards the reset-era teacher/admin auth entry routing, alternate-link framing, and user-facing error copy
-- `apps/web/src/web-auth-session.test.ts` now guards scoped teacher/admin post-auth redirects plus cookie behavior for the split web auth routes
-- `apps/web/src/admin-device-support.test.ts` now guards reset-era admin support/recovery mode copy, session-first access rules, enum-label formatting, guarded high-risk recovery action rules, and the API-backed recovery-summary/next-step model
-- `apps/web/src/teacher-classroom-management.test.ts` now guards reset-era teacher web
-  classroom create/edit request shaping, teaching-scope selection, list-card modeling, and
-  classroom-management copy alignment
-- `apps/web/src/teacher-roster-management.test.ts` now guards reset-era teacher web roster
-  filter shaping, add-student lookup shaping, student identity text, result-summary copy, and
-  API-driven roster action modeling
-
-Reset-track teacher web classroom-management prompts should keep:
-
-- teacher-web classroom helper coverage in `apps/web/src/teacher-classroom-management.test.ts`
-- teacher-web route/page-model coverage in `apps/web/src/web-portal.test.ts`
-- teacher-web route helper/query-key coverage in `apps/web/src/web-workflows.test.ts`
-- shared client alias coverage in `packages/auth/src/client.test.ts`
-- classroom CRUD backend coverage in
-  `apps/api/src/modules/academic/academic-management.integration.test.ts`
-
-Reset-track teacher web roster prompts should keep:
-
-- teacher-web roster helper coverage in `apps/web/src/teacher-roster-management.test.ts`
-- teacher-web page-model coverage in `apps/web/src/web-portal.test.ts`
-- shared classroom-student client coverage in `packages/auth/src/client.test.ts`
-- DB-backed roster behavior coverage in
-  `apps/api/src/modules/academic/classroom-roster.integration.test.ts`
-
-Reset-track teacher web history/report prompts should keep:
-
-- teacher-web history/report helper coverage in `apps/web/src/teacher-review-workflows.test.ts`
-- teacher-web page-model coverage in `apps/web/src/web-portal.test.ts`
-- teacher-web query-key coverage in `apps/web/src/web-workflows.test.ts`
-- report integration coverage in `apps/api/src/modules/reports/reports.integration.test.ts`
-- manual-edit integration coverage in `apps/api/src/modules/attendance/attendance-history.integration.test.ts`
-
-Reset-track mobile auth prompts should keep:
-
-- route-gate and role-entry coverage in `apps/mobile/src/mobile-entry.test.ts`
-- student and teacher request-shape coverage in `apps/mobile/src/student-session.test.ts` and `apps/mobile/src/teacher-session.test.ts`
-- focused native Android validation whenever entry routing or protected-route gating changes
-
-Reset-track student device-lifecycle prompts should keep:
-
-- backend anti-abuse coverage in `apps/api/src/modules/auth/auth.integration.test.ts`, `apps/api/src/modules/devices/device-binding-policy.service.test.ts`, `apps/api/src/modules/devices/devices.integration.test.ts`, and `apps/api/src/modules/admin/admin-device-support.integration.test.ts`
-- mobile trust-state coverage in `apps/mobile/src/device-trust.test.ts` and `apps/mobile/src/student-foundation.test.ts`
-- focused native Android validation whenever registration-time device binding or device-status UX changes
-
-Reset-track classroom CRUD prompts should keep:
-
-- contract alias coverage in `packages/contracts/src/index.test.ts`
-- shared client request-shape coverage in `packages/auth/src/client.test.ts`
-- service-policy coverage in `apps/api/src/modules/academic/classrooms.service.test.ts`
-- DB-backed teacher/admin CRUD integration coverage in
-  `apps/api/src/modules/academic/academic-management.integration.test.ts`
-- teacher-mobile classroom draft and request-shaping coverage in
-  `apps/mobile/src/teacher-classroom-management.test.ts`
-- teacher-mobile classroom loading and empty-state coverage in
-  `apps/mobile/src/teacher-view-state.test.ts`
-- focused native Android validation whenever teacher-mobile classroom create, edit, or archive UX
-  changes
-
-Reset-track teacher-shell prompts should keep:
-
-- route and shell navigation coverage in `apps/mobile/src/teacher-routes.test.ts`
-- teacher-home shaping coverage in `apps/mobile/src/teacher-models.test.ts`
-- loading, empty, and live-session banner coverage in `apps/mobile/src/teacher-view-state.test.ts`
-- focused native Android validation whenever teacher home, top-level teacher navigation, or
-  teacher-route titles change
-
-Reset-track teacher roster prompts should keep:
-
-- teacher roster filter and request-shaping coverage in `apps/mobile/src/teacher-roster-management.test.ts`
-- teacher roster loading, empty, and filtered-state coverage in `apps/mobile/src/teacher-view-state.test.ts`
-- teacher roster query-key coverage in `apps/mobile/src/teacher-query.test.ts`
-- shared classroom-student contract/client coverage in `packages/contracts/src/index.test.ts` and
-  `packages/auth/src/client.test.ts`
-- DB-backed roster behavior coverage in
-  `apps/api/src/modules/academic/classroom-roster.integration.test.ts`
-- focused native Android validation whenever teacher-mobile roster list, add, edit-state, or remove
-  UX changes
-
-Reset-track seed and fixture prompts should keep:
-
-- shared seed and lifecycle coverage in `packages/db/src/fixtures.test.ts`, `packages/db/src/index.test.ts`, and `packages/db/src/integration.test.ts`
-- shared reset fixture exports in `apps/api/src/test/integration-helpers.ts` so API integration suites can reuse registration candidates, roster states, and admin recovery scenarios instead of hard-coding them per file
-- the seeded baseline stable enough to cover:
-  - student and teacher registration candidates
-  - trusted and unregistered student device states
-  - historical device replacement and revocation
-  - active, dropped, and blocked roster memberships
-  - seeded final attendance truth for reporting and attendance-history prompts
+Detailed test inventories and prompt-by-prompt coverage references now live in
+[`./testing-strategy-validation-inventory.md`](./testing-strategy-validation-inventory.md).
 
 ### E2E And Device-Level Tests
 
@@ -419,6 +167,11 @@ Current commands:
 - `pnpm android:validate:help`
 - `pnpm android:validate -- --device <device> --port <port> [--no-install]`
 
+Stability note:
+
+- `apps/api/package.json` and `apps/worker/package.json` now run Vitest with `--maxWorkers=1 --minWorkers=1`
+- this is intentional for the current repo because those suites create real temporary PostgreSQL databases and Prisma clients; serial file execution prevents flaky `too many clients already` failures and worker teardown timeouts during full monorepo runs
+
 ## Reset Track Targeted Validation Baseline
 
 The reset prompts now depend on a small set of focused commands that are safe to run after each micro-phase.
@@ -455,6 +208,7 @@ Current meaning:
 - the DB integration suite now proves high-risk uniqueness, raw SQL checks, transaction rollback behavior, audit/outbox persistence, seed idempotency, and initial report-view correctness.
 - `pnpm --filter @attendease/db seed:dev` provides deterministic local baseline data for backend and reporting work.
 - `pnpm --filter @attendease/api test` now proves the most important auth/session/role-scope/device-trust behavior with real Nest request flows and temporary PostgreSQL databases, including cross-scope denial and student-session gating on trusted-device state.
+- `pnpm --filter @attendease/api test` now runs serially across test files so the temporary-database integration suites stay stable under the root `pnpm test` command.
 - `pnpm --filter @attendease/api test` now also proves device registration behavior, attendance-readiness trusted-device guard behavior, admin revoke/delink/approve-new-device flows, and security-event persistence for blocked device misuse patterns.
 - `pnpm --filter @attendease/api test` now also proves role-denial on admin recovery routes, non-student denial on attendance-readiness checks, and conflicting replacement-device rejection without weakening the same-phone anti-rotation guarantees.
 - `pnpm --filter @attendease/api test` now also proves admin semester lifecycle behavior, teacher/admin classroom CRUD within assignment rules, lecture creation/list behavior, and classroom/lecture outbox event creation.
@@ -467,6 +221,7 @@ Current meaning:
 - `pnpm --filter @attendease/api test` now also proves low-attendance email rule lifecycle, preview rendering, manual-send queueing, dispatch-run visibility, email-log visibility, and cross-scope denial for student or foreign-teacher access.
 - `pnpm --filter @attendease/api test` now also proves request-ID propagation, consistent error envelopes, and named rate-limit policy enforcement without leaking cross-test state into unrelated integration suites.
 - `pnpm --filter @attendease/worker test` now also proves worker-side export generation, failure handling, file metadata persistence, and file-output structure checks for all four current export formats.
+- `pnpm --filter @attendease/worker test` now runs serially across test files so temp-database teardown stays reliable during monorepo validation.
 - `pnpm --filter @attendease/worker test` now also proves analytics aggregate refresh behavior from seeded refresh events, ended-session events, and manual-edit events.
 - `pnpm --filter @attendease/worker test` now also proves due-rule scheduling, duplicate per-day scheduling prevention, low-attendance recipient selection, successful email dispatch completion, duplicate rerun suppression, and failed-delivery handling for the email automation worker.
 - `pnpm --filter @attendease/worker test` now also proves stale `PROCESSING` dispatch-run recovery after the timeout window.

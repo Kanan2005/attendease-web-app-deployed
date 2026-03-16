@@ -1,23 +1,6 @@
-import { createAuthApiClient } from "@attendease/auth"
-import { loadMobileEnv } from "@attendease/config"
-import type { AttendanceMode, TrustedDeviceAttendanceReadyResponse } from "@attendease/contracts"
-import { mobileTheme } from "@attendease/ui-mobile"
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Link } from "expo-router"
 import { useEffect, useState } from "react"
-import type { ComponentType, ReactNode } from "react"
-import {
-  ActivityIndicator,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native"
 
-import { getMobileAttendanceListPollInterval } from "../attendance-live"
+import { loadMobileEnv } from "@attendease/config"
 import {
   buildStudentBluetoothDetectionBanner,
   buildStudentBluetoothScannerBanner,
@@ -29,102 +12,19 @@ import {
   useStudentBluetoothMarkAttendanceMutation,
   useStudentBluetoothScanner,
 } from "../bluetooth-attendance"
-import { buildStudentAttendanceGateModel, createMobileDeviceTrustBootstrap } from "../device-trust"
-import { mobileEntryRoutes } from "../mobile-entry-models"
+import { useStudentBluetoothMarkAttendanceMutation as useBluetoothMarkMutation } from "../bluetooth-attendance"
 import {
   type StudentAttendancePermissionState,
-  type StudentQrLocationSnapshot,
-  type StudentQrLocationState,
-  buildStudentAttendanceControllerSnapshot,
   buildStudentBluetoothAttendanceErrorBanner,
   buildStudentBluetoothMarkRequest,
-  buildStudentQrAttendanceErrorBanner,
-  buildStudentQrLocationBanner,
-  buildStudentQrMarkRequest,
-  buildStudentQrScanBanner,
-  resolveStudentQrCameraPermissionState,
-  studentAttendancePermissionStateValues,
 } from "../student-attendance"
-import {
-  type CardTone,
-  type StudentDashboardActionModel,
-  buildStudentDashboardModel,
-  buildStudentLectureTimeline,
-  mapStudentApiErrorToMessage,
-} from "../student-models"
-import {
-  buildStudentInvalidationKeys,
-  invalidateStudentExperienceQueries,
-  requireStudentAccessToken,
-  studentQueryKeys,
-  useStudentRefreshAction,
-} from "../student-query"
+import { mapStudentApiErrorToMessage } from "../student-models"
 import { studentRoutes } from "../student-routes"
 import { useStudentSession } from "../student-session"
-import {
-  type StudentScreenStatus,
-  buildStudentAttendanceRefreshStatus,
-  buildStudentDashboardStatus,
-  buildStudentHistoryRefreshStatus,
-  buildStudentJoinBanner,
-  buildStudentReportsStatus,
-} from "../student-view-state"
-import {
-  type StudentAttendanceCandidate,
-  type StudentProfileDraft,
-  buildStudentAttendanceCandidates,
-  buildStudentAttendanceHistoryRows,
-  buildStudentAttendanceHistorySummaryModel,
-  buildStudentAttendanceInsightModel,
-  buildStudentAttendanceOverviewModel,
-  buildStudentClassroomDetailSummaryModel,
-  buildStudentCourseDiscoveryCards,
-  buildStudentDeviceStatusSummaryModel,
-  buildStudentReportOverviewModel,
-  buildStudentScheduleOverviewModel,
-  buildStudentSubjectReportModel,
-  buildStudentSubjectReportSummaryModel,
-  createStudentProfileDraft,
-  hasStudentProfileDraftChanges,
-  normalizeStudentProfileDraft,
-} from "../student-workflow-models"
-
-import {
-  useStudentAttendanceController,
-  useStudentAttendanceHistoryData,
-  useStudentAttendanceOverview,
-  useStudentAttendanceReadyQuery,
-  useStudentClassroomDetailData,
-  useStudentClassroomsQuery,
-  useStudentDashboardData,
-  useStudentJoinClassroomMutation,
-  useStudentLiveAttendanceSessionsQuery,
-  useStudentMeQuery,
-  useStudentQrMarkAttendanceMutation,
-  useStudentReportsData,
-  useStudentSubjectReportData,
-} from "./queries"
-import {
-  AnnouncementRow,
-  AttendanceCandidateRow,
-  StudentCard,
-  StudentDashboardSpotlightCard,
-  StudentEmptyCard,
-  StudentErrorCard,
-  StudentLoadingCard,
-  StudentNavAction,
-  StudentQuickActions,
-  StudentScreen,
-  StudentSessionSetupCard,
-  StudentStatusBanner,
-  formatAttendanceMode,
-  formatDateTime,
-  formatEnum,
-  resolveStudentDashboardActionHref,
-  spotlightToneStyle,
-  styles,
-  toneColorStyle,
-} from "./shared-ui"
+import { buildStudentAttendanceRefreshStatus } from "../student-view-state"
+import type { StudentAttendanceCandidate } from "../student-workflow-models"
+import { useStudentAttendanceController } from "./queries"
+import { StudentBluetoothAttendanceScreenContent } from "./student-bluetooth-attendance-screen-content"
 
 const env = loadMobileEnv(process.env as Record<string, string | undefined>)
 
@@ -136,14 +36,15 @@ export function StudentBluetoothAttendanceScreen() {
     env.EXPO_PUBLIC_ATTENDANCE_BLUETOOTH_SERVICE_UUID,
     scannerEnabled,
   )
-  const bluetoothMarkMutation = useStudentBluetoothMarkAttendanceMutation()
+  const bluetoothMarkMutation = useBluetoothMarkMutation()
   const [selectedDetectionPayload, setSelectedDetectionPayload] = useState<string | null>(null)
   const preferredDetection = resolveSelectedBluetoothDetection({
     detections: scanner.detections,
     selectedPayload: selectedDetectionPayload,
   })
   const suggestedDetection = usePreferredBluetoothDetection(scanner.detections)
-  const bluetoothPermissionState = mapBluetoothAvailabilityToPermissionState(scanner.availability)
+  const bluetoothPermissionState: StudentAttendancePermissionState =
+    mapBluetoothAvailabilityToPermissionState(scanner.availability)
   const scanBanner = buildStudentBluetoothScannerBanner({
     availability: scanner.availability,
     state: scanner.state,
@@ -199,229 +100,85 @@ export function StudentBluetoothAttendanceScreen() {
     )
   }, [scanner.detections, suggestedDetection])
 
+  const refreshSessions = async () => {
+    setIsRefreshingSessions(true)
+    try {
+      await controller.refreshExperience()
+    } finally {
+      setIsRefreshingSessions(false)
+    }
+  }
+
+  const markAttendance = async () => {
+    if (!preferredDetection) {
+      return
+    }
+
+    controller.prepareSubmission()
+
+    try {
+      await bluetoothMarkMutation.mutateAsync(
+        buildStudentBluetoothMarkRequest({
+          detectedPayload: preferredDetection.payload,
+          rssi: preferredDetection.rssi,
+          deviceTimestamp: new Date(preferredDetection.detectedAt).toISOString(),
+        }),
+      )
+      await controller.refreshAfterSuccess()
+    } catch {
+      controller.setResultKind("ERROR")
+    }
+  }
+
+  const selectSession = (sessionId: string) => {
+    setSelectedDetectionPayload(null)
+    controller.setSelectedSessionId(sessionId)
+    scanner.clearDetections()
+  }
+
+  const canPrepareSubmission = controller.canPrepareSubmission && Boolean(preferredDetection)
+
   return (
-    <StudentScreen
-      title="Bluetooth Attendance"
-      subtitle="Keep this phone near your teacher, choose the live Bluetooth session, and mark attendance in a short flow."
-    >
-      {!session ? (
-        <StudentSessionSetupCard />
-      ) : controller.meQuery.isLoading || controller.classroomsQuery.isLoading ? (
-        <StudentLoadingCard label="Preparing Bluetooth attendance" />
-      ) : controller.meQuery.error || controller.classroomsQuery.error ? (
-        <StudentErrorCard
-          label={mapStudentApiErrorToMessage(
-            controller.meQuery.error ?? controller.classroomsQuery.error,
-          )}
-        />
-      ) : (
-        <>
-          <StudentCard
-            title={controller.gateModel.title}
-            subtitle={controller.gateModel.supportHint}
-          >
-            <Text style={[styles.bodyText, toneColorStyle(controller.gateModel.tone)]}>
-              {controller.gateModel.message}
-            </Text>
-            {!controller.gateModel.canContinue ? (
-              <View style={styles.actionGrid}>
-                <StudentNavAction href={studentRoutes.deviceStatus} label="Open device status" />
-              </View>
-            ) : null}
-          </StudentCard>
-
-          <StudentCard
-            title="1. Choose session"
-            subtitle="Bluetooth attendance is matched against the live classroom session you choose here."
-          >
-            <StudentStatusBanner status={refreshStatus} />
-            {controller.candidates.length ? (
-              controller.candidates.map((candidate) => (
-                <AttendanceCandidateRow
-                  key={candidate.sessionId}
-                  candidate={candidate}
-                  selected={controller.selectedSessionId === candidate.sessionId}
-                  onPress={() => controller.setSelectedSessionId(candidate.sessionId)}
-                />
-              ))
-            ) : (
-              <StudentEmptyCard label="No Bluetooth attendance session is open for your classrooms right now." />
-            )}
-            <View style={styles.actionGrid}>
-              <Pressable
-                style={styles.secondaryButton}
-                disabled={isRefreshingSessions}
-                onPress={() =>
-                  void (async () => {
-                    setIsRefreshingSessions(true)
-
-                    try {
-                      await controller.refreshExperience()
-                    } finally {
-                      setIsRefreshingSessions(false)
-                    }
-                  })()
-                }
-              >
-                <Text style={styles.secondaryButtonLabel}>
-                  {isRefreshingSessions ? "Refreshing..." : "Refresh Bluetooth sessions"}
-                </Text>
-              </Pressable>
-            </View>
-          </StudentCard>
-
-          {controller.selectedCandidate ? (
-            <>
-              <StudentCard
-                title="2. Check Bluetooth"
-                subtitle="AttendEase checks Bluetooth before it starts looking for the teacher nearby."
-              >
-                <StudentStatusBanner status={scanBanner} />
-                <View style={styles.actionGrid}>
-                  <Pressable
-                    style={styles.secondaryButton}
-                    disabled={scanner.state === "SCANNING"}
-                    onPress={() => void scanner.start()}
-                  >
-                    <Text style={styles.secondaryButtonLabel}>Start Scan</Text>
-                  </Pressable>
-                  <Pressable
-                    style={styles.secondaryButton}
-                    disabled={scanner.state !== "SCANNING"}
-                    onPress={() => void scanner.stop()}
-                  >
-                    <Text style={styles.secondaryButtonLabel}>Stop Scan</Text>
-                  </Pressable>
-                  <Pressable
-                    style={styles.secondaryButton}
-                    onPress={() => void scanner.refreshAvailability()}
-                  >
-                    <Text style={styles.secondaryButtonLabel}>Refresh Bluetooth</Text>
-                  </Pressable>
-                </View>
-                <Text style={styles.listMeta}>
-                  Bluetooth scan state: {formatEnum(scanner.state)}
-                </Text>
-              </StudentCard>
-
-              <StudentCard
-                title={
-                  hasMultipleDetections ? "3. Choose nearby teacher" : "3. Scan nearby teacher"
-                }
-                subtitle="Keep this phone close to your teacher until the live classroom session appears."
-              >
-                <StudentStatusBanner status={detectionBanner} />
-                {scanner.detections.length ? (
-                  scanner.detections.map((detection) => (
-                    <Pressable
-                      key={`${detection.payload}-${detection.detectedAt}`}
-                      style={styles.listRow}
-                      onPress={() => {
-                        setSelectedDetectionPayload(detection.payload)
-                      }}
-                    >
-                      <Text style={styles.listTitle}>
-                        {hasMultipleDetections
-                          ? selectedDetectionPayload === detection.payload
-                            ? "Selected nearby teacher"
-                            : "Nearby teacher"
-                          : "Nearby teacher"}
-                      </Text>
-                      <Text style={styles.listMeta}>
-                        {describeBluetoothSignalStrength(detection.rssi)} ·{" "}
-                        {new Date(detection.detectedAt).toLocaleTimeString()}
-                      </Text>
-                      {hasMultipleDetections ? (
-                        <Text style={styles.listMeta}>
-                          {selectedDetectionPayload === detection.payload
-                            ? "Tap another signal if this is not your teacher."
-                            : "Tap to choose this nearby teacher."}
-                        </Text>
-                      ) : detection.rssi !== null ? (
-                        <Text style={styles.listMeta}>RSSI {detection.rssi}</Text>
-                      ) : null}
-                    </Pressable>
-                  ))
-                ) : (
-                  <StudentEmptyCard
-                    label={
-                      scanner.state === "SCANNING"
-                        ? "Keep the phone near your teacher while AttendEase looks for a live Bluetooth session."
-                        : "Start or refresh the scan when you are close to the teacher running attendance."
-                    }
-                  />
-                )}
-                {preferredDetection && hasMultipleDetections ? (
-                  <Text style={styles.listMeta}>
-                    Selected teacher signal seen at{" "}
-                    {new Date(preferredDetection.detectedAt).toLocaleTimeString()}.
-                  </Text>
-                ) : null}
-              </StudentCard>
-
-              <StudentCard
-                title="4. Mark attendance"
-                subtitle="AttendEase submits attendance only after this phone is trusted and a nearby teacher session is selected."
-              >
-                {submissionBanner ? <StudentStatusBanner status={submissionBanner} /> : null}
-                <Pressable
-                  style={styles.primaryButton}
-                  disabled={
-                    !controller.canPrepareSubmission ||
-                    !preferredDetection ||
-                    bluetoothMarkMutation.isPending
-                  }
-                  onPress={() => {
-                    controller.prepareSubmission()
-
-                    if (!preferredDetection) {
-                      return
-                    }
-
-                    void bluetoothMarkMutation
-                      .mutateAsync(
-                        buildStudentBluetoothMarkRequest({
-                          detectedPayload: preferredDetection.payload,
-                          rssi: preferredDetection.rssi,
-                          deviceTimestamp: new Date(preferredDetection.detectedAt).toISOString(),
-                        }),
-                      )
-                      .then(async () => {
-                        await controller.refreshAfterSuccess()
-                      })
-                      .catch(() => {
-                        controller.setResultKind("ERROR")
-                      })
-                  }}
-                >
-                  <Text style={styles.primaryButtonLabel}>
-                    {bluetoothMarkMutation.isPending ? "Marking attendance..." : "Mark attendance"}
-                  </Text>
-                </Pressable>
-                {preferredDetection ? (
-                  <Pressable
-                    style={styles.secondaryButton}
-                    onPress={() => {
-                      scanner.clearDetections()
-                      setSelectedDetectionPayload(null)
-                    }}
-                  >
-                    <Text style={styles.secondaryButtonLabel}>Clear nearby sessions</Text>
-                  </Pressable>
-                ) : null}
-                {controller.snapshot.resultBanner ? (
-                  <StudentStatusBanner status={controller.snapshot.resultBanner} />
-                ) : null}
-                {bluetoothMarkMutation.error ? (
-                  <StudentStatusBanner
-                    status={buildStudentBluetoothAttendanceErrorBanner(bluetoothMarkMutation.error)}
-                  />
-                ) : null}
-              </StudentCard>
-            </>
-          ) : null}
-        </>
-      )}
-    </StudentScreen>
+    <StudentBluetoothAttendanceScreenContent
+      session={session as unknown}
+      mapStudentApiErrorToMessage={mapStudentApiErrorToMessage}
+      studentRoutes={studentRoutes}
+      gateModel={controller.gateModel}
+      meQuery={controller.meQuery}
+      classroomsQuery={controller.classroomsQuery}
+      candidates={controller.candidates as StudentAttendanceCandidate[]}
+      selectedSessionId={controller.selectedSessionId}
+      onSelectSession={selectSession}
+      isRefreshingSessions={isRefreshingSessions}
+      onRefreshSessions={refreshSessions}
+      refreshStatus={refreshStatus}
+      scanBanner={scanBanner}
+      detectionBanner={detectionBanner}
+      scanner={scanner}
+      hasMultipleDetections={hasMultipleDetections}
+      detectionCount={scanner.detections.length}
+      preferredDetection={preferredDetection}
+      selectedDetectionPayload={selectedDetectionPayload}
+      onSelectDetection={setSelectedDetectionPayload}
+      onScanStart={() => scanner.start()}
+      onScanStop={() => scanner.stop()}
+      onRefreshBluetooth={() => scanner.refreshAvailability()}
+      onMarkAttendance={markAttendance}
+      canPrepareSubmission={canPrepareSubmission}
+      markInProgress={bluetoothMarkMutation.isPending}
+      markErrorBanner={
+        bluetoothMarkMutation.error
+          ? buildStudentBluetoothAttendanceErrorBanner(bluetoothMarkMutation.error)
+          : null
+      }
+      submissionBanner={submissionBanner}
+      resultBanner={controller.snapshot.resultBanner}
+      selectedCandidate={controller.selectedCandidate as { classroomTitle?: string } | null}
+      describeBluetoothSignalStrength={describeBluetoothSignalStrength}
+      onClearDetections={() => {
+        scanner.clearDetections()
+        setSelectedDetectionPayload(null)
+      }}
+    />
   )
 }

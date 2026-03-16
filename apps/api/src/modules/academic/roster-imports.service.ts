@@ -1,11 +1,8 @@
-import {
-  type CreateRosterImportJobRequest,
-  type RosterImportJobDetail,
-  type RosterImportJobListQuery,
-  type RosterImportJobSummary,
-  rosterImportJobDetailSchema,
-  rosterImportJobSummarySchema,
-  rosterImportRowSummarySchema,
+import type {
+  CreateRosterImportJobRequest,
+  RosterImportJobDetail,
+  RosterImportJobListQuery,
+  RosterImportJobSummary,
 } from "@attendease/contracts"
 import { queueOutboxEvent, runInTransaction } from "@attendease/db"
 import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common"
@@ -14,6 +11,12 @@ import { DatabaseService } from "../../database/database.service.js"
 import type { AuthRequestContext } from "../auth/auth.types.js"
 import type { ClassroomAccessContext } from "./classrooms.service.js"
 import { ClassroomsService } from "./classrooms.service.js"
+import {
+  assertMutableRosterImportClassroom,
+  buildInlineSourceFileKey,
+  toRosterImportJobDetail,
+  toRosterImportJobSummary,
+} from "./roster-imports.service.models.js"
 
 @Injectable()
 export class RosterImportsService {
@@ -39,7 +42,7 @@ export class RosterImportsService {
       },
     })
 
-    return jobs.map((job) => this.toRosterImportJobSummary(job))
+    return jobs.map((job) => toRosterImportJobSummary(job))
   }
 
   async getRosterImportJob(
@@ -67,7 +70,7 @@ export class RosterImportsService {
       throw new NotFoundException("Roster import job not found.")
     }
 
-    return this.toRosterImportJobDetail(job)
+    return toRosterImportJobDetail(job)
   }
 
   async createRosterImportJob(
@@ -77,8 +80,7 @@ export class RosterImportsService {
   ): Promise<RosterImportJobDetail> {
     await this.requireMutableRosterImportClassroom(auth, classroomId)
 
-    const sourceFileKey =
-      request.sourceFileKey ?? this.buildInlineSourceFileKey(request.sourceFileName)
+    const sourceFileKey = request.sourceFileKey ?? buildInlineSourceFileKey(request.sourceFileName)
 
     const job = await runInTransaction(this.database.prisma, async (transaction) => {
       const createdJob = await transaction.rosterImportJob.create({
@@ -130,7 +132,7 @@ export class RosterImportsService {
       })
     })
 
-    return this.toRosterImportJobDetail(job)
+    return toRosterImportJobDetail(job)
   }
 
   async applyRosterImportJob(
@@ -361,7 +363,7 @@ export class RosterImportsService {
       return updatedJob
     })
 
-    return this.toRosterImportJobDetail(job)
+    return toRosterImportJobDetail(job)
   }
 
   private async requireMutableRosterImportClassroom(
@@ -369,107 +371,7 @@ export class RosterImportsService {
     classroomId: string,
   ): Promise<ClassroomAccessContext> {
     const classroom = await this.classroomsService.requireAccessibleClassroom(auth, classroomId)
-
-    if (classroom.status === "COMPLETED" || classroom.status === "ARCHIVED") {
-      throw new BadRequestException(
-        "Roster imports are not allowed for completed or archived classrooms.",
-      )
-    }
-
-    if (classroom.semester.status === "CLOSED" || classroom.semester.status === "ARCHIVED") {
-      throw new BadRequestException(
-        "Roster imports are not allowed inside a closed or archived semester.",
-      )
-    }
-
+    assertMutableRosterImportClassroom(classroom)
     return classroom
-  }
-
-  private buildInlineSourceFileKey(sourceFileName: string) {
-    const sanitized = sourceFileName
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9._-]+/g, "-")
-    return `inline://roster-imports/${Date.now()}-${sanitized}`
-  }
-
-  toRosterImportJobSummary(input: {
-    id: string
-    courseOfferingId: string
-    requestedByUserId: string
-    sourceFileKey: string
-    sourceFileName: string
-    status: "UPLOADED" | "PROCESSING" | "REVIEW_REQUIRED" | "APPLIED" | "FAILED"
-    totalRows: number
-    validRows: number
-    invalidRows: number
-    appliedRows: number
-    startedAt: Date | null
-    completedAt: Date | null
-    reviewedAt: Date | null
-    createdAt: Date
-  }): RosterImportJobSummary {
-    return rosterImportJobSummarySchema.parse({
-      id: input.id,
-      courseOfferingId: input.courseOfferingId,
-      classroomId: input.courseOfferingId,
-      requestedByUserId: input.requestedByUserId,
-      sourceFileKey: input.sourceFileKey,
-      sourceFileName: input.sourceFileName,
-      status: input.status,
-      totalRows: input.totalRows,
-      validRows: input.validRows,
-      invalidRows: input.invalidRows,
-      appliedRows: input.appliedRows,
-      startedAt: input.startedAt?.toISOString() ?? null,
-      completedAt: input.completedAt?.toISOString() ?? null,
-      reviewedAt: input.reviewedAt?.toISOString() ?? null,
-      createdAt: input.createdAt.toISOString(),
-    })
-  }
-
-  private toRosterImportJobDetail(input: {
-    id: string
-    courseOfferingId: string
-    requestedByUserId: string
-    sourceFileKey: string
-    sourceFileName: string
-    status: "UPLOADED" | "PROCESSING" | "REVIEW_REQUIRED" | "APPLIED" | "FAILED"
-    totalRows: number
-    validRows: number
-    invalidRows: number
-    appliedRows: number
-    startedAt: Date | null
-    completedAt: Date | null
-    reviewedAt: Date | null
-    createdAt: Date
-    rows: {
-      id: string
-      jobId: string
-      rowNumber: number
-      studentEmail: string | null
-      studentRollNumber: string | null
-      parsedName: string | null
-      status: "PENDING" | "VALID" | "INVALID" | "APPLIED" | "SKIPPED" | "FAILED"
-      errorMessage: string | null
-      resolvedStudentId: string | null
-    }[]
-  }): RosterImportJobDetail {
-    return rosterImportJobDetailSchema.parse({
-      ...this.toRosterImportJobSummary(input),
-      rows: input.rows.map((row) =>
-        rosterImportRowSummarySchema.parse({
-          id: row.id,
-          jobId: row.jobId,
-          rowNumber: row.rowNumber,
-          studentEmail: row.studentEmail,
-          studentRollNumber: row.studentRollNumber,
-          parsedName: row.parsedName,
-          status: row.status,
-          errorMessage: row.errorMessage,
-          resolvedStudentId: row.resolvedStudentId,
-        }),
-      ),
-    })
   }
 }

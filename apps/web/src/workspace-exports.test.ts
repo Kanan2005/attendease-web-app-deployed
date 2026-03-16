@@ -2,7 +2,9 @@
 
 import { describe, expect, it } from "vitest"
 
+import * as adminDeviceSupportConsole from "./admin-device-support-console.js"
 import * as adminWorkspaces from "./admin-workflows-client.js"
+import * as teacherAnalyticsAutomationClient from "./teacher-analytics-automation-client.js"
 import * as teacherWorkspaces from "./teacher-workflows-client.js"
 
 describe("web workspace barrel exports", () => {
@@ -39,5 +41,11 @@ describe("web workspace barrel exports", () => {
     for (const exportName of expectedAdminExports) {
       expect(adminWorkspaces[exportName]).toBeDefined()
     }
+  })
+
+  it("keeps the analytics/email and admin recovery entry exports stable after splitting large files", () => {
+    expect(teacherAnalyticsAutomationClient.TeacherAnalyticsWorkspace).toBeDefined()
+    expect(teacherAnalyticsAutomationClient.TeacherEmailAutomationWorkspace).toBeDefined()
+    expect(adminDeviceSupportConsole.AdminDeviceSupportConsole).toBeDefined()
   })
 })

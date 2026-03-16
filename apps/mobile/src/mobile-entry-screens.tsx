@@ -1,0 +1,295 @@
+import { mobileTheme } from "@attendease/ui-mobile"
+import { Redirect } from "expo-router"
+import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native"
+
+import {
+  buildMobileAuthFormState,
+  buildMobileEntryCardModel,
+  mobileEntryRoutes,
+} from "./mobile-entry-models"
+import { EntryRoleCard, MobileAuthScreen, mobileEntryScreenStyles } from "./mobile-entry-ui"
+import { studentRoutes } from "./student-routes"
+import { useStudentSession } from "./student-session"
+import { teacherRoutes } from "./teacher-routes"
+import { useTeacherSession } from "./teacher-session"
+
+export function MobileEntryLandingScreen() {
+  const studentSession = useStudentSession()
+  const teacherSession = useTeacherSession()
+
+  const studentCard = buildMobileEntryCardModel({
+    role: "student",
+    hasSession: Boolean(studentSession.session),
+    displayName: studentSession.session?.user.displayName,
+  })
+  const teacherCard = buildMobileEntryCardModel({
+    role: "teacher",
+    hasSession: Boolean(teacherSession.session),
+    displayName: teacherSession.session?.user.displayName,
+  })
+
+  return (
+    <ScrollView contentContainerStyle={styles.screenContent} style={styles.screen}>
+      <View style={styles.heroBlock}>
+        <Text style={styles.eyebrow}>AttendEase</Text>
+        <Text style={styles.heroTitle}>Choose your space</Text>
+        <Text style={styles.heroSubtitle}>
+          Student and teacher experiences stay separate, but both live inside the same app.
+        </Text>
+      </View>
+
+      <EntryRoleCard
+        card={studentCard}
+        onSignOut={() => {
+          studentSession.signOut()
+        }}
+      />
+      <EntryRoleCard
+        card={teacherCard}
+        onSignOut={() => {
+          teacherSession.signOut()
+        }}
+      />
+    </ScrollView>
+  )
+}
+
+export function StudentSignInScreen() {
+  const { draft, updateDraft, signIn, status, errorMessage, hasDevelopmentCredentials, session } =
+    useStudentSession()
+
+  if (session) {
+    return <Redirect href={studentRoutes.home} />
+  }
+
+  const formState = buildMobileAuthFormState({
+    role: "student",
+    mode: "sign_in",
+    status,
+    hasDevelopmentCredentials,
+    errorMessage,
+  })
+  const canSubmit = Boolean(draft.email.trim() && draft.password)
+
+  return (
+    <MobileAuthScreen
+      entryRole="student"
+      formState={formState}
+      alternateHref={mobileEntryRoutes.studentRegister}
+      canSubmit={canSubmit}
+      onSubmit={() => {
+        void signIn()
+      }}
+    >
+      <TextInput
+        value={draft.email}
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="email-address"
+        placeholder="student@example.com"
+        onChangeText={(value) => updateDraft({ email: value })}
+        style={mobileEntryScreenStyles.input}
+      />
+      <TextInput
+        value={draft.password}
+        secureTextEntry
+        placeholder="Password"
+        onChangeText={(value) => updateDraft({ password: value })}
+        style={mobileEntryScreenStyles.input}
+      />
+      <Text style={mobileEntryScreenStyles.helperNote}>
+        This phone stays linked to your attendance record after sign in.
+      </Text>
+    </MobileAuthScreen>
+  )
+}
+
+export function StudentRegisterScreen() {
+  const { draft, updateDraft, register, status, errorMessage, hasDevelopmentCredentials, session } =
+    useStudentSession()
+
+  if (session) {
+    return <Redirect href={studentRoutes.home} />
+  }
+
+  const formState = buildMobileAuthFormState({
+    role: "student",
+    mode: "register",
+    status,
+    hasDevelopmentCredentials,
+    errorMessage,
+  })
+  const canSubmit = Boolean(draft.displayName.trim() && draft.email.trim() && draft.password)
+
+  return (
+    <MobileAuthScreen
+      entryRole="student"
+      formState={formState}
+      alternateHref={mobileEntryRoutes.studentSignIn}
+      canSubmit={canSubmit}
+      onSubmit={() => {
+        void register()
+      }}
+    >
+      <TextInput
+        value={draft.displayName}
+        autoCapitalize="words"
+        placeholder="Full name"
+        onChangeText={(value) => updateDraft({ displayName: value })}
+        style={mobileEntryScreenStyles.input}
+      />
+      <TextInput
+        value={draft.email}
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="email-address"
+        placeholder="student@example.com"
+        onChangeText={(value) => updateDraft({ email: value })}
+        style={mobileEntryScreenStyles.input}
+      />
+      <TextInput
+        value={draft.password}
+        secureTextEntry
+        placeholder="Create password"
+        onChangeText={(value) => updateDraft({ password: value })}
+        style={mobileEntryScreenStyles.input}
+      />
+      <Text style={mobileEntryScreenStyles.helperNote}>
+        Your account is created with device registration for this phone from the first session.
+      </Text>
+    </MobileAuthScreen>
+  )
+}
+
+export function TeacherSignInScreen() {
+  const { draft, updateDraft, signIn, status, errorMessage, hasDevelopmentCredentials, session } =
+    useTeacherSession()
+
+  if (session) {
+    return <Redirect href={teacherRoutes.dashboard} />
+  }
+
+  const formState = buildMobileAuthFormState({
+    role: "teacher",
+    mode: "sign_in",
+    status,
+    hasDevelopmentCredentials,
+    errorMessage,
+  })
+  const canSubmit = Boolean(draft.email.trim() && draft.password)
+
+  return (
+    <MobileAuthScreen
+      entryRole="teacher"
+      formState={formState}
+      alternateHref={mobileEntryRoutes.teacherRegister}
+      canSubmit={canSubmit}
+      onSubmit={() => {
+        void signIn()
+      }}
+    >
+      <TextInput
+        value={draft.email}
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="email-address"
+        placeholder="teacher@example.com"
+        onChangeText={(value) => updateDraft({ email: value })}
+        style={mobileEntryScreenStyles.input}
+      />
+      <TextInput
+        value={draft.password}
+        secureTextEntry
+        placeholder="Password"
+        onChangeText={(value) => updateDraft({ password: value })}
+        style={mobileEntryScreenStyles.input}
+      />
+    </MobileAuthScreen>
+  )
+}
+
+export function TeacherRegisterScreen() {
+  const { draft, updateDraft, register, status, errorMessage, hasDevelopmentCredentials, session } =
+    useTeacherSession()
+
+  if (session) {
+    return <Redirect href={teacherRoutes.dashboard} />
+  }
+
+  const formState = buildMobileAuthFormState({
+    role: "teacher",
+    mode: "register",
+    status,
+    hasDevelopmentCredentials,
+    errorMessage,
+  })
+  const canSubmit = Boolean(draft.displayName.trim() && draft.email.trim() && draft.password)
+
+  return (
+    <MobileAuthScreen
+      entryRole="teacher"
+      formState={formState}
+      alternateHref={mobileEntryRoutes.teacherSignIn}
+      canSubmit={canSubmit}
+      onSubmit={() => {
+        void register()
+      }}
+    >
+      <TextInput
+        value={draft.displayName}
+        autoCapitalize="words"
+        placeholder="Full name"
+        onChangeText={(value) => updateDraft({ displayName: value })}
+        style={mobileEntryScreenStyles.input}
+      />
+      <TextInput
+        value={draft.email}
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="email-address"
+        placeholder="teacher@example.com"
+        onChangeText={(value) => updateDraft({ email: value })}
+        style={mobileEntryScreenStyles.input}
+      />
+      <TextInput
+        value={draft.password}
+        secureTextEntry
+        placeholder="Create password"
+        onChangeText={(value) => updateDraft({ password: value })}
+        style={mobileEntryScreenStyles.input}
+      />
+    </MobileAuthScreen>
+  )
+}
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: mobileTheme.colors.surface,
+  },
+  screenContent: {
+    padding: mobileTheme.spacing.xl,
+    gap: mobileTheme.spacing.xl,
+  },
+  heroBlock: {
+    gap: mobileTheme.spacing.sm,
+    paddingTop: mobileTheme.spacing.xl,
+  },
+  eyebrow: {
+    color: mobileTheme.colors.accent,
+    fontSize: mobileTheme.typography.eyebrow,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  heroTitle: {
+    color: mobileTheme.colors.text,
+    fontSize: mobileTheme.typography.title,
+    fontWeight: "800",
+  },
+  heroSubtitle: {
+    color: mobileTheme.colors.textMuted,
+    fontSize: mobileTheme.typography.body,
+    lineHeight: 24,
+  },
+})

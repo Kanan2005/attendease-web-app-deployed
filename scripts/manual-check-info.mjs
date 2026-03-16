@@ -36,4 +36,6 @@ console.log("- platform: ANDROID")
 console.log("")
 console.log("Notes:")
 console.log("- BLE checks are best on an Expo dev build, not Expo Go.")
-console.log("- If the native BLE module is unavailable, the app now falls back cleanly instead of crashing.")
+console.log(
+  "- If the native BLE module is unavailable, the app now falls back cleanly instead of crashing.",
+)

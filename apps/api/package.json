@@ -9,8 +9,8 @@
     "start": "tsx dist/apps/api/src/main.js",
     "lint": "biome check src package.json tsconfig.json tsconfig.build.json",
     "typecheck": "tsc --project tsconfig.json --noEmit",
-    "test": "vitest run",
-    "test:integration": "vitest run src/**/*.integration.test.ts"
+    "test": "vitest run --maxWorkers=1 --minWorkers=1",
+    "test:integration": "vitest run --maxWorkers=1 --minWorkers=1 src/**/*.integration.test.ts"
   },
   "dependencies": {
     "@attendease/auth": "workspace:^",
