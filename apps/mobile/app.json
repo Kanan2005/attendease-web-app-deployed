@@ -5,10 +5,8 @@
     "scheme": "attendease",
     "version": "0.1.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "dark",
-    "plugins": [
-      "expo-router"
-    ],
+    "userInterfaceStyle": "automatic",
+    "plugins": ["expo-router"],
     "ios": {
       "infoPlist": {
         "NSBluetoothAlwaysUsageDescription": "AttendEase uses Bluetooth to run proximity-based attendance sessions and scan nearby teacher broadcasts.",

@@ -1,7 +1,7 @@
 import { createAuthApiClient } from "@attendease/auth"
 import { loadMobileEnv } from "@attendease/config"
 import type { AttendanceMode, TrustedDeviceAttendanceReadyResponse } from "@attendease/contracts"
-import { mobileTheme } from "@attendease/ui-mobile"
+import { getColors } from "@attendease/ui-mobile"
 import { AnimatedCard, GradientHeader, StatusPill } from "@attendease/ui-mobile/animated"
 import { Ionicons } from "@expo/vector-icons"
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -221,7 +221,7 @@ export function StudentLoadingCard(props: { label: string; compact?: boolean }) 
       entering={FadeInDown.duration(300)}
       style={[styles.statusCard, props.compact ? styles.compactStatusCard : null]}
     >
-      <ActivityIndicator color={mobileTheme.colors.primary} />
+      <ActivityIndicator color={getColors().primary} />
       <Text style={styles.statusText}>{props.label}</Text>
     </Animated.View>
   )
@@ -233,7 +233,7 @@ export function StudentErrorCard(props: { label: string }) {
       entering={FadeInDown.duration(300)}
       style={[styles.statusCard, styles.errorCard]}
     >
-      <Ionicons name="alert-circle" size={20} color={mobileTheme.colors.danger} />
+      <Ionicons name="alert-circle" size={20} color={getColors().danger} />
       <Text style={styles.errorText}>{props.label}</Text>
     </Animated.View>
   )
@@ -245,7 +245,7 @@ export function StudentEmptyCard(props: { label: string }) {
       entering={FadeInDown.duration(300)}
       style={[styles.statusCard, styles.emptyCard]}
     >
-      <Ionicons name="folder-open-outline" size={20} color={mobileTheme.colors.textSubtle} />
+      <Ionicons name="folder-open-outline" size={20} color={getColors().textSubtle} />
       <Text style={styles.statusText}>{props.label}</Text>
     </Animated.View>
   )

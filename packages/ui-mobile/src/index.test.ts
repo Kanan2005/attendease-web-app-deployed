@@ -9,10 +9,10 @@ import {
 
 describe("mobile theme tokens", () => {
   it("exposes the shared mobile design tokens", () => {
-    expect(mobileTheme.colors.primary).toBe("#00D4AA")
-    expect(mobileTheme.colors.accent).toBe("#FF6B6B")
-    expect(mobileTheme.colors.successSoft).toBe("rgba(0, 230, 118, 0.12)")
-    expect(mobileTheme.colors.dangerBorder).toBe("rgba(255, 82, 82, 0.25)")
+    expect(mobileTheme.colors.primary).toBe("#6366F1")
+    expect(mobileTheme.colors.accent).toBe("#14B8A6")
+    expect(mobileTheme.colors.successSoft).toBe("rgba(16, 185, 129, 0.08)")
+    expect(mobileTheme.colors.dangerBorder).toBe("rgba(239, 68, 68, 0.2)")
     expect(mobileTheme.radius.card).toBe(16)
     expect(mobileTheme.typography.hero).toBe(32)
   })

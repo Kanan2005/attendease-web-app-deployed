@@ -1,10 +1,22 @@
-import { mobileTheme } from "@attendease/ui-mobile"
+import { getColors, getMobileColorScheme, mobileTheme } from "@attendease/ui-mobile"
 import { AnimatedButton, AnimatedCard, GradientHeader } from "@attendease/ui-mobile/animated"
+import { buildAnimatedStyles } from "@attendease/ui-mobile/animated-styles"
 import { Ionicons } from "@expo/vector-icons"
 import { Link } from "expo-router"
 import type { ReactNode } from "react"
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
 import Animated, { FadeInDown } from "react-native-reanimated"
+
+/** Button visual only — no Pressable wrapper. Use inside Link > Pressable. */
+function LinkButtonVisual(props: { label: string; variant?: "primary" | "secondary" }) {
+  const s = buildAnimatedStyles(getColors())
+  const isPrimary = props.variant !== "secondary"
+  return (
+    <View style={[s.button, isPrimary ? s.buttonPrimary : s.buttonSecondary]}>
+      <Text style={[s.buttonLabel, isPrimary ? s.buttonLabelPrimary : null]}>{props.label}</Text>
+    </View>
+  )
+}
 
 import { mobileEntryRoutes } from "./mobile-entry-models"
 import type { MobileAuthFormState, MobileEntryCardModel } from "./mobile-entry-models"
@@ -60,7 +72,7 @@ export function EntryRoleCard(props: { card: MobileEntryCardModel; onSignOut: ()
     <AnimatedCard index={isStudent ? 1 : 2}>
       <View style={styles.roleHeader}>
         <View style={styles.roleIconWrap}>
-          <Ionicons name={iconName} size={24} color={mobileTheme.colors.primary} />
+          <Ionicons name={iconName} size={24} color={getColors().primary} />
         </View>
         <Text style={styles.cardEyebrow}>{isStudent ? "Student" : "Teacher"}</Text>
       </View>
@@ -70,14 +82,14 @@ export function EntryRoleCard(props: { card: MobileEntryCardModel; onSignOut: ()
       <Text style={styles.cardDescription}>{props.card.description}</Text>
       {props.card.sessionSummary ? (
         <View style={styles.sessionBadge}>
-          <Ionicons name="checkmark-circle" size={16} color={mobileTheme.colors.success} />
+          <Ionicons name="checkmark-circle" size={16} color={getColors().success} />
           <Text style={styles.sessionSummary}>{props.card.sessionSummary}</Text>
         </View>
       ) : null}
       <View style={styles.buttonColumn}>
         <Link href={props.card.primaryHref} asChild>
           <Pressable>
-            <AnimatedButton label={props.card.primaryLabel} onPress={() => {}} />
+            <LinkButtonVisual label={props.card.primaryLabel} />
           </Pressable>
         </Link>
         {props.card.canSignOut ? (
@@ -89,11 +101,7 @@ export function EntryRoleCard(props: { card: MobileEntryCardModel; onSignOut: ()
         ) : props.card.secondaryHref ? (
           <Link href={props.card.secondaryHref} asChild>
             <Pressable>
-              <AnimatedButton
-                label={props.card.secondaryLabel}
-                variant="secondary"
-                onPress={() => {}}
-              />
+              <LinkButtonVisual label={props.card.secondaryLabel} variant="secondary" />
             </Pressable>
           </Link>
         ) : null}
@@ -102,97 +110,121 @@ export function EntryRoleCard(props: { card: MobileEntryCardModel; onSignOut: ()
   )
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: mobileTheme.colors.surface,
-  },
-  screenContent: {
-    padding: mobileTheme.spacing.xl,
-    paddingBottom: mobileTheme.spacing.xxxl,
-    gap: mobileTheme.spacing.xl,
-  },
-  roleHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: mobileTheme.spacing.sm,
-  },
-  roleIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: mobileTheme.radius.full,
-    backgroundColor: mobileTheme.colors.surfaceHero,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cardEyebrow: {
-    color: mobileTheme.colors.primary,
-    fontSize: mobileTheme.typography.bodySmall,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  cardTitle: {
-    color: mobileTheme.colors.text,
-    fontSize: mobileTheme.typography.title,
-    fontWeight: "700",
-  },
-  cardDescription: {
-    color: mobileTheme.colors.textMuted,
-    fontSize: mobileTheme.typography.body,
-    lineHeight: 24,
-  },
-  sessionBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: mobileTheme.colors.successSoft,
-    borderRadius: mobileTheme.radius.chip,
-    paddingHorizontal: mobileTheme.spacing.md,
-    paddingVertical: mobileTheme.spacing.xs,
-    alignSelf: "flex-start",
-  },
-  sessionSummary: {
-    color: mobileTheme.colors.success,
-    fontSize: mobileTheme.typography.bodySmall,
-    fontWeight: "600",
-  },
-  buttonColumn: {
-    gap: mobileTheme.spacing.sm,
-    marginTop: mobileTheme.spacing.sm,
-  },
-  helperText: {
-    color: mobileTheme.colors.textMuted,
-    fontSize: mobileTheme.typography.bodySmall,
-    lineHeight: 22,
-  },
-  errorText: {
-    color: mobileTheme.colors.danger,
-    fontSize: mobileTheme.typography.bodySmall,
-    lineHeight: 22,
-  },
-  inlineLinkButton: {
-    alignSelf: "flex-start",
-  },
-  inlineLinkLabel: {
-    color: mobileTheme.colors.primary,
-    fontSize: mobileTheme.typography.bodySmall,
-    fontWeight: "700",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: mobileTheme.colors.borderStrong,
-    borderRadius: mobileTheme.radius.button,
-    paddingHorizontal: mobileTheme.spacing.lg,
-    paddingVertical: mobileTheme.spacing.md,
-    backgroundColor: mobileTheme.colors.surfaceMuted,
-    color: mobileTheme.colors.text,
-    fontSize: mobileTheme.typography.body,
-  },
-  helperNote: {
-    color: mobileTheme.colors.textMuted,
-    fontSize: mobileTheme.typography.bodySmall,
-    lineHeight: 22,
+function buildEntryStyles() {
+  const c = getColors()
+  return StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: c.surface,
+    },
+    screenContent: {
+      padding: mobileTheme.spacing.xl,
+      paddingBottom: mobileTheme.spacing.xxxl,
+      gap: mobileTheme.spacing.xl,
+    },
+    roleHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: mobileTheme.spacing.sm,
+    },
+    roleIconWrap: {
+      width: 40,
+      height: 40,
+      borderRadius: mobileTheme.radius.full,
+      backgroundColor: c.surfaceHero,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    cardEyebrow: {
+      color: c.primary,
+      fontSize: mobileTheme.typography.bodySmall,
+      fontWeight: "700",
+      textTransform: "uppercase",
+      letterSpacing: 1,
+    },
+    cardTitle: {
+      color: c.text,
+      fontSize: mobileTheme.typography.title,
+      fontWeight: "700",
+    },
+    cardDescription: {
+      color: c.textMuted,
+      fontSize: mobileTheme.typography.body,
+      lineHeight: 24,
+    },
+    sessionBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      backgroundColor: c.successSoft,
+      borderRadius: mobileTheme.radius.chip,
+      paddingHorizontal: mobileTheme.spacing.md,
+      paddingVertical: mobileTheme.spacing.xs,
+      alignSelf: "flex-start",
+    },
+    sessionSummary: {
+      color: c.success,
+      fontSize: mobileTheme.typography.bodySmall,
+      fontWeight: "600",
+    },
+    buttonColumn: {
+      gap: mobileTheme.spacing.sm,
+      marginTop: mobileTheme.spacing.sm,
+    },
+    helperText: {
+      color: c.textMuted,
+      fontSize: mobileTheme.typography.bodySmall,
+      lineHeight: 22,
+    },
+    errorText: {
+      color: c.danger,
+      fontSize: mobileTheme.typography.bodySmall,
+      lineHeight: 22,
+    },
+    inlineLinkButton: {
+      alignSelf: "flex-start",
+    },
+    inlineLinkLabel: {
+      color: c.primary,
+      fontSize: mobileTheme.typography.bodySmall,
+      fontWeight: "700",
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: c.borderStrong,
+      borderRadius: mobileTheme.radius.button,
+      paddingHorizontal: mobileTheme.spacing.lg,
+      paddingVertical: mobileTheme.spacing.md,
+      backgroundColor: c.surfaceMuted,
+      color: c.text,
+      fontSize: mobileTheme.typography.body,
+    },
+    helperNote: {
+      color: c.textMuted,
+      fontSize: mobileTheme.typography.bodySmall,
+      lineHeight: 22,
+    },
+  })
+}
+
+const entryStylesCache: Partial<Record<"light" | "dark", ReturnType<typeof buildEntryStyles>>> = {}
+
+function getEntryStyles() {
+  const scheme = getMobileColorScheme()
+  const cachedStyles = entryStylesCache[scheme]
+
+  if (cachedStyles) {
+    return cachedStyles
+  }
+
+  const nextStyles = buildEntryStyles()
+  entryStylesCache[scheme] = nextStyles
+  return nextStyles
+}
+
+const styles = new Proxy({} as ReturnType<typeof buildEntryStyles>, {
+  get(_target, property) {
+    return getEntryStyles()[property as keyof ReturnType<typeof buildEntryStyles>]
   },
 })
 

@@ -12,10 +12,14 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated"
-import { animatedStyles as cardStyles } from "./animated-styles"
-import { mobileTheme } from "./index"
+import { buildAnimatedStyles } from "./animated-styles"
+import { getColors, mobileTheme } from "./index"
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
+
+function useStyles() {
+  return buildAnimatedStyles(getColors())
+}
 
 // --- Animated Card ---
 export function AnimatedCard(props: {
@@ -25,6 +29,7 @@ export function AnimatedCard(props: {
   style?: object
   onPress?: () => void
 }) {
+  const s = useStyles()
   const scale = useSharedValue(1)
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -38,7 +43,7 @@ export function AnimatedCard(props: {
     return (
       <AnimatedPressable
         entering={entering}
-        style={[cardStyles.card, props.glow ? cardStyles.glow : null, props.style, animStyle]}
+        style={[s.card, props.glow ? s.glow : null, props.style, animStyle]}
         onPressIn={() => {
           scale.value = withSpring(0.97, { damping: 15 })
           void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
@@ -54,10 +59,7 @@ export function AnimatedCard(props: {
   }
 
   return (
-    <Animated.View
-      entering={entering}
-      style={[cardStyles.card, props.glow ? cardStyles.glow : null, props.style]}
-    >
+    <Animated.View entering={entering} style={[s.card, props.glow ? s.glow : null, props.style]}>
       {props.children}
     </Animated.View>
   )
@@ -65,8 +67,9 @@ export function AnimatedCard(props: {
 
 // --- Glass Surface ---
 export function GlassSurface(props: { children: ReactNode; style?: object }) {
+  const s = useStyles()
   return (
-    <Animated.View entering={FadeIn.duration(400)} style={[cardStyles.glass, props.style]}>
+    <Animated.View entering={FadeIn.duration(400)} style={[s.glass, props.style]}>
       {props.children}
     </Animated.View>
   )
@@ -79,23 +82,25 @@ export function GradientHeader(props: {
   eyebrow?: string
   children?: ReactNode
 }) {
+  const c = getColors()
+  const s = useStyles()
   return (
     <LinearGradient
-      colors={["#16213E", "#1A1A2E", "#0D0D0D"]}
+      colors={[c.gradient1, c.gradient2, c.gradient3]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={cardStyles.gradientHeader}
+      style={s.gradientHeader}
     >
       {props.eyebrow ? (
-        <Animated.Text entering={FadeInUp.delay(100).duration(400)} style={cardStyles.eyebrow}>
+        <Animated.Text entering={FadeInUp.delay(100).duration(400)} style={s.eyebrow}>
           {props.eyebrow}
         </Animated.Text>
       ) : null}
-      <Animated.Text entering={FadeInUp.delay(200).duration(400)} style={cardStyles.heroTitle}>
+      <Animated.Text entering={FadeInUp.delay(200).duration(400)} style={s.heroTitle}>
         {props.title}
       </Animated.Text>
       {props.subtitle ? (
-        <Animated.Text entering={FadeInUp.delay(300).duration(400)} style={cardStyles.subtitle}>
+        <Animated.Text entering={FadeInUp.delay(300).duration(400)} style={s.subtitle}>
           {props.subtitle}
         </Animated.Text>
       ) : null}
@@ -111,24 +116,26 @@ export function StatCard(props: {
   tone?: "primary" | "success" | "warning" | "danger"
   index?: number
 }) {
+  const c = getColors()
+  const s = useStyles()
   const toneColor =
     props.tone === "success"
-      ? mobileTheme.colors.success
+      ? c.success
       : props.tone === "warning"
-        ? mobileTheme.colors.warning
+        ? c.warning
         : props.tone === "danger"
-          ? mobileTheme.colors.danger
-          : mobileTheme.colors.primary
+          ? c.danger
+          : c.primary
 
   return (
     <Animated.View
       entering={FadeInDown.delay((props.index ?? 0) * 100)
         .duration(500)
         .springify()}
-      style={cardStyles.statCard}
+      style={s.statCard}
     >
-      <Text style={cardStyles.statLabel}>{props.label}</Text>
-      <Text style={[cardStyles.statValue, { color: toneColor }]}>{props.value}</Text>
+      <Text style={s.statLabel}>{props.label}</Text>
+      <Text style={[s.statValue, { color: toneColor }]}>{props.value}</Text>
     </Animated.View>
   )
 }
@@ -140,6 +147,7 @@ export function ActionChip(props: {
   onPress: () => void
   variant?: "primary" | "secondary" | "accent"
 }) {
+  const s = useStyles()
   const scale = useSharedValue(1)
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -149,7 +157,7 @@ export function ActionChip(props: {
 
   return (
     <AnimatedPressable
-      style={[cardStyles.chip, isPrimary ? cardStyles.chipPrimary : null, animStyle]}
+      style={[s.chip, isPrimary ? s.chipPrimary : null, animStyle]}
       onPressIn={() => {
         scale.value = withSpring(0.94, { damping: 15 })
         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
@@ -159,9 +167,7 @@ export function ActionChip(props: {
       }}
       onPress={props.onPress}
     >
-      <Text style={[cardStyles.chipLabel, isPrimary ? cardStyles.chipLabelPrimary : null]}>
-        {props.label}
-      </Text>
+      <Text style={[s.chipLabel, isPrimary ? s.chipLabelPrimary : null]}>{props.label}</Text>
     </AnimatedPressable>
   )
 }
@@ -173,6 +179,7 @@ export function AnimatedButton(props: {
   variant?: "primary" | "secondary" | "danger"
   disabled?: boolean
 }) {
+  const s = useStyles()
   const scale = useSharedValue(1)
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -184,11 +191,11 @@ export function AnimatedButton(props: {
   return (
     <AnimatedPressable
       style={[
-        cardStyles.button,
-        isPrimary ? cardStyles.buttonPrimary : null,
-        isDanger ? cardStyles.buttonDanger : null,
-        !isPrimary && !isDanger ? cardStyles.buttonSecondary : null,
-        props.disabled ? cardStyles.buttonDisabled : null,
+        s.button,
+        isPrimary ? s.buttonPrimary : null,
+        isDanger ? s.buttonDanger : null,
+        !isPrimary && !isDanger ? s.buttonSecondary : null,
+        props.disabled ? s.buttonDisabled : null,
         animStyle,
       ]}
       disabled={props.disabled}
@@ -203,9 +210,9 @@ export function AnimatedButton(props: {
     >
       <Text
         style={[
-          cardStyles.buttonLabel,
-          isPrimary ? cardStyles.buttonLabelPrimary : null,
-          isDanger ? cardStyles.buttonLabelDanger : null,
+          s.buttonLabel,
+          isPrimary ? s.buttonLabelPrimary : null,
+          isDanger ? s.buttonLabelDanger : null,
         ]}
       >
         {props.label}
@@ -216,12 +223,12 @@ export function AnimatedButton(props: {
 
 // --- Skeleton Loader ---
 export function SkeletonLoader(props: { width?: number; height?: number; lines?: number }) {
+  const s = useStyles()
   const opacity = useSharedValue(0.3)
   const pulseStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
   }))
 
-  // Pulse animation
   opacity.value = withTiming(0.7, { duration: 800 }, (finished: boolean | undefined) => {
     if (finished) {
       opacity.value = withTiming(0.3, { duration: 800 })
@@ -236,7 +243,7 @@ export function SkeletonLoader(props: { width?: number; height?: number; lines?:
         <Animated.View
           key={`skeleton-${String(i)}`}
           style={[
-            cardStyles.skeleton,
+            s.skeleton,
             {
               width: i === count - 1 && count > 1 ? Math.round(baseWidth * 0.6) : baseWidth,
               height: props.height ?? 14,
@@ -270,17 +277,19 @@ export function StatusPill(props: {
   label: string
   tone?: "primary" | "success" | "warning" | "danger"
 }) {
+  const c = getColors()
+  const s = useStyles()
   const toneMap = {
-    primary: { bg: mobileTheme.colors.surfaceHero, text: mobileTheme.colors.primary },
-    success: { bg: mobileTheme.colors.successSoft, text: mobileTheme.colors.success },
-    warning: { bg: mobileTheme.colors.warningSoft, text: mobileTheme.colors.warning },
-    danger: { bg: mobileTheme.colors.dangerSoft, text: mobileTheme.colors.danger },
+    primary: { bg: c.surfaceHero, text: c.primary },
+    success: { bg: c.successSoft, text: c.success },
+    warning: { bg: c.warningSoft, text: c.warning },
+    danger: { bg: c.dangerSoft, text: c.danger },
   }
   const t = toneMap[props.tone ?? "primary"]
 
   return (
-    <View style={[cardStyles.pill, { backgroundColor: t.bg }]}>
-      <Text style={[cardStyles.pillText, { color: t.text }]}>{props.label}</Text>
+    <View style={[s.pill, { backgroundColor: t.bg }]}>
+      <Text style={[s.pillText, { color: t.text }]}>{props.label}</Text>
     </View>
   )
 }

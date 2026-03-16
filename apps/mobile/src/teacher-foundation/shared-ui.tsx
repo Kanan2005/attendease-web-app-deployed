@@ -17,7 +17,7 @@ import {
   getAttendanceCorrectionReviewPollInterval,
   updateAttendanceEditDraft,
 } from "@attendease/domain"
-import { mobileTheme } from "@attendease/ui-mobile"
+import { getColors } from "@attendease/ui-mobile"
 import { AnimatedCard, GradientHeader } from "@attendease/ui-mobile/animated"
 import { Ionicons } from "@expo/vector-icons"
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -213,7 +213,7 @@ export function TeacherCard(props: { title: string; subtitle?: string; children:
 export function TeacherLoadingCard(props: { label: string }) {
   return (
     <Animated.View entering={FadeInDown.duration(300)} style={styles.statusCard}>
-      <ActivityIndicator color={mobileTheme.colors.primary} />
+      <ActivityIndicator color={getColors().primary} />
       <Text style={styles.statusText}>{props.label}</Text>
     </Animated.View>
   )
@@ -225,7 +225,7 @@ export function TeacherErrorCard(props: { label: string }) {
       entering={FadeInDown.duration(300)}
       style={[styles.statusCard, styles.errorCard]}
     >
-      <Ionicons name="alert-circle" size={20} color={mobileTheme.colors.danger} />
+      <Ionicons name="alert-circle" size={20} color={getColors().danger} />
       <Text style={styles.errorText}>{props.label}</Text>
     </Animated.View>
   )
@@ -237,7 +237,7 @@ export function TeacherEmptyCard(props: { label: string }) {
       entering={FadeInDown.duration(300)}
       style={[styles.statusCard, styles.emptyCard]}
     >
-      <Ionicons name="folder-open-outline" size={20} color={mobileTheme.colors.textSubtle} />
+      <Ionicons name="folder-open-outline" size={20} color={getColors().textSubtle} />
       <Text style={styles.statusText}>{props.label}</Text>
     </Animated.View>
   )

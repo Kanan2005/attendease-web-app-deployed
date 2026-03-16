@@ -1,4 +1,4 @@
-import { mobileTheme } from "@attendease/ui-mobile"
+import { getColors } from "@attendease/ui-mobile"
 import { Ionicons } from "@expo/vector-icons"
 import { Redirect, Tabs } from "expo-router"
 
@@ -8,6 +8,7 @@ import { useTeacherSession } from "../../src/teacher-session"
 export default function TeacherLayout() {
   const { session } = useTeacherSession()
   const gate = resolveMobileRoleGate("teacher", Boolean(session))
+  const c = getColors()
 
   if (!gate.allowed) {
     return <Redirect href={gate.redirectHref ?? mobileEntryRoutes.teacherSignIn} />
@@ -18,15 +19,15 @@ export default function TeacherLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: mobileTheme.colors.tabBar,
-          borderTopColor: mobileTheme.colors.border,
+          backgroundColor: c.tabBar,
+          borderTopColor: c.border,
           borderTopWidth: 1,
           height: 64,
           paddingBottom: 8,
           paddingTop: 6,
         },
-        tabBarActiveTintColor: mobileTheme.colors.tabActive,
-        tabBarInactiveTintColor: mobileTheme.colors.tabInactive,
+        tabBarActiveTintColor: c.tabActive,
+        tabBarInactiveTintColor: c.tabInactive,
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: "600",

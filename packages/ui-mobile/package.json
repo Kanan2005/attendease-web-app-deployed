@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./animated": "./src/animated.tsx"
+    "./animated": "./src/animated.tsx",
+    "./animated-styles": "./src/animated-styles.ts"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json",

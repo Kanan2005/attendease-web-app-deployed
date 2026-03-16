@@ -1,4 +1,4 @@
-import { mobileTheme } from "@attendease/ui-mobile"
+import { getColors, mobileTheme } from "@attendease/ui-mobile"
 import { GradientHeader } from "@attendease/ui-mobile/animated"
 import { Redirect } from "expo-router"
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native"
@@ -15,6 +15,7 @@ import { teacherRoutes } from "./teacher-routes"
 import { useTeacherSession } from "./teacher-session"
 
 export function MobileEntryLandingScreen() {
+  const styles = useLocalStyles()
   const studentSession = useStudentSession()
   const teacherSession = useTeacherSession()
 
@@ -261,14 +262,17 @@ export function TeacherRegisterScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: mobileTheme.colors.surface,
-  },
-  screenContent: {
-    padding: mobileTheme.spacing.xl,
-    paddingBottom: mobileTheme.spacing.xxxl,
-    gap: mobileTheme.spacing.xl,
-  },
-})
+function useLocalStyles() {
+  const c = getColors()
+  return StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: c.surface,
+    },
+    screenContent: {
+      padding: mobileTheme.spacing.xl,
+      paddingBottom: mobileTheme.spacing.xxxl,
+      gap: mobileTheme.spacing.xl,
+    },
+  })
+}
