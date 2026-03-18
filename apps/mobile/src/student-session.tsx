@@ -5,10 +5,14 @@ import type {
   StudentRegistrationRequest,
 } from "@attendease/contracts"
 import { useQueryClient } from "@tanstack/react-query"
-import { createContext, useContext, useState } from "react"
+import { createContext, useContext, useEffect, useState } from "react"
 import type { ReactNode } from "react"
 
 import { createMobileAuthBootstrap } from "./auth"
+import {
+  type DeviceBindingErrorModel,
+  buildDeviceBindingErrorModel,
+} from "./device-identity-models"
 
 export interface StudentSessionDraft {
   displayName: string
@@ -17,6 +21,8 @@ export interface StudentSessionDraft {
   installId: string
   publicKey: string
   devicePlatform: Extract<DevicePlatform, "ANDROID" | "IOS">
+  degree?: "B.Tech" | "M.Tech"
+  branch?: "CSE" | "ECE" | "EE" | "ME" | "CHE" | "Civil" | "Meta"
 }
 
 export interface StudentSessionBootstrap {
@@ -36,6 +42,8 @@ interface StudentSessionContextValue {
   draft: StudentSessionDraft
   status: StudentSessionStatus
   errorMessage: string | null
+  deviceBindingError: DeviceBindingErrorModel | null
+  deviceReady: boolean
   hasDevelopmentCredentials: boolean
   updateDraft(nextDraft: Partial<StudentSessionDraft>): void
   signIn(nextDraft?: StudentSessionDraft): Promise<void>
@@ -91,6 +99,8 @@ export function buildStudentRegistrationRequest(
       platform: draft.devicePlatform,
       publicKey: draft.publicKey.trim(),
     },
+    ...(draft.degree ? { degree: draft.degree } : {}),
+    ...(draft.branch ? { branch: draft.branch } : {}),
   }
 }
 
@@ -102,6 +112,28 @@ export function StudentSessionProvider(props: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSessionResponse | null>(null)
   const [status, setStatus] = useState<StudentSessionStatus>("idle")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [deviceReady, setDeviceReady] = useState(bootstrap.hasDevelopmentCredentials)
+
+  // Resolve real device identity on mount (async file system read).
+  // In dev mode with prefilled credentials, the env-based defaults are kept.
+  useEffect(() => {
+    if (bootstrap.hasDevelopmentCredentials) {
+      setDeviceReady(true)
+      return
+    }
+    let cancelled = false
+    import("./device-identity").then((mod) => mod.resolveDeviceIdentity()).then((identity) => {
+      if (cancelled) return
+      setDraft((prev) => ({
+        ...prev,
+        installId: identity.installId,
+        publicKey: identity.publicKey,
+        devicePlatform: identity.platform === "WEB" ? prev.devicePlatform : identity.platform,
+      }))
+      setDeviceReady(true)
+    })
+    return () => { cancelled = true }
+  }, [bootstrap.hasDevelopmentCredentials])
 
   async function signIn(nextDraft: StudentSessionDraft = draft) {
     setStatus("bootstrapping")
@@ -151,6 +183,8 @@ export function StudentSessionProvider(props: { children: ReactNode }) {
     }
   }
 
+  const deviceBindingError = errorMessage ? buildDeviceBindingErrorModel(errorMessage) : null
+
   function updateDraft(nextDraft: Partial<StudentSessionDraft>) {
     setErrorMessage(null)
     setDraft((currentDraft) => ({
@@ -163,6 +197,7 @@ export function StudentSessionProvider(props: { children: ReactNode }) {
     setSession(null)
     setStatus("signed_out")
     setErrorMessage(null)
+    setDraft(bootstrap.defaultDraft)
     queryClient.removeQueries({
       queryKey: ["student"],
     })
@@ -175,6 +210,8 @@ export function StudentSessionProvider(props: { children: ReactNode }) {
         draft,
         status,
         errorMessage,
+        deviceBindingError,
+        deviceReady,
         hasDevelopmentCredentials: bootstrap.hasDevelopmentCredentials,
         updateDraft,
         signIn,

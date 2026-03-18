@@ -4,22 +4,21 @@ import { studentRoutes } from "./student-routes.js"
 
 describe("student route helpers", () => {
   it("keeps static student routes centralized", () => {
-    expect(studentRoutes.home).toBe("/(student)")
-    expect(studentRoutes.classrooms).toBe("/(student)/classrooms")
+    expect(studentRoutes.classrooms).toBe("/(student)/(tabs)/classrooms")
     expect(studentRoutes.attendance).toBe("/(student)/attendance")
     expect(studentRoutes.qrAttendance).toBe("/(student)/attendance/qr-scan")
-    expect(studentRoutes.reports).toBe("/(student)/reports")
+    expect(studentRoutes.reports).toBe("/(student)/(tabs)/reports")
   })
 
   it("builds dynamic classroom and subject routes with params", () => {
     expect(studentRoutes.classroomDetail("classroom_1")).toEqual({
-      pathname: "/(student)/classrooms/[classroomId]",
+      pathname: "/(student)/classroom/[classroomId]",
       params: {
         classroomId: "classroom_1",
       },
     })
     expect(studentRoutes.classroomStream("classroom_1")).toEqual({
-      pathname: "/(student)/classrooms/[classroomId]/stream",
+      pathname: "/(student)/classroom/[classroomId]/stream",
       params: {
         classroomId: "classroom_1",
       },

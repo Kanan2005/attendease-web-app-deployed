@@ -363,6 +363,10 @@ export class RosterImportsService {
       return updatedJob
     })
 
+    if (job.appliedRows > 0) {
+      await this.classroomsService.activateIfDraft(classroomId)
+    }
+
     return toRosterImportJobDetail(job)
   }
 

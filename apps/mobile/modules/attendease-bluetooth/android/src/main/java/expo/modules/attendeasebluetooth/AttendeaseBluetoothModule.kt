@@ -83,7 +83,9 @@ class AttendeaseBluetoothModule : Module() {
       scanner = nextScanner
       scanServiceUuid = serviceUuid
 
-      val filters = listOf(ScanFilter.Builder().setServiceUuid(serviceUuid).build())
+      // Match on service data UUID (not service UUID list) because the advertiser
+      // only includes the UUID in service data to save space in the 31-byte BLE packet.
+      val filters = listOf(ScanFilter.Builder().setServiceData(serviceUuid, null).build())
       val settings =
         ScanSettings.Builder()
           .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
@@ -169,12 +171,15 @@ class AttendeaseBluetoothModule : Module() {
       advertiser ?: throw CodedException("ERR_BLUETOOTH_UNAVAILABLE", "BLE advertising is unavailable on this device.", null)
     val serviceUuid = ParcelUuid(UUID.fromString(config.serviceUuid))
     val payload = buildPayload(config)
+    val payloadBytes = payload.toByteArray(StandardCharsets.UTF_8)
+    android.util.Log.d("AttendeaseBLE", "Service data: UUID(16) + payload(${payloadBytes.size}) = ${16 + payloadBytes.size} bytes")
     val advertiseData =
       AdvertiseData.Builder()
         .setIncludeDeviceName(false)
         .setIncludeTxPowerLevel(false)
-        .addServiceUuid(serviceUuid)
-        .addServiceData(serviceUuid, payload.toByteArray(StandardCharsets.UTF_8))
+        // NOTE: Do NOT call addServiceUuid() — it adds 18 extra bytes and exceeds the 31-byte BLE limit.
+        // The UUID is already embedded inside addServiceData().
+        .addServiceData(serviceUuid, payloadBytes)
         .build()
     val advertiseSettings =
       AdvertiseSettings.Builder()
@@ -242,14 +247,16 @@ class AttendeaseBluetoothModule : Module() {
 
   private fun buildPayload(config: AdvertiserConfig): String {
     val slice = System.currentTimeMillis() / (config.rotationWindowSeconds * 1000L)
-    val payload =
-      JSONObject()
-        .put("v", config.protocolVersion)
-        .put("pid", config.publicId)
-        .put("ts", slice)
-        .put("eid", createEphemeralId(config, slice))
-
-    return payload.toString()
+    val eid = createEphemeralId(config, slice)
+    
+    // Ultra-compact format: pid4 + eid8 = 12 hex chars = 12 bytes
+    // The slice is embedded in the eid computation, so we don't need to transmit it separately
+    val pidShort = config.publicId.take(4)
+    val eidShort = eid.take(8)
+    val payload = "$pidShort$eidShort"
+    
+    android.util.Log.d("AttendeaseBLE", "Payload: $payload (${payload.length} chars, ${payload.toByteArray().size} bytes)")
+    return payload
   }
 
   private fun createEphemeralId(config: AdvertiserConfig, slice: Long): String {

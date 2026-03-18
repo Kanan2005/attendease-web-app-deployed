@@ -42,6 +42,7 @@ export function TeacherBluetoothActiveSessionScreen(props: {
   const router = useRouter()
   const queryClient = useQueryClient()
   const classroomContext = teacherRoutes.classroomContext(props.classroomId)
+
   const runtime = useTeacherBluetoothRuntime(props.sessionId)
   const sessionQuery = useTeacherBluetoothSessionQuery(props.sessionId)
   const studentsQuery = useTeacherAttendanceSessionStudentsQuery(props.sessionId, {
@@ -59,7 +60,7 @@ export function TeacherBluetoothActiveSessionScreen(props: {
         classroomId: props.classroomId,
         sessionId: props.sessionId,
       })
-      router.replace(teacherRoutes.sessionDetail(props.sessionId))
+      router.back()
     },
   })
 
@@ -167,6 +168,7 @@ export function TeacherBluetoothActiveSessionScreen(props: {
       onEndSession={() => {
         void endSessionMutation.mutateAsync()
       }}
+      onGoBack={() => router.back()}
     />
   )
 }

@@ -1,88 +1,72 @@
 import { getColors } from "@attendease/ui-mobile"
 import { Ionicons } from "@expo/vector-icons"
-import { Redirect, Tabs } from "expo-router"
+import { Redirect, Stack, useRouter } from "expo-router"
+import { useEffect } from "react"
+import { Platform, Pressable } from "react-native"
 
 import { mobileEntryRoutes, resolveMobileRoleGate } from "../../src/mobile-entry-models"
 import { useStudentSession } from "../../src/student-session"
+
+async function requestNotificationPermission() {
+  // expo-notifications throws at module load in Expo Go on Android (SDK 53+)
+  if (__DEV__ && Platform.OS === "android") return
+  try {
+    const Notifications = await import("expo-notifications")
+    const { status } = await Notifications.getPermissionsAsync()
+    if (status !== "granted") {
+      await Notifications.requestPermissionsAsync()
+    }
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync("default", {
+        name: "Default",
+        importance: Notifications.AndroidImportance.HIGH,
+      })
+    }
+  } catch {
+    // expo-notifications unavailable in Expo Go on SDK 53+; safe to skip
+  }
+}
 
 export default function StudentLayout() {
   const { session } = useStudentSession()
   const gate = resolveMobileRoleGate("student", Boolean(session))
   const c = getColors()
+  const router = useRouter()
+
+  const detailHeader = {
+    headerShown: true,
+    headerStyle: { backgroundColor: c.surface },
+    headerTintColor: c.primary,
+    headerTitleStyle: { color: c.text, fontWeight: "600" as const, fontSize: 17 },
+    headerShadowVisible: false,
+    headerBackVisible: false,
+    headerLeft: () => (
+      <Pressable onPress={() => router.back()} hitSlop={12} style={{ marginLeft: 4 }}>
+        <Ionicons name="chevron-back" size={26} color={c.primary} />
+      </Pressable>
+    ),
+  }
+
+  useEffect(() => {
+    if (!session) return
+    void requestNotificationPermission()
+  }, [session])
 
   if (!gate.allowed) {
     return <Redirect href={gate.redirectHref ?? mobileEntryRoutes.studentSignIn} />
   }
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: c.tabBar,
-          borderTopColor: c.border,
-          borderTopWidth: 1,
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 6,
-        },
-        tabBarActiveTintColor: c.tabActive,
-        tabBarInactiveTintColor: c.tabInactive,
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: "600",
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="classrooms/index"
-        options={{
-          title: "Classrooms",
-          tabBarIcon: ({ color, size }) => <Ionicons name="school" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="attendance/index"
-        options={{
-          title: "Attendance",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="finger-print" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="reports"
-        options={{
-          title: "Reports",
-          tabBarIcon: ({ color, size }) => <Ionicons name="bar-chart" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-circle" size={size} color={color} />
-          ),
-        }}
-      />
-      {/* Hidden detail screens */}
-      <Tabs.Screen name="join" options={{ href: null }} />
-      <Tabs.Screen name="history" options={{ href: null }} />
-      <Tabs.Screen name="device-status" options={{ href: null }} />
-      <Tabs.Screen name="attendance/qr-scan" options={{ href: null }} />
-      <Tabs.Screen name="attendance/bluetooth-scan" options={{ href: null }} />
-      <Tabs.Screen name="classrooms/[classroomId]" options={{ href: null }} />
-      <Tabs.Screen name="classrooms/[classroomId]/stream" options={{ href: null }} />
-      <Tabs.Screen name="classrooms/[classroomId]/schedule" options={{ href: null }} />
-      <Tabs.Screen name="reports/subject/[subjectId]" options={{ href: null }} />
-    </Tabs>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="classroom/[classroomId]" />
+      <Stack.Screen name="attendance/index" options={{ ...detailHeader, title: "Mark Attendance" }} />
+      <Stack.Screen name="attendance/qr-scan" options={{ ...detailHeader, title: "QR Scan" }} />
+      <Stack.Screen name="attendance/bluetooth-scan" options={{ ...detailHeader, title: "Bluetooth Scan" }} />
+      <Stack.Screen name="join" options={{ ...detailHeader, title: "Join Classroom" }} />
+      <Stack.Screen name="history" options={{ ...detailHeader, title: "History" }} />
+      <Stack.Screen name="device-status" options={{ ...detailHeader, title: "Device Status" }} />
+      <Stack.Screen name="reports/subject/[subjectId]" options={{ ...detailHeader, title: "Subject Report" }} />
+    </Stack>
   )
 }

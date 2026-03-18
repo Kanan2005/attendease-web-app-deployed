@@ -25,7 +25,7 @@ export function TeacherClassroomRosterImportStatusCard({
   return (
     <TeacherCard
       title="Roster Import Status"
-      subtitle="Review queued jobs here when you need to follow up on a larger roster batch."
+      subtitle="Track import progress."
     >
       {jobs.map((job) => (
         <View key={job.id} style={styles.listRow}>

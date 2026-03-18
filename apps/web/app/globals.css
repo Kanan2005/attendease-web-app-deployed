@@ -1,20 +1,113 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
-:root {
+/* ═══════ Dark Mode (default) ═══════ */
+:root, [data-theme="dark"] {
   color-scheme: dark;
-  font-family: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+  --ae-primary: #FFFFFF;
+  --ae-primary-strong: #F5F5F5;
+  --ae-primary-contrast: #0A0A0A;
+  --ae-accent: #A78BFA;
+  --ae-accent-hover: #C4B5FD;
+  --ae-accent-soft: rgba(167, 139, 250, 0.10);
+  --ae-accent-border: rgba(167, 139, 250, 0.25);
+  --ae-surface: #111113;
+  --ae-surface-raised: #18181B;
+  --ae-surface-muted: #0F0F12;
+  --ae-surface-tint: #1C1C22;
+  --ae-surface-hero: #09090B;
+  --ae-border: rgba(255, 255, 255, 0.06);
+  --ae-border-strong: rgba(255, 255, 255, 0.12);
+  --ae-text: #FAFAFA;
+  --ae-text-muted: #A1A1AA;
+  --ae-text-subtle: #52525B;
+  --ae-success: #34D399;
+  --ae-success-soft: rgba(52, 211, 153, 0.10);
+  --ae-success-border: rgba(52, 211, 153, 0.25);
+  --ae-warning: #FBBF24;
+  --ae-warning-soft: rgba(251, 191, 36, 0.10);
+  --ae-warning-border: rgba(251, 191, 36, 0.25);
+  --ae-danger: #F87171;
+  --ae-danger-soft: rgba(248, 113, 113, 0.10);
+  --ae-danger-border: rgba(248, 113, 113, 0.25);
+  --ae-shadow-card: 0 2px 8px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.03);
+  --ae-shadow-hero: 0 24px 64px rgba(0,0,0,0.5);
+  --ae-shadow-glow: 0 0 48px rgba(167, 139, 250, 0.08);
+  --ae-gradient-page: linear-gradient(180deg, #09090B 0%, #0F0F12 100%);
+  --ae-gradient-card: linear-gradient(145deg, rgba(167, 139, 250, 0.03) 0%, transparent 50%);
+  --ae-gradient-chart: linear-gradient(135deg, rgba(167, 139, 250, 0.06) 0%, transparent 60%);
+  --ae-nav-bg: rgba(9, 9, 11, 0.8);
+  --ae-card-hover-bg: rgba(24, 24, 30, 1);
+  --ae-scrollbar-thumb: rgba(255, 255, 255, 0.08);
+  --ae-scrollbar-hover: rgba(255, 255, 255, 0.14);
+  --ae-skeleton-from: rgba(255,255,255,0.04);
+  --ae-skeleton-mid: rgba(255,255,255,0.08);
+}
+
+/* ═══════ Light Mode (cool white / soft slate) ═══════ */
+[data-theme="light"] {
+  color-scheme: light;
+  --ae-primary: #111827;
+  --ae-primary-strong: #1F2937;
+  --ae-primary-contrast: #F9FAFB;
+  --ae-accent: #6D5AE6;
+  --ae-accent-hover: #5B47D0;
+  --ae-accent-soft: rgba(109, 90, 230, 0.07);
+  --ae-accent-border: rgba(109, 90, 230, 0.18);
+  --ae-surface: #F7F8FA;
+  --ae-surface-raised: #FFFFFF;
+  --ae-surface-muted: #F1F3F5;
+  --ae-surface-tint: #F4F5F7;
+  --ae-surface-hero: #F7F8FA;
+  --ae-border: rgba(0, 0, 0, 0.07);
+  --ae-border-strong: rgba(0, 0, 0, 0.13);
+  --ae-text: #111827;
+  --ae-text-muted: #5F6B7A;
+  --ae-text-subtle: #94A3B8;
+  --ae-success: #059669;
+  --ae-success-soft: rgba(5, 150, 105, 0.08);
+  --ae-success-border: rgba(5, 150, 105, 0.20);
+  --ae-warning: #D97706;
+  --ae-warning-soft: rgba(217, 119, 6, 0.08);
+  --ae-warning-border: rgba(217, 119, 6, 0.20);
+  --ae-danger: #DC2626;
+  --ae-danger-soft: rgba(220, 38, 38, 0.06);
+  --ae-danger-border: rgba(220, 38, 38, 0.18);
+  --ae-shadow-card: 0 1px 3px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.03);
+  --ae-shadow-hero: 0 20px 48px rgba(0,0,0,0.07);
+  --ae-shadow-glow: 0 0 48px rgba(109, 90, 230, 0.05);
+  --ae-gradient-page: linear-gradient(180deg, #F7F8FA 0%, #F1F3F5 100%);
+  --ae-gradient-card: linear-gradient(145deg, rgba(109, 90, 230, 0.02) 0%, transparent 50%);
+  --ae-gradient-chart: linear-gradient(135deg, rgba(109, 90, 230, 0.03) 0%, transparent 60%);
+  --ae-nav-bg: rgba(255, 255, 255, 0.88);
+  --ae-card-hover-bg: #EDF0F3;
+  --ae-scrollbar-thumb: rgba(0, 0, 0, 0.10);
+  --ae-scrollbar-hover: rgba(0, 0, 0, 0.18);
+  --ae-skeleton-from: rgba(0,0,0,0.04);
+  --ae-skeleton-mid: rgba(0,0,0,0.07);
+}
+
+:root {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 * {
   box-sizing: border-box;
 }
 
+[data-theme-transition] *,
+[data-theme-transition] *::before,
+[data-theme-transition] *::after {
+  transition: background-color 0.35s ease, color 0.25s ease, border-color 0.35s ease, box-shadow 0.35s ease !important;
+}
+
 body {
   margin: 0;
-  background: #0d0d0d;
-  color: #ffffff;
+  background: var(--ae-surface-hero);
+  color: var(--ae-text);
+  line-height: 1.5;
 }
 
 main {
@@ -22,31 +115,276 @@ main {
 }
 
 ::selection {
-  background: rgba(201, 169, 110, 0.3);
-  color: #ffffff;
+  background: var(--ae-accent-soft);
+  color: var(--ae-text);
 }
 
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--ae-scrollbar-thumb);
   border-radius: 999px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--ae-scrollbar-hover);
 }
 
 html {
   scroll-behavior: smooth;
 }
+
+/* ───── Focus & Interaction States ───── */
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--ae-accent-border) !important;
+  box-shadow: 0 0 0 3px var(--ae-accent-soft) !important;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--ae-accent-border);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ───── Navigation ───── */
+
+.nav-dashboard-link {
+  transition: color 0.15s ease;
+}
+.nav-dashboard-link:hover {
+  color: var(--ae-text) !important;
+}
+
+.nav-link-item {
+  transition: all 0.15s ease;
+}
+.nav-link-item:hover {
+  color: var(--ae-text) !important;
+  background: var(--ae-accent-soft) !important;
+}
+
+@media (max-width: 900px) {
+  .ae-nav-links {
+    overflow-x: auto;
+    max-width: 50vw;
+    scrollbar-width: none;
+  }
+  .ae-nav-links::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.ui-back-link {
+  transition: color 0.15s ease, gap 0.15s ease;
+}
+.ui-back-link:hover {
+  color: var(--ae-text) !important;
+}
+
+.portal-action-card {
+  transition: all 0.2s ease;
+}
+.portal-action-card:hover {
+  border-color: var(--ae-accent) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  transform: translateY(-1px);
+}
+
+.dropdown-item {
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.dropdown-item:hover {
+  background: var(--ae-accent-soft) !important;
+  color: var(--ae-text) !important;
+}
+
+/* ───── Interactive Elements ───── */
+
+.ui-card-link {
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.ui-card-link:hover {
+  border-color: var(--ae-accent-border) !important;
+  background-color: var(--ae-card-hover-bg) !important;
+  box-shadow: var(--ae-shadow-card);
+  transform: translateY(-1px);
+}
+
+.ui-row-link {
+  transition: background-color 0.15s ease;
+}
+.ui-row-link:hover {
+  background-color: var(--ae-accent-soft) !important;
+}
+
+.ui-danger-action {
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.ui-danger-action:hover {
+  background: var(--ae-danger-soft) !important;
+}
+
+.ui-success-action {
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.ui-success-action:hover {
+  background: var(--ae-success-soft) !important;
+}
+
+.ui-primary-btn {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ui-primary-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--ae-shadow-glow);
+  filter: brightness(1.1);
+}
+.ui-primary-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.ui-secondary-btn {
+  transition: all 0.15s ease;
+}
+.ui-secondary-btn:hover:not(:disabled) {
+  border-color: var(--ae-border-strong) !important;
+  background: var(--ae-accent-soft) !important;
+  color: var(--ae-text) !important;
+}
+
+/* ───── Tables ───── */
+
+table tbody tr {
+  transition: background-color 0.12s ease;
+}
+table tbody tr:hover {
+  background-color: var(--ae-accent-soft);
+}
+
+/* ───── Tab hover ───── */
+
+.ui-tab-link {
+  transition: color 0.15s ease;
+}
+.ui-tab-link:hover {
+  color: var(--ae-text) !important;
+}
+
+/* ───── Theme Toggle ───── */
+
+.theme-toggle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--ae-border-strong);
+  background: var(--ae-surface-raised);
+  color: var(--ae-text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  padding: 0;
+  line-height: 1;
+}
+.theme-toggle:hover {
+  border-color: var(--ae-accent-border);
+  color: var(--ae-accent);
+  background: var(--ae-accent-soft);
+  transform: rotate(20deg);
+}
+
+/* ───── Animations ───── */
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--ae-skeleton-from) 25%,
+    var(--ae-skeleton-mid) 50%,
+    var(--ae-skeleton-from) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* ───── Responsive Layout ───── */
+
+@media (max-width: 768px) {
+  .ae-shell-body {
+    padding: 72px 16px 32px !important;
+  }
+  .ae-shell-nav {
+    padding: 0 14px !important;
+  }
+  .ae-tab-bar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .ae-tab-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .ae-login-main {
+    grid-template-columns: 1fr !important;
+    padding: 24px 16px !important;
+  }
+  .ae-login-card {
+    padding: 28px 20px !important;
+    border-radius: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .ae-shell-body {
+    padding: 68px 10px 24px !important;
+  }
+}
+
+/* ───── Reduced Motion ───── */
 
 @media (prefers-reduced-motion: reduce) {
   *,

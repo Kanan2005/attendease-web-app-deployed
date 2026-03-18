@@ -1,4 +1,6 @@
-import { TeacherClassroomDetailWorkspace } from "../../../../../../src/teacher-workflows-client"
+import {
+  TeacherClassroomLecturesWorkspace,
+} from "../../../../../../src/teacher-workflows-client"
 import { getWebPortalSession } from "../../../../../../src/web-session"
 
 export default async function TeacherClassroomLecturesPage(props: {
@@ -8,7 +10,7 @@ export default async function TeacherClassroomLecturesPage(props: {
   const session = await getWebPortalSession()
 
   return (
-    <TeacherClassroomDetailWorkspace
+    <TeacherClassroomLecturesWorkspace
       accessToken={session?.accessToken ?? null}
       classroomId={params.classroomId}
     />

@@ -136,7 +136,7 @@ export function StudentClassroomStreamScreen(props: { classroomId: string }) {
   return (
     <StudentScreen
       title="Classroom Stream"
-      subtitle="Student-visible classroom announcements are shown here in reverse chronological order."
+      subtitle="Latest updates from your teacher."
     >
       {!session ? (
         <StudentSessionSetupCard />
@@ -150,30 +150,31 @@ export function StudentClassroomStreamScreen(props: { classroomId: string }) {
         <>
           <StudentCard
             title={classroom.detailQuery.data?.displayTitle ?? "Classroom"}
-            subtitle="Teacher-only posts stay hidden from this student route."
           >
             <View style={styles.actionGrid}>
               <StudentNavAction
                 href={studentRoutes.classroomDetail(props.classroomId)}
                 label="Back To Classroom"
+                icon="arrow-back-outline"
               />
               <StudentNavAction
                 href={studentRoutes.classroomSchedule(props.classroomId)}
                 label="Open Schedule"
+                icon="calendar-outline"
               />
             </View>
           </StudentCard>
           {streamQuery.data?.length ? (
             <StudentCard
               title="Announcement Feed"
-              subtitle="Roster-import results and notify-on-post announcements will also appear here when student-visible."
+              subtitle="Announcements and class updates."
             >
               {streamQuery.data.map((announcement) => (
                 <AnnouncementRow key={announcement.id} announcement={announcement} />
               ))}
             </StudentCard>
           ) : (
-            <StudentEmptyCard label="No student-visible announcements are available for this classroom yet." />
+            <StudentEmptyCard label="No announcements yet." />
           )}
         </>
       )}

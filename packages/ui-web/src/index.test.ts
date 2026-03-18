@@ -4,13 +4,13 @@ import { findWebContentIssues, getWebToneColor, webContentRules, webTheme } from
 
 describe("web theme tokens", () => {
   it("exposes the shared web design tokens", () => {
-    expect(webTheme.colors.primary).toBe("#17181d")
-    expect(webTheme.colors.border).toBe("#e3d5c2")
-    expect(webTheme.colors.accent).toBe("#ea5b2a")
-    expect(webTheme.colors.surfaceHero).toBe("#efe1d0")
-    expect(webTheme.colors.warningSoft).toBe("#fbf2e2")
-    expect(webTheme.colors.successBorder).toBe("#bfdcc9")
-    expect(webTheme.radius.card).toBe(30)
+    expect(webTheme.colors.primary).toBe("var(--ae-primary)")
+    expect(webTheme.colors.border).toBe("var(--ae-border)")
+    expect(webTheme.colors.accent).toBe("var(--ae-accent)")
+    expect(webTheme.colors.surfaceHero).toBe("var(--ae-surface-hero)")
+    expect(webTheme.colors.warningSoft).toBe("var(--ae-warning-soft)")
+    expect(webTheme.colors.successBorder).toBe("var(--ae-success-border)")
+    expect(webTheme.radius.card).toBe(14)
   })
 
   it("flags developer-facing copy in web surfaces", () => {

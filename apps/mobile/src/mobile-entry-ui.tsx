@@ -1,26 +1,20 @@
 import { getColors, getMobileColorScheme, mobileTheme } from "@attendease/ui-mobile"
 import { AnimatedButton, AnimatedCard, GradientHeader } from "@attendease/ui-mobile/animated"
-import { buildAnimatedStyles } from "@attendease/ui-mobile/animated-styles"
 import { Ionicons } from "@expo/vector-icons"
 import { Link } from "expo-router"
 import type { ReactNode } from "react"
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
 import Animated, { FadeInDown } from "react-native-reanimated"
 
-/** Button visual only — no Pressable wrapper. Use inside Link > Pressable. */
-function LinkButtonVisual(props: { label: string; variant?: "primary" | "secondary" }) {
-  const s = buildAnimatedStyles(getColors())
-  const isPrimary = props.variant !== "secondary"
-  return (
-    <View style={[s.button, isPrimary ? s.buttonPrimary : s.buttonSecondary]}>
-      <Text style={[s.buttonLabel, isPrimary ? s.buttonLabelPrimary : null]}>{props.label}</Text>
-    </View>
-  )
-}
-
 import { mobileEntryRoutes } from "./mobile-entry-models"
-import type { MobileAuthFormState, MobileEntryCardModel } from "./mobile-entry-models"
+import type { MobileAuthFormState } from "./mobile-entry-models"
 import type { MobileEntryRole } from "./shell"
+
+const roleIconMap = {
+  student: "school" as const,
+  teacher: "easel" as const,
+  admin: "shield-checkmark" as const,
+} as const
 
 export function MobileAuthScreen(props: {
   entryRole: MobileEntryRole
@@ -30,83 +24,52 @@ export function MobileAuthScreen(props: {
   onSubmit: () => void
   children: ReactNode
 }) {
+  const c = getColors()
+  const eyebrowLabel = props.entryRole === "admin" ? "Admin" : props.entryRole === "student" ? "Student" : "Teacher"
+
   return (
-    <ScrollView contentContainerStyle={styles.screenContent} style={styles.screen}>
+    <ScrollView contentContainerStyle={styles.screenContent} style={styles.screen} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
       <GradientHeader
-        eyebrow={props.entryRole === "student" ? "Student" : "Teacher"}
+        eyebrow={eyebrowLabel}
         title={props.formState.title}
         subtitle={props.formState.subtitle}
+        icon={<Ionicons name={roleIconMap[props.entryRole]} size={14} color={c.primary} />}
       />
 
       <AnimatedCard index={1}>
         {props.children}
+
+        {props.formState.errorMessage ? (
+          <Animated.View entering={FadeInDown.duration(300)} style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, backgroundColor: c.dangerSoft, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: c.dangerBorder }}>
+            <Ionicons name="alert-circle" size={18} color={c.danger} style={{ marginTop: 1 }} />
+            <Text style={[styles.errorText, { flex: 1 }]}>{props.formState.errorMessage}</Text>
+          </Animated.View>
+        ) : null}
+
         <AnimatedButton
           label={props.formState.submitLabel}
           onPress={props.onSubmit}
           disabled={props.formState.isSubmitting || !props.canSubmit}
         />
+
         <Text style={styles.helperText}>{props.formState.helperText}</Text>
-        {props.formState.errorMessage ? (
-          <Text style={styles.errorText}>{props.formState.errorMessage}</Text>
-        ) : null}
-        <Link href={props.alternateHref} asChild>
-          <Pressable style={styles.inlineLinkButton}>
-            <Text style={styles.inlineLinkLabel}>{props.formState.alternateLabel}</Text>
-          </Pressable>
-        </Link>
-        <Link href={mobileEntryRoutes.landing} asChild>
-          <Pressable style={styles.inlineLinkButton}>
-            <Text style={styles.inlineLinkLabel}>Back to role choice</Text>
-          </Pressable>
-        </Link>
-      </AnimatedCard>
-    </ScrollView>
-  )
-}
 
-export function EntryRoleCard(props: { card: MobileEntryCardModel; onSignOut: () => void }) {
-  const isStudent = props.card.role === "student"
-  const iconName = isStudent ? "school-outline" : "easel-outline"
-
-  return (
-    <AnimatedCard index={isStudent ? 1 : 2}>
-      <View style={styles.roleHeader}>
-        <View style={styles.roleIconWrap}>
-          <Ionicons name={iconName} size={24} color={getColors().primary} />
-        </View>
-        <Text style={styles.cardEyebrow}>{isStudent ? "Student" : "Teacher"}</Text>
-      </View>
-      <Animated.Text entering={FadeInDown.delay(200).duration(400)} style={styles.cardTitle}>
-        {props.card.title}
-      </Animated.Text>
-      <Text style={styles.cardDescription}>{props.card.description}</Text>
-      {props.card.sessionSummary ? (
-        <View style={styles.sessionBadge}>
-          <Ionicons name="checkmark-circle" size={16} color={getColors().success} />
-          <Text style={styles.sessionSummary}>{props.card.sessionSummary}</Text>
-        </View>
-      ) : null}
-      <View style={styles.buttonColumn}>
-        <Link href={props.card.primaryHref} asChild>
-          <Pressable>
-            <LinkButtonVisual label={props.card.primaryLabel} />
-          </Pressable>
-        </Link>
-        {props.card.canSignOut ? (
-          <AnimatedButton
-            label={props.card.secondaryLabel}
-            variant="secondary"
-            onPress={props.onSignOut}
-          />
-        ) : props.card.secondaryHref ? (
-          <Link href={props.card.secondaryHref} asChild>
-            <Pressable>
-              <LinkButtonVisual label={props.card.secondaryLabel} variant="secondary" />
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16, marginTop: 4 }}>
+          {props.alternateHref !== mobileEntryRoutes.landing ? (
+            <Link href={props.alternateHref} asChild>
+              <Pressable style={styles.inlineLinkButton}>
+                <Text style={styles.inlineLinkLabel}>{props.formState.alternateLabel}</Text>
+              </Pressable>
+            </Link>
+          ) : null}
+          <Link href={mobileEntryRoutes.landing} asChild>
+            <Pressable style={styles.inlineLinkButton}>
+              <Text style={styles.inlineLinkLabel}>Back to role choice</Text>
             </Pressable>
           </Link>
-        ) : null}
-      </View>
-    </AnimatedCard>
+        </View>
+      </AnimatedCard>
+    </ScrollView>
   )
 }
 
@@ -194,10 +157,17 @@ function buildEntryStyles() {
       borderColor: c.borderStrong,
       borderRadius: mobileTheme.radius.button,
       paddingHorizontal: mobileTheme.spacing.lg,
-      paddingVertical: mobileTheme.spacing.md,
+      paddingVertical: 14,
       backgroundColor: c.surfaceMuted,
       color: c.text,
       fontSize: mobileTheme.typography.body,
+    },
+    inputLabel: {
+      color: c.textMuted,
+      fontSize: mobileTheme.typography.caption,
+      fontWeight: "600",
+      letterSpacing: 0.2,
+      marginBottom: 4,
     },
     helperNote: {
       color: c.textMuted,

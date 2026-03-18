@@ -1,5 +1,4 @@
 import { webTheme } from "@attendease/ui-web"
-import Link from "next/link"
 
 import type { AttendanceSessionDetail } from "@attendease/contracts"
 import type { buildQrSessionShellModel } from "./web-workflows"
@@ -12,52 +11,11 @@ interface StatRow {
   value: string
 }
 
-interface QrLiveCards {
-  countdownLabel: string
-  attendanceRatioLabel: string
-  qrRefreshLabel: string
-}
-
 interface QrLiveSessionView {
   statusLabel: string
   liveSummaryLabel: string
   qrExpiresLabel: string
   qrRefreshLabel: string
-}
-
-export function QrSessionHero(props: {
-  model: ReturnType<typeof buildQrSessionShellModel>
-  session: AttendanceSessionDetail
-  liveModel: QrLiveCards
-}) {
-  const session = props.session
-  const scopeSummary = `${session.subjectTitle} · ${session.classCode} ${session.sectionCode}`
-  const sessionSummary = session.lectureTitle
-    ? `${scopeSummary} · ${session.lectureTitle}`
-    : scopeSummary
-
-  return (
-    <section style={qrShellStyles.hero}>
-      <div style={qrShellStyles.heroTopRow}>
-        <div>
-          <p style={heroMetaStyle}>{props.model.eyebrow}</p>
-          <h2 style={{ margin: "0 0 12px", color: webTheme.colors.primary, fontSize: 36 }}>
-            {props.model.title}
-          </h2>
-          <p style={{ ...qrShellStyles.metaText, color: webTheme.colors.text }}>
-            {session.classroomDisplayTitle} ({session.classroomCode})
-          </p>
-          <p style={{ ...qrShellStyles.metaText, marginTop: 6 }}>{sessionSummary}</p>
-          <p style={{ ...qrShellStyles.metaText, marginTop: 10 }}>{props.model.subtitle}</p>
-        </div>
-        <div style={qrShellStyles.statPillRow}>
-          <StatPill label="Timer" value={props.liveModel.countdownLabel} />
-          <StatPill label="Marked" value={props.liveModel.attendanceRatioLabel} />
-          <StatPill label="Live refresh" value={props.liveModel.qrRefreshLabel} />
-        </div>
-      </div>
-    </section>
-  )
 }
 
 export function QrSessionProjectorHero(props: {
@@ -77,74 +35,15 @@ export function QrSessionProjectorHero(props: {
             style={qrShellStyles.projectorQrImage}
           />
         ) : (
-          <EmptyQrState message="The session is no longer active, so the rolling QR is hidden." />
+          <EmptyQrState message="Session is no longer active." />
         )}
       </div>
       <div style={qrShellStyles.projectorFooterGrid}>
-        <DetailCard label="Session status" value={props.liveModel.statusLabel} />
-        <DetailCard label="Marked now" value={props.liveModel.liveSummaryLabel} />
+        <DetailCard label="Status" value={props.liveModel.statusLabel} />
+        <DetailCard label="Marked" value={props.liveModel.liveSummaryLabel} />
         <DetailCard label="QR expires" value={props.liveModel.qrExpiresLabel} />
       </div>
     </section>
-  )
-}
-
-export function QrSessionQRStage(props: {
-  session: AttendanceSessionDetail
-  liveModel: QrLiveSessionView & QrLiveCards & { locationRuleLabel: string }
-  qrDataUrl: string | null
-  canDisplayQr: boolean
-  onOpenProjector: string
-  onOpenHistory: string
-  onEndSession: () => void
-  isEnding: boolean
-  sessionEnded: boolean
-  endError?: Error | null
-  formatStartedAt: (value: string | null) => string
-}) {
-  return (
-    <div style={qrShellStyles.stageGrid}>
-      <div style={qrShellStyles.qrStage}>
-        <div style={qrShellStyles.qrFrame}>
-          {props.canDisplayQr && props.qrDataUrl ? (
-            <img
-              src={props.qrDataUrl}
-              alt="Rolling QR code for live attendance control"
-              style={qrShellStyles.qrImage}
-            />
-          ) : (
-            <EmptyQrState message="The session is no longer active, so the rolling QR is hidden." />
-          )}
-        </div>
-
-        <div style={qrShellStyles.detailsGrid}>
-          <DetailCard label="QR expires" value={props.liveModel.qrExpiresLabel} />
-          <DetailCard label="Location rule" value={props.liveModel.locationRuleLabel} />
-          <DetailCard label="Started" value={props.formatStartedAt(props.session.startedAt)} />
-        </div>
-
-        <div style={qrShellStyles.actionRow}>
-          <Link href={props.onOpenProjector} style={qrShellStyles.primaryButton}>
-            Open projector mode
-          </Link>
-          <Link href={props.onOpenHistory} style={qrShellStyles.secondaryButton}>
-            Open session history
-          </Link>
-          <button
-            type="button"
-            onClick={props.onEndSession}
-            disabled={props.isEnding || props.sessionEnded}
-            style={qrShellStyles.dangerButton}
-          >
-            {props.isEnding ? "Ending session..." : "End session"}
-          </button>
-        </div>
-
-        {props.endError ? (
-          <div style={qrShellStyles.statusBanner}>{props.endError.message}</div>
-        ) : null}
-      </div>
-    </div>
   )
 }
 
@@ -156,79 +55,113 @@ export function QrSessionRosterPanel(props: {
   onRefresh: () => void
   isRefreshing: boolean
 }) {
+  if (props.isLoading && !props.rosterModel) {
+    return <p style={qrShellStyles.metaText}>Loading roster...</p>
+  }
+
+  if (props.error) {
+    return (
+      <div style={qrShellStyles.statusBanner}>
+        {props.error instanceof Error ? props.error.message : "Could not load roster."}
+      </div>
+    )
+  }
+
+  if (!props.rosterModel) {
+    return <p style={qrShellStyles.metaText}>Roster not available yet.</p>
+  }
+
   return (
     <div style={qrShellStyles.rosterColumn}>
-      {props.isLoading && !props.rosterModel ? (
-        <p style={qrShellStyles.metaText}>Loading live roster...</p>
-      ) : null}
-
-      {props.error ? (
-        <div style={qrShellStyles.statusBanner}>
-          {props.error instanceof Error
-            ? props.error.message
-            : "Could not load the live student list."}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 4 }}>
+        <button
+          type="button"
+          onClick={props.onRefresh}
+          disabled={props.isRefreshing}
+          aria-label="Refresh roster"
+          className="ui-secondary-btn"
+          style={{
+            background: "transparent",
+            border: `1px solid ${webTheme.colors.border}`,
+            borderRadius: 8,
+            padding: "4px 12px",
+            fontSize: 12,
+            fontWeight: 600,
+            color: webTheme.colors.textMuted,
+            cursor: props.isRefreshing ? "not-allowed" : "pointer",
+          }}
+        >
+          {props.isRefreshing ? "Refreshing..." : "Refresh"}
+        </button>
+      </div>
+      <div style={qrShellStyles.rosterSummaryRow}>
+        <div style={qrShellStyles.rosterSummaryCard}>
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: webTheme.colors.textSubtle }}>
+            Present
+          </p>
+          <p style={{ margin: "4px 0 0", fontSize: 22, fontWeight: 700, color: webTheme.colors.success }}>
+            {props.rosterModel.presentRows.length}
+          </p>
         </div>
-      ) : null}
+        <div style={qrShellStyles.rosterSummaryCard}>
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: webTheme.colors.textSubtle }}>
+            Absent
+          </p>
+          <p style={{ margin: "4px 0 0", fontSize: 22, fontWeight: 700, color: webTheme.colors.danger }}>
+            {props.rosterModel.absentRows.length}
+          </p>
+        </div>
+      </div>
 
-      {props.rosterModel ? (
-        <div style={qrShellStyles.grid}>
-          <div style={qrShellStyles.rosterSummaryRow}>
-            <div style={qrShellStyles.rosterSummaryCard}>
-              <strong style={{ display: "block", marginBottom: 6 }}>Marked now</strong>
-              <p style={{ margin: 0, color: webTheme.colors.text }}>
-                {props.rosterModel.presentSummaryLabel}
-              </p>
-              <p style={{ ...qrShellStyles.metaText, marginTop: 8 }}>
-                {props.liveModel.liveSummaryLabel}
-              </p>
+      {props.rosterModel.presentRows.length > 0 ? (
+        <div style={qrShellStyles.rosterScroll}>
+          {props.rosterModel.presentRows.map((student) => (
+            <div
+              key={student.attendanceRecordId}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "10px 14px",
+                borderRadius: 10,
+                border: `1px solid ${webTheme.colors.border}`,
+                background: webTheme.colors.surfaceTint,
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: webTheme.colors.text }}>
+                  {student.studentDisplayName}
+                </p>
+                <p style={{ margin: "2px 0 0", fontSize: 11, color: webTheme.colors.textMuted }}>
+                  {student.secondaryLabel}
+                </p>
+              </div>
+              <span style={{ fontSize: 11, color: webTheme.colors.accent, fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>
+                {student.markedAtLabel}
+              </span>
             </div>
-            <div style={qrShellStyles.rosterSummaryCard}>
-              <strong style={{ display: "block", marginBottom: 6 }}>Still waiting</strong>
-              <p style={{ margin: 0, color: webTheme.colors.text }}>
-                {props.rosterModel.absentSummaryLabel}
-              </p>
-              <p style={{ ...qrShellStyles.metaText, marginTop: 8 }}>
-                {props.liveModel.qrRefreshLabel}
-              </p>
-            </div>
-          </div>
-
-          {props.rosterModel.presentRows.length > 0 ? (
-            <div style={qrShellStyles.rosterScroll}>
-              {props.rosterModel.presentRows.map((student) => (
-                <div key={student.attendanceRecordId} style={qrShellStyles.rosterItem}>
-                  <strong style={{ display: "block", marginBottom: 4 }}>
-                    {student.studentDisplayName}
-                  </strong>
-                  <p style={{ ...qrShellStyles.metaText, marginBottom: 4 }}>
-                    {student.secondaryLabel}
-                  </p>
-                  <p style={{ ...qrShellStyles.metaText, color: webTheme.colors.accent }}>
-                    {student.markedAtLabel}
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p style={qrShellStyles.metaText}>No student has marked attendance yet.</p>
-          )}
-
-          {props.rosterModel.absentRows.length > 0 ? (
-            <div style={qrShellStyles.rosterSummaryCard}>
-              <strong style={{ display: "block", marginBottom: 8 }}>Still absent</strong>
-              <p style={qrShellStyles.metaText}>
-                {props.rosterModel.absentRows
-                  .slice(0, 5)
-                  .map((student) => student.studentDisplayName)
-                  .join(", ")}
-                {props.rosterModel.absentRows.length > 5 ? " and more." : "."}
-              </p>
-            </div>
-          ) : null}
+          ))}
         </div>
       ) : (
-        <p style={qrShellStyles.metaText}>Live roster is not available yet.</p>
+        <p style={{ ...qrShellStyles.metaText, padding: "16px 0", textAlign: "center" }}>
+          No students marked yet.
+        </p>
       )}
+
+      {props.rosterModel.absentRows.length > 0 ? (
+        <div style={{ ...qrShellStyles.rosterSummaryCard, background: webTheme.colors.dangerSoft, borderColor: webTheme.colors.dangerBorder }}>
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: webTheme.colors.danger }}>
+            Still absent
+          </p>
+          <p style={{ margin: "6px 0 0", fontSize: 13, color: webTheme.colors.text, lineHeight: 1.5 }}>
+            {props.rosterModel.absentRows
+              .slice(0, 8)
+              .map((s) => s.studentDisplayName)
+              .join(", ")}
+            {props.rosterModel.absentRows.length > 8 ? ` +${props.rosterModel.absentRows.length - 8} more` : ""}
+          </p>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -245,26 +178,21 @@ export function StatPill(props: StatRow) {
 export function DetailCard(props: { label: string; value: string }) {
   return (
     <div style={qrShellStyles.detailCard}>
-      <strong style={{ display: "block", marginBottom: 8 }}>{props.label}</strong>
-      <p style={{ margin: 0, color: webTheme.colors.text, lineHeight: 1.6 }}>{props.value}</p>
+      <p style={{ margin: 0, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: webTheme.colors.textSubtle }}>
+        {props.label}
+      </p>
+      <p style={{ margin: "6px 0 0", color: webTheme.colors.text, fontSize: 14, lineHeight: 1.4 }}>
+        {props.value}
+      </p>
     </div>
   )
 }
 
 export function EmptyQrState(props: { message: string }) {
   return (
-    <div style={{ textAlign: "center" }}>
-      <strong style={{ display: "block", marginBottom: 8 }}>QR not available</strong>
-      <p style={qrShellStyles.metaText}>{props.message}</p>
+    <div style={{ textAlign: "center", padding: 24 }}>
+      <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: webTheme.colors.textMuted }}>QR not available</p>
+      <p style={{ margin: "4px 0 0", fontSize: 12, color: webTheme.colors.textSubtle }}>{props.message}</p>
     </div>
   )
-}
-
-const heroMetaStyle: React.CSSProperties = {
-  margin: "0 0 10px",
-  color: webTheme.colors.accent,
-  fontWeight: 700,
-  textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  fontSize: 12,
 }

@@ -55,6 +55,9 @@ export const classroomSummarySchema = academicScopeSchema.extend({
   bluetoothRotationWindowSeconds: z.number().int().positive(),
   timezone: z.string().min(1),
   requiresTrustedDevice: z.boolean(),
+  degree: z.string().nullable().optional(),
+  semesterLabel: z.string().nullable().optional(),
+  streamLabel: z.string().nullable().optional(),
   archivedAt: isoDateTimeSchema.nullable(),
   activeJoinCode: classroomJoinCodeSummarySchema.nullable(),
   permissions: classroomCrudPermissionsSchema.optional(),
@@ -118,6 +121,7 @@ export const studentClassroomMembershipSummarySchema = academicScopeSchema.exten
   id: z.string().min(1),
   classroomId: z.string().min(1).optional(),
   primaryTeacherId: z.string().min(1),
+  primaryTeacherDisplayName: z.string().nullable().optional(),
   code: z.string().min(1),
   displayTitle: z.string().min(1),
   classroomStatus: courseOfferingStatusSchema,
@@ -184,6 +188,9 @@ export const createClassroomRequestSchema = academicScopeSchema
     bluetoothRotationWindowSeconds: z.coerce.number().int().min(5).max(180).optional(),
     timezone: z.string().trim().min(3).max(100).optional(),
     requiresTrustedDevice: z.boolean().optional(),
+    degree: z.string().trim().min(1).max(50).optional(),
+    semesterLabel: z.string().trim().min(1).max(50).optional(),
+    streamLabel: z.string().trim().min(1).max(50).optional(),
   })
   .superRefine((value, context) => {
     if (value.code === undefined && value.courseCode === undefined) {

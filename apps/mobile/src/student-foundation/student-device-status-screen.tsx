@@ -1,7 +1,8 @@
 import { createAuthApiClient } from "@attendease/auth"
 import { loadMobileEnv } from "@attendease/config"
 import type { AttendanceMode, TrustedDeviceAttendanceReadyResponse } from "@attendease/contracts"
-import { mobileTheme } from "@attendease/ui-mobile"
+import { getColors, mobileTheme } from "@attendease/ui-mobile"
+import { Ionicons } from "@expo/vector-icons"
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link } from "expo-router"
 import { useEffect, useState } from "react"
@@ -114,6 +115,7 @@ import {
   StudentLoadingCard,
   StudentNavAction,
   StudentQuickActions,
+  StudentBackButton,
   StudentScreen,
   StudentSessionSetupCard,
   StudentStatusBanner,
@@ -128,6 +130,7 @@ import {
 
 export function StudentDeviceStatusScreen() {
   const { session } = useStudentSession()
+  const c = getColors()
   const meQuery = useStudentMeQuery()
   const attendanceReadyQuery = useStudentAttendanceReadyQuery()
   const gateModel = buildStudentAttendanceGateModel({
@@ -138,61 +141,150 @@ export function StudentDeviceStatusScreen() {
   return (
     <StudentScreen
       title="Device Status"
-      subtitle="AttendEase allows one attendance phone per student. Check whether this phone can mark attendance and what to do next."
+      subtitle="Check if this phone is ready for attendance."
     >
+      <StudentBackButton label="Back to Profile" />
       {!session ? (
         <StudentSessionSetupCard />
       ) : meQuery.isLoading ? (
-        <StudentLoadingCard label="Checking device trust" />
+        <StudentLoadingCard label="Checking device status…" />
       ) : meQuery.error ? (
         <StudentErrorCard label={mapStudentApiErrorToMessage(meQuery.error)} />
       ) : (
         <>
-          <StudentCard title={gateModel.title} subtitle={gateModel.supportHint}>
-            <Text style={[styles.bodyText, toneColorStyle(gateModel.tone)]}>
-              {gateModel.message}
-            </Text>
-            <Text style={styles.listMeta}>
-              Attendance on this phone: {gateModel.canContinue ? "Ready" : "Needs attention"}
-            </Text>
-            <Text style={styles.listMeta}>
-              Phone status:{" "}
-              {buildStudentDeviceStatusSummaryModel(meQuery.data?.user.deviceTrust ?? null).label}
-            </Text>
-            <View style={styles.actionGrid}>
-              <StudentNavAction href={studentRoutes.attendance} label="Open Attendance" />
-              <StudentNavAction href={studentRoutes.profile} label="Open Profile" />
+          {/* Status Hero */}
+          <View
+            style={{
+              alignItems: "center",
+              gap: 16,
+              padding: 24,
+              borderRadius: 16,
+              backgroundColor: gateModel.canContinue ? c.successSoft : c.dangerSoft,
+              borderWidth: 1.5,
+              borderColor: gateModel.canContinue ? c.successBorder : c.dangerBorder,
+            }}
+          >
+            <View
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: 36,
+                backgroundColor: gateModel.canContinue ? c.success + "20" : c.danger + "20",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons
+                name={gateModel.canContinue ? "shield-checkmark" : "shield-outline"}
+                size={36}
+                color={gateModel.canContinue ? c.success : c.danger}
+              />
             </View>
+            <View style={{ alignItems: "center", gap: 4 }}>
+              <Text style={{ fontSize: 20, fontWeight: "800", color: c.text }}>
+                {gateModel.canContinue ? "Device Ready" : "Needs Attention"}
+              </Text>
+              <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", lineHeight: 20, paddingHorizontal: 12 }}>
+                {gateModel.message}
+              </Text>
+            </View>
+          </View>
+
+          {/* Device Details */}
+          <StudentCard title="Device Information">
+            <View style={{ gap: 12 }}>
+              <DeviceInfoRow
+                icon="phone-portrait-outline"
+                label="Phone Status"
+                value={buildStudentDeviceStatusSummaryModel(meQuery.data?.user.deviceTrust ?? null).label}
+                tone={buildStudentDeviceStatusSummaryModel(meQuery.data?.user.deviceTrust ?? null).tone}
+              />
+              <DeviceInfoRow
+                icon="hand-left-outline"
+                label="Attendance Access"
+                value={gateModel.canContinue ? "Ready" : "Blocked"}
+                tone={gateModel.canContinue ? "success" : "danger"}
+              />
+              {attendanceReadyQuery.data ? (
+                <>
+                  <DeviceInfoRow
+                    icon="hardware-chip-outline"
+                    label="Platform"
+                    value={attendanceReadyQuery.data.device.platform === "ANDROID" ? "Android" : attendanceReadyQuery.data.device.platform === "IOS" ? "iPhone" : attendanceReadyQuery.data.device.platform}
+                    tone="primary"
+                  />
+                  <DeviceInfoRow
+                    icon="link-outline"
+                    label="Binding Status"
+                    value={formatEnum(attendanceReadyQuery.data.binding.status)}
+                    tone={attendanceReadyQuery.data.binding.status === "ACTIVE" ? "success" : "warning"}
+                  />
+                </>
+              ) : attendanceReadyQuery.isLoading ? (
+                <StudentLoadingCard label="Verifying device…" compact />
+              ) : attendanceReadyQuery.error ? (
+                <Text style={styles.errorText}>
+                  {mapStudentApiErrorToMessage(attendanceReadyQuery.error)}
+                </Text>
+              ) : null}
+            </View>
+            {gateModel.supportHint ? (
+              <Text style={{ fontSize: 13, color: c.textMuted, lineHeight: 19, marginTop: 4 }}>
+                {gateModel.supportHint}
+              </Text>
+            ) : null}
           </StudentCard>
 
-          <StudentCard
-            title="Attendance Access"
-            subtitle="This is the same live approval check used by QR and Bluetooth attendance."
-          >
-            {attendanceReadyQuery.isLoading ? (
-              <StudentLoadingCard label="Validating trusted attendance device" compact />
-            ) : attendanceReadyQuery.data ? (
-              <>
-                <Text style={styles.listMeta}>Ready: yes</Text>
-                <Text style={styles.listMeta}>
-                  Approved phone: {attendanceReadyQuery.data.device.platform}
-                </Text>
-                <Text style={styles.listMeta}>
-                  Approval state: {formatEnum(attendanceReadyQuery.data.binding.status)}
-                </Text>
-              </>
-            ) : attendanceReadyQuery.error ? (
-              <Text style={styles.errorText}>
-                {mapStudentApiErrorToMessage(attendanceReadyQuery.error)}
-              </Text>
-            ) : (
-              <Text style={styles.listMeta}>
-                Sign in on your attendance phone to check approval details.
-              </Text>
-            )}
-          </StudentCard>
+          <View style={styles.actionGrid}>
+            <StudentNavAction href={studentRoutes.attendance} label="Open Attendance" icon="hand-left-outline" />
+            <StudentNavAction href={studentRoutes.profile} label="Open Profile" icon="person-outline" />
+          </View>
         </>
       )}
     </StudentScreen>
+  )
+}
+
+function DeviceInfoRow(props: {
+  icon: string
+  label: string
+  value: string
+  tone: string
+}) {
+  const c = getColors()
+  const color =
+    props.tone === "success" ? c.success
+    : props.tone === "danger" ? c.danger
+    : props.tone === "warning" ? c.warning
+    : c.primary
+  const bg =
+    props.tone === "success" ? c.successSoft
+    : props.tone === "danger" ? c.dangerSoft
+    : props.tone === "warning" ? c.warningSoft
+    : c.primarySoft
+
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+      <View
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 10,
+          backgroundColor: bg,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Ionicons name={props.icon as "phone-portrait-outline"} size={18} color={color} />
+      </View>
+      <View style={{ flex: 1, gap: 1 }}>
+        <Text style={{ fontSize: 12, fontWeight: "600", color: c.textSubtle, textTransform: "uppercase", letterSpacing: 0.5 }}>
+          {props.label}
+        </Text>
+        <Text style={{ fontSize: 15, fontWeight: "700", color }}>
+          {props.value}
+        </Text>
+      </View>
+    </View>
   )
 }

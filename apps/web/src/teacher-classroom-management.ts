@@ -18,10 +18,43 @@ export interface TeacherWebClassroomScopeOption {
   supportingText: string
 }
 
+export const CLASSROOM_DEGREE_OPTIONS = [
+  { value: "B.Tech", label: "B.Tech" },
+  { value: "M.Tech", label: "M.Tech" },
+] as const
+
+export const CLASSROOM_SEMESTER_OPTIONS = Array.from({ length: 8 }, (_, i) => ({
+  value: String(i + 1),
+  label: `Semester ${i + 1}`,
+}))
+
+export const CLASSROOM_STREAM_OPTIONS = [
+  { value: "CSE", label: "CSE" },
+  { value: "ECE", label: "ECE" },
+  { value: "EE", label: "EE" },
+  { value: "ME", label: "ME" },
+  { value: "CHEM", label: "CHEM" },
+  { value: "META", label: "META" },
+  { value: "CIVIL", label: "CIVIL" },
+  { value: "Multiple", label: "Multiple" },
+] as const
+
+export function buildClassroomMetaLabel(meta: {
+  degree?: string | null | undefined
+  streamLabel?: string | null | undefined
+  semesterLabel?: string | null | undefined
+}): string | null {
+  const parts = [meta.degree, meta.streamLabel, meta.semesterLabel].filter(Boolean)
+  return parts.length > 0 ? parts.join(" · ") : null
+}
+
 export interface TeacherWebClassroomCreateDraft {
   selectedScopeKey: string
   classroomTitle: string
   courseCode: string
+  degree: string
+  semester: string
+  stream: string
   defaultAttendanceMode: AttendanceMode
   defaultGpsRadiusMeters: string
   defaultSessionDurationMinutes: string
@@ -102,6 +135,9 @@ export function createTeacherWebClassroomCreateDraft(
     selectedScopeKey,
     classroomTitle: "",
     courseCode: "",
+    degree: "B.Tech",
+    semester: "6",
+    stream: "CSE",
     defaultAttendanceMode: "QR_GPS",
     defaultGpsRadiusMeters: "100",
     defaultSessionDurationMinutes: "15",
@@ -152,6 +188,9 @@ export function buildTeacherWebClassroomCreateRequest(
     subjectId: scope.subjectId,
     classroomTitle: draft.classroomTitle.trim(),
     courseCode: draft.courseCode.trim().toUpperCase(),
+    degree: draft.degree,
+    semesterLabel: `Semester ${draft.semester}`,
+    streamLabel: draft.stream,
     defaultAttendanceMode: draft.defaultAttendanceMode,
     defaultGpsRadiusMeters: Number(draft.defaultGpsRadiusMeters),
     defaultSessionDurationMinutes: Number(draft.defaultSessionDurationMinutes),
@@ -255,23 +294,36 @@ export function buildTeacherWebClassroomListCards(
       | "defaultAttendanceMode"
       | "requiresTrustedDevice"
       | "permissions"
+      | "degree"
+      | "semesterLabel"
+      | "streamLabel"
     >
   >,
 ): TeacherWebClassroomListCard[] {
-  return classrooms.map((classroom) => ({
-    classroomId: classroom.id,
-    classroomTitle: classroom.classroomTitle ?? classroom.displayTitle,
-    courseCode: classroom.courseCode ?? classroom.code,
-    scopeSummary: buildTeacherWebClassroomScopeSummary(classroom),
-    statusLabel: classroom.status,
-    joinCodeLabel: classroom.activeJoinCode?.code ?? "No active join code",
-    attendanceModeLabel: formatTeacherWebAttendanceModeLabel(classroom.defaultAttendanceMode),
-    deviceRuleLabel: classroom.requiresTrustedDevice
-      ? "Device registration required"
-      : "Any signed-in student phone",
-    canEdit: classroom.permissions?.canEdit ?? true,
-    canArchive: classroom.permissions?.canArchive ?? false,
-  }))
+  return classrooms.map((classroom) => {
+    const title = classroom.classroomTitle ?? classroom.displayTitle
+    const metaLabel = buildClassroomMetaLabel({
+      degree: classroom.degree,
+      semesterLabel: classroom.semesterLabel,
+      streamLabel: classroom.streamLabel,
+    })
+    const scopeFallback = buildTeacherWebClassroomScopeSummary(classroom)
+
+    return {
+      classroomId: classroom.id,
+      classroomTitle: title,
+      courseCode: classroom.courseCode ?? classroom.code,
+      scopeSummary: metaLabel ?? scopeFallback,
+      statusLabel: classroom.status,
+      joinCodeLabel: classroom.activeJoinCode?.code ?? "No active join code",
+      attendanceModeLabel: formatTeacherWebAttendanceModeLabel(classroom.defaultAttendanceMode),
+      deviceRuleLabel: classroom.requiresTrustedDevice
+        ? "Device registration required"
+        : "Any signed-in student phone",
+      canEdit: classroom.permissions?.canEdit ?? true,
+      canArchive: classroom.permissions?.canArchive ?? false,
+    }
+  })
 }
 
 export function formatTeacherWebAttendanceModeLabel(mode: AttendanceMode) {

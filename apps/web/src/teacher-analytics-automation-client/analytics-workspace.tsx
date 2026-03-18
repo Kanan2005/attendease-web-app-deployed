@@ -9,7 +9,7 @@ import {
   createTeacherAnalyticsFilterDraft,
 } from "../teacher-analytics-automation"
 import { WebSectionCard } from "../web-shell"
-import { formatPortalDateTime, webWorkflowQueryKeys } from "../web-workflows"
+import { formatPortalDate, formatPortalDateTime, webWorkflowQueryKeys } from "../web-workflows"
 import {
   WorkflowBanner,
   WorkflowStateCard,
@@ -294,7 +294,7 @@ export function TeacherAnalyticsWorkspace(props: {
                         <td style={styles.td}>
                           {row.lectureTitle ?? "No linked lecture"}
                           <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
-                            {formatPortalDateTime(row.lectureDate)}
+                            {formatPortalDate(row.lectureDate)}
                           </div>
                         </td>
                         <td style={styles.td}>{row.mode}</td>

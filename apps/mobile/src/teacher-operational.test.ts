@@ -331,6 +331,7 @@ bad line, still bad, because, too, many
       daywiseRows,
       subjectRows,
       studentRows,
+      sessions: [],
       filterLabels: {
         classroom: "All Classrooms",
         subject: "All Subjects",
@@ -340,10 +341,10 @@ bad line, still bad, because, too, many
     expect(filterOptions.classroomOptions).toHaveLength(2)
     expect(filterOptions.subjectOptions).toHaveLength(2)
     expect(report.summaryCards[0]).toMatchObject({
-      label: "Classrooms",
+      label: "Students",
       value: "2",
     })
-    expect(report.summaryCards[3]).toMatchObject({
+    expect(report.summaryCards[1]).toMatchObject({
       label: "Attendance",
       value: "64.29%",
     })
@@ -374,6 +375,7 @@ bad line, still bad, because, too, many
       daywiseRows: [],
       subjectRows: [],
       studentRows: [],
+      sessions: [],
       filterLabels: {
         classroom: "Mathematics",
         subject: "Physics",
@@ -384,16 +386,6 @@ bad line, still bad, because, too, many
     expect(report.filterSummary).toBe("Classroom: Mathematics · Subject: Physics")
     expect(report.summaryCards).toMatchObject([
       {
-        label: "Classrooms",
-        value: "0",
-        tone: "warning",
-      },
-      {
-        label: "Subjects",
-        value: "0",
-        tone: "warning",
-      },
-      {
         label: "Students",
         value: "0",
         tone: "warning",
@@ -402,6 +394,11 @@ bad line, still bad, because, too, many
         label: "Attendance",
         value: "0%",
         tone: "danger",
+      },
+      {
+        label: "Follow-up",
+        value: "0",
+        tone: "success",
       },
     ])
   })

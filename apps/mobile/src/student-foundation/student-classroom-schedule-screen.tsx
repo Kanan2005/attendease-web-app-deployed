@@ -139,7 +139,7 @@ export function StudentClassroomScheduleScreen(props: { classroomId: string }) {
   return (
     <StudentScreen
       title="Classroom Schedule"
-      subtitle="Weekly slots, exceptions, and linked lectures are all driven by the current scheduling backend."
+      subtitle="Your weekly class schedule."
     >
       {!session ? (
         <StudentSessionSetupCard />
@@ -161,23 +161,23 @@ export function StudentClassroomScheduleScreen(props: { classroomId: string }) {
         <>
           <StudentCard
             title={classroom.detailQuery.data?.displayTitle ?? "Classroom"}
-            subtitle="The schedule route is separate so students can scan upcoming classes without mixing it into the stream."
           >
             <View style={styles.actionGrid}>
               <StudentNavAction
                 href={studentRoutes.classroomDetail(props.classroomId)}
                 label="Back To Classroom"
+                icon="arrow-back-outline"
               />
               <StudentNavAction
                 href={studentRoutes.classroomStream(props.classroomId)}
                 label="Open Stream"
+                icon="chatbubble-ellipses-outline"
               />
             </View>
           </StudentCard>
 
           <StudentCard
             title="Weekly Plan"
-            subtitle="Recurring weekly slots are sorted by weekday and time."
           >
             {scheduleModel.weeklyItems.length ? (
               scheduleModel.weeklyItems.map((item) => (
@@ -190,13 +190,13 @@ export function StudentClassroomScheduleScreen(props: { classroomId: string }) {
                 </View>
               ))
             ) : (
-              <StudentEmptyCard label="No recurring weekly slots are published for this classroom yet." />
+              <StudentEmptyCard label="No weekly slots yet." />
             )}
           </StudentCard>
 
           <StudentCard
             title="Exceptions"
-            subtitle="One-off classes, cancellations, and reschedules land here from the teacher schedule tools."
+            subtitle="Date-specific changes to the regular schedule."
           >
             {scheduleModel.exceptionItems.length ? (
               scheduleModel.exceptionItems.map((item) => (
@@ -210,13 +210,12 @@ export function StudentClassroomScheduleScreen(props: { classroomId: string }) {
                 </View>
               ))
             ) : (
-              <StudentEmptyCard label="No schedule exceptions are active for this classroom." />
+              <StudentEmptyCard label="No exceptions scheduled." />
             )}
           </StudentCard>
 
           <StudentCard
             title="Upcoming Lectures"
-            subtitle="Later attendance sessions will reuse these lecture links."
           >
             {scheduleModel.upcomingLectures.length ? (
               scheduleModel.upcomingLectures.map((lecture) => (
@@ -228,7 +227,7 @@ export function StudentClassroomScheduleScreen(props: { classroomId: string }) {
                 </View>
               ))
             ) : (
-              <StudentEmptyCard label="No upcoming lecture links are available yet." />
+              <StudentEmptyCard label="No upcoming lectures." />
             )}
           </StudentCard>
         </>

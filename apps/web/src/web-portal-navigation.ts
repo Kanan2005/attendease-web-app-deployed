@@ -2,39 +2,19 @@ import type { WebPortalNavItem } from "./web-portal-types"
 
 export const teacherPortalNavigation: WebPortalNavItem[] = [
   {
-    href: "/teacher/dashboard",
-    label: "Dashboard",
-    description: "See classrooms, attendance work, and follow-up paths at a glance.",
-  },
-  {
     href: "/teacher/classrooms",
     label: "Classrooms",
-    description: "Manage course setup, students, schedules, and QR launch entrypoints.",
+    description: "Manage course setup, sessions, and attendance reports.",
+  },
+  {
+    href: "/teacher/sessions/start",
+    label: "Start Session",
+    description: "Launch a new QR + GPS attendance session.",
   },
   {
     href: "/teacher/sessions/history",
-    label: "Attendance Sessions",
-    description: "Start QR attendance, review live sessions, and correct recent marks.",
-  },
-  {
-    href: "/teacher/reports",
-    label: "Reports",
-    description: "Track attendance by day, subject, and student.",
-  },
-  {
-    href: "/teacher/exports",
-    label: "Exports",
-    description: "Prepare and download attendance files.",
-  },
-  {
-    href: "/teacher/analytics",
-    label: "Analytics",
-    description: "Explore patterns before you follow up.",
-  },
-  {
-    href: "/teacher/email-automation",
-    label: "Email Automation",
-    description: "Review low-attendance reminders and delivery activity.",
+    label: "Session History",
+    description: "Review past sessions and make attendance corrections.",
   },
 ]
 

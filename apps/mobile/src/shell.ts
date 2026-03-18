@@ -8,7 +8,7 @@ export interface MobileShellSummary {
   deviceTrustDescription: string
 }
 
-export type MobileEntryRole = "student" | "teacher"
+export type MobileEntryRole = "student" | "teacher" | "admin"
 export type MobileEntryMode = "sign_in" | "register"
 
 export interface MobileSessionEntryCopy {
@@ -63,6 +63,20 @@ export function buildMobileSessionEntryCopy(
       manualHint: "Enter your name, email, and password to continue.",
       alternateLabel: "Student sign in",
       roleSummary: "Self-register once, then use the same phone for attendance.",
+    }
+  }
+
+  if (role === "admin") {
+    return {
+      title: "Admin sign in",
+      subtitle:
+        "Sign in to manage students, classrooms, devices, and platform settings.",
+      submitLabel: "Sign in",
+      submittingLabel: "Signing in...",
+      prefilledHint: "Your account details are already filled in. Review them before signing in.",
+      manualHint: "Enter your admin account details to continue.",
+      alternateLabel: "Back to role choice",
+      roleSummary: "Manage students, classrooms, devices, and platform governance.",
     }
   }
 

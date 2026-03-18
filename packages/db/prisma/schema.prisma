@@ -406,6 +406,8 @@ model StudentProfile {
   rollNumber         String?  @unique
   universityId       String?  @unique
   programName        String?
+  degree             String?
+  branch             String?
   currentSemester    Int?
   attendanceDisabled Boolean  @default(false)
   createdAt          DateTime @default(now())
@@ -633,6 +635,9 @@ model CourseOffering {
   bluetoothRotationWindowSeconds  Int                             @default(10)
   timezone                        String                          @default("Asia/Kolkata")
   requiresTrustedDevice           Boolean                         @default(true)
+  degree                          String?
+  semesterLabel                   String?
+  streamLabel                     String?
   createdAt                       DateTime                        @default(now())
   updatedAt                       DateTime                        @updatedAt
   archivedAt                      DateTime?

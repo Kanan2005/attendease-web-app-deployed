@@ -17,6 +17,8 @@
     "migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
     "seed:dev": "tsx src/scripts/seed-dev.ts",
     "seed:dev:test-url": "tsx src/scripts/seed-dev.ts --prefer-test-url",
+    "seed:bulk": "tsx src/scripts/seed-bulk.ts",
+    "seed:moderate": "tsx src/scripts/seed-moderate.ts",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "pnpm prisma:validate && vitest run src/index.test.ts src/client.test.ts src/transactions.test.ts src/audit.test.ts src/schema.test.ts",
     "test:integration": "vitest run src/integration.test.ts"

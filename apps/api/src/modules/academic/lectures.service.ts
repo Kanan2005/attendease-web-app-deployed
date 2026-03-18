@@ -185,6 +185,37 @@ export class LecturesService {
     }
   }
 
+  async deleteLecture(
+    auth: AuthRequestContext,
+    classroomId: string,
+    lectureId: string,
+  ): Promise<{ success: true }> {
+    await this.classroomsService.requireAccessibleClassroom(auth, classroomId)
+
+    if (auth.activeRole !== "TEACHER" && auth.activeRole !== "ADMIN") {
+      throw new ForbiddenException("Only teachers and admins can delete lectures.")
+    }
+
+    const lecture = await this.database.prisma.lecture.findFirst({
+      where: { id: lectureId, courseOfferingId: classroomId },
+      include: { attendanceSessions: { select: { id: true }, take: 1 } },
+    })
+
+    if (!lecture) {
+      throw new NotFoundException("Lecture not found in this classroom.")
+    }
+
+    if (lecture.attendanceSessions.length > 0) {
+      throw new BadRequestException(
+        "Cannot delete a lecture that has attendance sessions. End or remove the sessions first.",
+      )
+    }
+
+    await this.database.prisma.lecture.delete({ where: { id: lectureId } })
+
+    return { success: true }
+  }
+
   async getLectureById(lectureId: string) {
     const lecture = await this.database.prisma.lecture.findUnique({
       where: {

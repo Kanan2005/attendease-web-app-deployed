@@ -112,6 +112,11 @@ Keep it short, factual, and implementation-focused.
 - Android build artifacts removed from tracked files and added to `.gitignore`.
 - Full `pnpm -w run check` passes: workspace validation, lint, typecheck (16/16), and tests (222 API + 331 unit).
 
+## Website UI Rectification (2026-03-16)
+
+- Teacher web UI was simplified per `Structure/ui-rectification-website-spec.md` (source: UIi prompt website docx).
+- Changes: session history and session start pages without heavy page models; profile in top nav with Settings and Log out; Reports tab on classroom detail; dedicated Lectures tab with create lecture and start attendance (2hr window); session start supports `lectureId`; shorter copy on overview/tools cards; larger projector QR; simplified attendance sessions filters and no Refine/Review/Watch/Compare clutter.
+
 ## Exact Next Pickup Point
 
 - Remaining cleanup work:

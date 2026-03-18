@@ -45,6 +45,8 @@ export async function seedDevelopmentData(prisma: PrismaClient): Promise<SeedSum
   const timing = buildTimingContext()
 
   return runSerializableTransaction(prisma, async (transaction) => {
+    // eslint-disable-next-line no-console -- seed script
+    console.log("Seeding (timeout: 120s for remote DBs)…")
     const users = await seedAuthData(transaction, timing, passwordHashes)
     const academic = await seedAcademicData(transaction, timing, users)
     const devices = await seedDeviceTrustData(transaction, timing, users, academic)
@@ -63,5 +65,5 @@ export async function seedDevelopmentData(prisma: PrismaClient): Promise<SeedSum
       seededEmailRuleId: automation.seededEmailRuleId,
       pendingOutboxTopics: ["analytics.attendance.refresh"],
     }
-  })
+  }, { maxWait: 30_000, timeout: 120_000 })
 }

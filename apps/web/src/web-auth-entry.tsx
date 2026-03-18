@@ -221,9 +221,11 @@ export function WebAuthEntryPage(props: {
                   margin: "0 0 16px",
                   padding: "12px 14px",
                   borderRadius: 14,
-                  background: "#fef2f2",
-                  color: "#991b1b",
-                  border: "1px solid #fecaca",
+                  background: webTheme.colors.dangerSoft,
+                  color: webTheme.colors.danger,
+                  border: `1px solid ${webTheme.colors.dangerBorder}`,
+                  fontSize: 14,
+                  fontWeight: 500,
                 }}
               >
                 {errorMessage}
@@ -277,8 +279,8 @@ export function WebAuthEntryPage(props: {
                   padding: "12px 16px",
                   borderRadius: 14,
                   border: "none",
-                  background: webTheme.colors.primary,
-                  color: "#ffffff",
+                  background: webTheme.colors.accent,
+                  color: webTheme.colors.primaryContrast,
                   fontWeight: 700,
                   cursor: "pointer",
                 }}
@@ -347,7 +349,7 @@ const inputStyle = {
   width: "100%",
   padding: "12px 14px",
   borderRadius: 14,
-  border: `1px solid ${webTheme.colors.border}`,
-  background: "#ffffff",
-  color: webTheme.colors.primary,
+  border: `1px solid ${webTheme.colors.borderStrong}`,
+  background: webTheme.colors.surfaceMuted,
+  color: webTheme.colors.text,
 } as const

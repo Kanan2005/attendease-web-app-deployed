@@ -13,6 +13,8 @@ describe("web workspace barrel exports", () => {
       "TeacherClassroomListWorkspace",
       "TeacherClassroomCreateWorkspace",
       "TeacherClassroomDetailWorkspace",
+      "TeacherClassroomLecturesWorkspace",
+      "TeacherLectureSessionDetailWorkspace",
       "TeacherRosterWorkspace",
       "TeacherImportStatusWorkspace",
       "TeacherScheduleWorkspace",

@@ -19,6 +19,17 @@ export function formatPortalDateTime(value: string | null): string {
   }).format(new Date(value))
 }
 
+export function formatPortalDate(value: string | null): string {
+  if (!value) {
+    return "Not available"
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  }).format(new Date(value))
+}
+
 export function formatPortalMinutesRange(startMinutes: number, endMinutes: number): string {
   return `${formatMinuteOfDay(startMinutes)} - ${formatMinuteOfDay(endMinutes)}`
 }

@@ -20,6 +20,9 @@ export type SeedAcademicFoundationContext = {
   sectionId: string
   mathSubjectId: string
   physicsSubjectId: string
+  chemistrySubjectId: string
+  dsSubjectId: string
+  osSubjectId: string
   mathTeacherAssignmentId: string
   physicsTeacherAssignmentId: string
 }
@@ -201,12 +204,85 @@ export async function seedAcademicFoundation(
     },
   })
 
+  const chemistrySubject = await transaction.subject.upsert({
+    where: { code: "CHEM101" },
+    update: { title: "Chemistry", shortTitle: "Chem", status: "ACTIVE" },
+    create: {
+      id: developmentSeedIds.academic.chemistrySubject,
+      code: "CHEM101",
+      title: "Chemistry",
+      shortTitle: "Chem",
+      status: "ACTIVE",
+    },
+  })
+
+  const dsSubject = await transaction.subject.upsert({
+    where: { code: "CS201" },
+    update: { title: "Data Structures", shortTitle: "DS", status: "ACTIVE" },
+    create: {
+      id: developmentSeedIds.academic.dsSubject,
+      code: "CS201",
+      title: "Data Structures",
+      shortTitle: "DS",
+      status: "ACTIVE",
+    },
+  })
+
+  const osSubject = await transaction.subject.upsert({
+    where: { code: "CS301" },
+    update: { title: "Operating Systems", shortTitle: "OS", status: "ACTIVE" },
+    create: {
+      id: developmentSeedIds.academic.osSubject,
+      code: "CS301",
+      title: "Operating Systems",
+      shortTitle: "OS",
+      status: "ACTIVE",
+    },
+  })
+
+  for (const { subjectId, assignmentId } of [
+    { subjectId: chemistrySubject.id, assignmentId: developmentSeedIds.teacherAssignments.chemistry },
+    { subjectId: dsSubject.id, assignmentId: developmentSeedIds.teacherAssignments.ds },
+    { subjectId: osSubject.id, assignmentId: developmentSeedIds.teacherAssignments.os },
+  ]) {
+    await transaction.teacherAssignment.upsert({
+      where: {
+        teacherId_semesterId_classId_sectionId_subjectId: {
+          teacherId: users.teacherUser.id,
+          semesterId: semester.id,
+          classId: academicClass.id,
+          sectionId: section.id,
+          subjectId,
+        },
+      },
+      update: {
+        grantedByUserId: users.adminUser.id,
+        canSelfCreateCourseOffering: true,
+        status: "ACTIVE",
+      },
+      create: {
+        id: assignmentId,
+        teacherId: users.teacherUser.id,
+        grantedByUserId: users.adminUser.id,
+        semesterId: semester.id,
+        classId: academicClass.id,
+        sectionId: section.id,
+        subjectId,
+        canSelfCreateCourseOffering: true,
+        status: "ACTIVE",
+      },
+    })
+  }
+
   return {
     semesterId: semester.id,
     academicClassId: academicClass.id,
     sectionId: section.id,
     mathSubjectId: mathSubject.id,
     physicsSubjectId: physicsSubject.id,
+    chemistrySubjectId: chemistrySubject.id,
+    dsSubjectId: dsSubject.id,
+    osSubjectId: osSubject.id,
     mathTeacherAssignmentId: mathTeacherAssignment.id,
     physicsTeacherAssignmentId: physicsTeacherAssignment.id,
   }

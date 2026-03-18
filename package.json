@@ -32,6 +32,10 @@
     "runtime:logs": "docker compose -f docker-compose.yml -f docker-compose.runtime.yml logs -f",
     "runtime:smoke": "node scripts/validate-docker-runtime.mjs",
     "runtime:check": "pnpm runtime:smoke && docker compose -f docker-compose.yml -f docker-compose.runtime.yml exec -T worker pnpm health",
+    "install:web-only": "pnpm install --ignore-scripts",
+    "install:node22": "./scripts/with-node22.sh pnpm install",
+    "dev:web:node22": "./scripts/with-node22.sh pnpm --filter @attendease/web dev",
+    "stop:web-dev": "./scripts/stop-web-dev.sh",
     "manual:prepare": "pnpm runtime:up && docker compose -f docker-compose.yml -f docker-compose.runtime.yml exec -T api pnpm --filter @attendease/db seed:dev && pnpm runtime:check",
     "manual:info": "node scripts/manual-check-info.mjs",
     "manual:mobile": "pnpm --filter @attendease/mobile exec expo start --clear --host lan",
@@ -41,17 +45,28 @@
     "audit:screenshots:web": "node scripts/capture-web-audit.mjs",
     "verify:mobile-reports": "tsx scripts/verify-mobile-report-truth.ts",
     "android:validate:help": "node scripts/run-targeted-command.mjs android-help",
-    "android:validate": "node scripts/run-targeted-command.mjs android-validate"
+    "android:validate": "node scripts/run-targeted-command.mjs android-validate",
+    "test:db:up": "docker compose -f docker-compose.test.yml up -d --wait",
+    "test:db:down": "docker compose -f docker-compose.test.yml down --remove-orphans",
+    "test:e2e": "TEST_DATABASE_URL=postgresql://attendease:attendease@localhost:5433/attendease_test pnpm --filter @attendease/api exec vitest run --maxWorkers=1 --minWorkers=1 src/test/e2e-flows.integration.test.ts",
+    "test:integration": "TEST_DATABASE_URL=postgresql://attendease:attendease@localhost:5433/attendease_test pnpm test:api:integration",
+    "test:all": "pnpm test:db:up && pnpm test && pnpm test:e2e; pnpm test:db:down"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/node": "^22.13.5",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "playwright": "^1.58.2",
     "playwright-core": "^1.54.2",
     "tsx": "^4.19.2",
     "turbo": "^2.4.2",
     "typescript": "^5.8.2",
     "vitest": "^3.0.8"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "next@16.1.6": "patches/next@16.1.6.patch"
+    }
   }
 }

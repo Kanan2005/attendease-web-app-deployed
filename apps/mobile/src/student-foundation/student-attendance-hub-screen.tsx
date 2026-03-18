@@ -1,8 +1,9 @@
 import { createAuthApiClient } from "@attendease/auth"
 import { loadMobileEnv } from "@attendease/config"
 import type { AttendanceMode, TrustedDeviceAttendanceReadyResponse } from "@attendease/contracts"
-import { mobileTheme } from "@attendease/ui-mobile"
+import { getColors, mobileTheme } from "@attendease/ui-mobile"
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Ionicons } from "@expo/vector-icons"
 import { Link } from "expo-router"
 import { useEffect, useState } from "react"
 import type { ComponentType, ReactNode } from "react"
@@ -16,6 +17,7 @@ import {
   TextInput,
   View,
 } from "react-native"
+import Animated, { FadeInDown } from "react-native-reanimated"
 
 import { getMobileAttendanceListPollInterval } from "../attendance-live"
 import {
@@ -113,6 +115,7 @@ import {
   StudentErrorCard,
   StudentLoadingCard,
   StudentNavAction,
+  StudentProfileButton,
   StudentQuickActions,
   StudentScreen,
   StudentSessionSetupCard,
@@ -130,6 +133,7 @@ const env = loadMobileEnv(process.env as Record<string, string | undefined>)
 
 export function StudentAttendanceHubScreen() {
   const { draft, session } = useStudentSession()
+  const c = getColors()
   const attendance = useStudentAttendanceOverview()
   const activeClassroomIds = (attendance.classroomsQuery.data ?? [])
     .filter((classroom) => classroom.enrollmentStatus === "ACTIVE")
@@ -148,7 +152,8 @@ export function StudentAttendanceHubScreen() {
   return (
     <StudentScreen
       title="Mark Attendance"
-      subtitle="Choose QR or Bluetooth, then continue with the checks needed for attendance."
+      subtitle="Choose how to check in."
+      headerRight={<StudentProfileButton />}
     >
       {!session ? (
         <StudentSessionSetupCard />
@@ -162,48 +167,67 @@ export function StudentAttendanceHubScreen() {
         />
       ) : (
         <>
-          <StudentCard
-            title={attendance.gateModel.title}
-            subtitle={attendance.gateModel.supportHint}
-          >
-            <Text style={[styles.bodyText, toneColorStyle(attendance.gateModel.tone)]}>
-              {attendance.gateModel.message}
-            </Text>
-            <Text style={styles.listMeta}>
-              Open sessions from live lecture data: {attendance.overview.totalOpenSessions}
-            </Text>
-            <Text style={styles.listMeta}>
-              Recommended mode:{" "}
-              {attendance.overview.recommendedMode
-                ? formatAttendanceMode(attendance.overview.recommendedMode)
-                : "Waiting for an open lecture"}
-            </Text>
-            {!attendance.gateModel.canContinue ? (
-              <StudentNavAction href={studentRoutes.deviceStatus} label="Open Device Status" />
-            ) : null}
-          </StudentCard>
+          {/* Status Banner */}
+          <Animated.View entering={FadeInDown.duration(300)}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 12,
+                padding: 14,
+                borderRadius: 14,
+                backgroundColor: attendance.gateModel.canContinue ? c.successSoft : c.dangerSoft,
+                borderWidth: 1.5,
+                borderColor: attendance.gateModel.canContinue ? c.successBorder : c.dangerBorder,
+              }}
+            >
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  backgroundColor: attendance.gateModel.canContinue ? c.success + "20" : c.danger + "20",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons
+                  name={attendance.gateModel.canContinue ? "shield-checkmark" : "shield-outline"}
+                  size={20}
+                  color={attendance.gateModel.canContinue ? c.success : c.danger}
+                />
+              </View>
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text style={{ fontSize: 15, fontWeight: "700", color: c.text }}>
+                  {attendance.gateModel.title}
+                </Text>
+                <Text style={{ fontSize: 12, color: c.textMuted, lineHeight: 17 }}>
+                  {attendance.gateModel.message}
+                </Text>
+              </View>
+              {attendance.overview.totalOpenSessions > 0 ? (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: c.danger, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 }}>
+                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#fff" }} />
+                  <Text style={{ fontSize: 12, fontWeight: "700", color: "#fff" }}>
+                    {attendance.overview.totalOpenSessions} Live
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+          </Animated.View>
+          {!attendance.gateModel.canContinue ? (
+            <StudentNavAction href={studentRoutes.deviceStatus} label="Fix Device Status" icon="phone-portrait-outline" />
+          ) : null}
 
-          <StudentCard
-            title="Choose attendance mode"
-            subtitle="Open the matching flow for your class, then refresh here if a teacher just started attendance."
-          >
-            <StudentStatusBanner status={refreshStatus} />
-            <View style={styles.actionGrid}>
-              <StudentNavAction
-                href={studentRoutes.qrAttendance}
-                label={`QR + GPS (${attendance.overview.qrReadyCount})`}
-              />
-              <StudentNavAction
-                href={studentRoutes.bluetoothAttendance}
-                label={`Bluetooth (${attendance.overview.bluetoothReadyCount})`}
-              />
+          {/* Mode Selection Cards */}
+          <View style={{ gap: 12 }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+              <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }}>Choose mode</Text>
               <Pressable
-                style={styles.secondaryButton}
                 disabled={isRefreshingAttendance}
                 onPress={() =>
                   void (async () => {
                     setIsRefreshingAttendance(true)
-
                     try {
                       await refreshAttendance()
                     } finally {
@@ -211,26 +235,113 @@ export function StudentAttendanceHubScreen() {
                     }
                   })()
                 }
+                style={{ flexDirection: "row", alignItems: "center", gap: 4, opacity: isRefreshingAttendance ? 0.5 : 1 }}
               >
-                <Text style={styles.secondaryButtonLabel}>
-                  {isRefreshingAttendance ? "Refreshing..." : "Refresh live sessions"}
+                <Ionicons name="refresh-outline" size={14} color={c.primary} />
+                <Text style={{ fontSize: 13, fontWeight: "600", color: c.primary }}>
+                  {isRefreshingAttendance ? "Refreshing…" : "Refresh"}
                 </Text>
               </Pressable>
             </View>
-          </StudentCard>
 
-          <StudentCard
-            title="Open Session Preview"
-            subtitle="Sessions appear here once a teacher opens attendance for one of your classrooms."
-          >
-            {[...attendance.qrCandidates, ...attendance.bluetoothCandidates].length ? (
-              [...attendance.qrCandidates, ...attendance.bluetoothCandidates].map((candidate) => (
-                <AttendanceCandidateRow key={candidate.sessionId} candidate={candidate} selected />
-              ))
-            ) : (
-              <StudentEmptyCard label="No lecture is currently marked as open for attendance." />
-            )}
-          </StudentCard>
+            <Animated.View entering={FadeInDown.duration(350).delay(50)}>
+              <Link href={studentRoutes.qrAttendance} asChild>
+                <Pressable
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 14,
+                    padding: 16,
+                    borderRadius: 14,
+                    backgroundColor: c.surfaceRaised,
+                    borderWidth: 1,
+                    borderColor: attendance.overview.qrReadyCount > 0 ? c.borderAccent : c.border,
+                    ...mobileTheme.shadow.soft,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 50,
+                      height: 50,
+                      borderRadius: 14,
+                      backgroundColor: c.primarySoft,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Ionicons name="qr-code-outline" size={26} color={c.primary} />
+                  </View>
+                  <View style={{ flex: 1, gap: 3 }}>
+                    <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }}>QR + GPS</Text>
+                    <Text style={{ fontSize: 13, color: c.textMuted }}>Scan QR code and verify location</Text>
+                    {attendance.overview.qrReadyCount > 0 ? (
+                      <Text style={{ fontSize: 12, fontWeight: "700", color: c.success }}>
+                        {attendance.overview.qrReadyCount} session{attendance.overview.qrReadyCount === 1 ? "" : "s"} ready
+                      </Text>
+                    ) : null}
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={c.textSubtle} />
+                </Pressable>
+              </Link>
+            </Animated.View>
+
+            <Animated.View entering={FadeInDown.duration(350).delay(120)}>
+              <Link href={studentRoutes.bluetoothAttendance} asChild>
+                <Pressable
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 14,
+                    padding: 16,
+                    borderRadius: 14,
+                    backgroundColor: c.surfaceRaised,
+                    borderWidth: 1,
+                    borderColor: attendance.overview.bluetoothReadyCount > 0 ? c.borderAccent : c.border,
+                    ...mobileTheme.shadow.soft,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 50,
+                      height: 50,
+                      borderRadius: 14,
+                      backgroundColor: c.accentSoft,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Ionicons name="bluetooth-outline" size={26} color={c.accent} />
+                  </View>
+                  <View style={{ flex: 1, gap: 3 }}>
+                    <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }}>Bluetooth</Text>
+                    <Text style={{ fontSize: 13, color: c.textMuted }}>Auto-detect teacher's beacon nearby</Text>
+                    {attendance.overview.bluetoothReadyCount > 0 ? (
+                      <Text style={{ fontSize: 12, fontWeight: "700", color: c.success }}>
+                        {attendance.overview.bluetoothReadyCount} session{attendance.overview.bluetoothReadyCount === 1 ? "" : "s"} ready
+                      </Text>
+                    ) : null}
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={c.textSubtle} />
+                </Pressable>
+              </Link>
+            </Animated.View>
+          </View>
+
+          {/* Live Sessions */}
+          {[...attendance.qrCandidates, ...attendance.bluetoothCandidates].length > 0 ? (
+            <Animated.View entering={FadeInDown.duration(350).delay(180)}>
+              <StudentCard
+                title="Live Sessions"
+                subtitle="Active sessions from your classrooms."
+              >
+                {[...attendance.qrCandidates, ...attendance.bluetoothCandidates].map((candidate) => (
+                  <AttendanceCandidateRow key={candidate.sessionId} candidate={candidate} selected />
+                ))}
+              </StudentCard>
+            </Animated.View>
+          ) : null}
+
+          <StudentNavAction href={studentRoutes.history} label="View Attendance History" icon="time-outline" />
         </>
       )}
     </StudentScreen>

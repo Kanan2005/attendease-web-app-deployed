@@ -5,9 +5,14 @@ import { useState } from "react"
 import type { ReactNode } from "react"
 
 import { createWebQueryClient } from "./query-client"
+import { ThemeProvider } from "./theme-context"
 
 export function WebAppProviders(props: { children: ReactNode }) {
   const [queryClient] = useState(() => createWebQueryClient())
 
-  return <QueryClientProvider client={queryClient}>{props.children}</QueryClientProvider>
+  return (
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>{props.children}</QueryClientProvider>
+    </ThemeProvider>
+  )
 }

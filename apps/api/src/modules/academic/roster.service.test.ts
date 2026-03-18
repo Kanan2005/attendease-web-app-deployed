@@ -55,6 +55,7 @@ describe("RosterService", () => {
 
   const classroomsService = {
     requireAccessibleClassroom: vi.fn(),
+    activateIfDraft: vi.fn(),
   }
 
   const teacherAuth: AuthRequestContext = {

@@ -23,7 +23,7 @@ export function TeacherClassroomRosterFindCard({
   return (
     <TeacherCard
       title="Find Students"
-      subtitle="Search by name, email, roll number, or university ID, then narrow by one status filter."
+      subtitle="Search students."
     >
       <TextInput
         value={searchText}

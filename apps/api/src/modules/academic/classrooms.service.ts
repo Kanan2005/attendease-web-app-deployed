@@ -146,10 +146,13 @@ export class ClassroomsService {
             defaultAttendanceMode: request.defaultAttendanceMode ?? "QR_GPS",
             defaultGpsRadiusMeters: request.defaultGpsRadiusMeters ?? 100,
             defaultSessionDurationMinutes: request.defaultSessionDurationMinutes ?? 15,
-            qrRotationWindowSeconds: request.qrRotationWindowSeconds ?? 15,
+            qrRotationWindowSeconds: request.qrRotationWindowSeconds ?? 2,
             bluetoothRotationWindowSeconds: request.bluetoothRotationWindowSeconds ?? 10,
             timezone: request.timezone ?? "Asia/Kolkata",
             requiresTrustedDevice: request.requiresTrustedDevice ?? true,
+            degree: request.degree ?? null,
+            semesterLabel: request.semesterLabel ?? null,
+            streamLabel: request.streamLabel ?? null,
             status: "DRAFT",
           },
           include: {
@@ -393,6 +396,13 @@ export class ClassroomsService {
       assignmentsService: this.assignmentsService,
       auth,
       classroomId,
+    })
+  }
+
+  async activateIfDraft(classroomId: string): Promise<void> {
+    await this.database.prisma.courseOffering.updateMany({
+      where: { id: classroomId, status: "DRAFT" },
+      data: { status: "ACTIVE" },
     })
   }
 }

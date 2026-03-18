@@ -80,6 +80,7 @@ export function GradientHeader(props: {
   title: string
   subtitle?: string
   eyebrow?: string
+  icon?: ReactNode
   children?: ReactNode
 }) {
   const c = getColors()
@@ -92,11 +93,12 @@ export function GradientHeader(props: {
       style={s.gradientHeader}
     >
       {props.eyebrow ? (
-        <Animated.Text entering={FadeInUp.delay(100).duration(400)} style={s.eyebrow}>
-          {props.eyebrow}
-        </Animated.Text>
+        <Animated.View entering={FadeInUp.delay(100).duration(400)} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          {props.icon ?? null}
+          <Text style={s.eyebrow}>{props.eyebrow}</Text>
+        </Animated.View>
       ) : null}
-      <Animated.Text entering={FadeInUp.delay(200).duration(400)} style={s.heroTitle}>
+      <Animated.Text entering={FadeInUp.delay(200).duration(500).springify()} style={s.heroTitle}>
         {props.title}
       </Animated.Text>
       {props.subtitle ? (

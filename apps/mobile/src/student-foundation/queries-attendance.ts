@@ -1,5 +1,5 @@
 import type { AttendanceMode } from "@attendease/contracts"
-import { useMutation, useQueries } from "@tanstack/react-query"
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
 
 import { buildStudentAttendanceGateModel } from "../device-trust"
@@ -10,6 +10,7 @@ import {
 } from "../student-attendance"
 import { mapStudentApiErrorToMessage } from "../student-models"
 import {
+  invalidateStudentExperienceQueries,
   requireStudentAccessToken,
   studentQueryKeys,
   useStudentRefreshAction,
@@ -209,6 +210,7 @@ export function useStudentAttendanceController(mode: SupportedAttendanceMode) {
 
 export function useStudentQrMarkAttendanceMutation() {
   const { session, draft } = useStudentSession()
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (payload: {
@@ -222,5 +224,8 @@ export function useStudentQrMarkAttendanceMutation() {
         accuracyMeters: payload.location.accuracyMeters,
         deviceTimestamp: payload.location.capturedAt,
       }),
+    onSuccess: async () => {
+      await invalidateStudentExperienceQueries(queryClient, { installId: draft.installId })
+    },
   })
 }

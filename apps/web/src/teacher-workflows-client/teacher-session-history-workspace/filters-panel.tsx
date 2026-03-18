@@ -10,11 +10,9 @@ import type {
   TeacherWebSessionHistorySummaryModel,
 } from "../../teacher-review-workflows"
 import {
-  WorkflowBanner,
   WorkflowField,
   WorkflowSelectField,
   WorkflowStateCard,
-  WorkflowSummaryGrid,
   workflowStyles,
 } from "../shared"
 
@@ -33,10 +31,6 @@ export function TeacherSessionHistoryFiltersPanel(props: {
 
   return (
     <div style={workflowStyles.grid}>
-      <h2 style={{ fontSize: 22, fontWeight: 700, color: webTheme.colors.text, margin: 0 }}>
-        Attendance sessions
-      </h2>
-
       <div style={workflowStyles.formGrid}>
         <WorkflowSelectField
           label="Classroom"
@@ -151,14 +145,11 @@ export function TeacherSessionHistoryFiltersPanel(props: {
         />
       </div>
 
-      {props.classroomsError ? (
-        <WorkflowBanner
-          tone="danger"
-          message={props.errorMessage ?? "AttendEase couldn't load the classroom filters."}
-        />
+      {props.classroomsError && props.errorMessage ? (
+        <p style={{ margin: 0, fontSize: 13, color: webTheme.colors.danger }}>
+          {props.errorMessage}
+        </p>
       ) : null}
-
-      <WorkflowSummaryGrid cards={props.historySummary.summaryCards} />
     </div>
   )
 }

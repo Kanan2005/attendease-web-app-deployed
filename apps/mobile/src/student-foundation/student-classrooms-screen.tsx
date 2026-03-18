@@ -1,204 +1,167 @@
-import { createAuthApiClient } from "@attendease/auth"
-import { loadMobileEnv } from "@attendease/config"
-import type { AttendanceMode, TrustedDeviceAttendanceReadyResponse } from "@attendease/contracts"
-import { mobileTheme } from "@attendease/ui-mobile"
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Link } from "expo-router"
-import { useEffect, useState } from "react"
-import type { ComponentType, ReactNode } from "react"
-import {
-  ActivityIndicator,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native"
+import { getColors, mobileTheme } from "@attendease/ui-mobile"
+import { Ionicons } from "@expo/vector-icons"
+import { useRouter } from "expo-router"
+import { Pressable, Text, View } from "react-native"
+import Animated, { FadeInDown } from "react-native-reanimated"
 
-import { getMobileAttendanceListPollInterval } from "../attendance-live"
-import {
-  buildStudentBluetoothDetectionBanner,
-  buildStudentBluetoothScannerBanner,
-  buildStudentBluetoothSubmissionBanner,
-  describeBluetoothSignalStrength,
-  mapBluetoothAvailabilityToPermissionState,
-  resolveSelectedBluetoothDetection,
-  usePreferredBluetoothDetection,
-  useStudentBluetoothMarkAttendanceMutation,
-  useStudentBluetoothScanner,
-} from "../bluetooth-attendance"
-import { buildStudentAttendanceGateModel, createMobileDeviceTrustBootstrap } from "../device-trust"
-import { mobileEntryRoutes } from "../mobile-entry-models"
-import {
-  type StudentAttendancePermissionState,
-  type StudentQrLocationSnapshot,
-  type StudentQrLocationState,
-  buildStudentAttendanceControllerSnapshot,
-  buildStudentBluetoothAttendanceErrorBanner,
-  buildStudentBluetoothMarkRequest,
-  buildStudentQrAttendanceErrorBanner,
-  buildStudentQrLocationBanner,
-  buildStudentQrMarkRequest,
-  buildStudentQrScanBanner,
-  resolveStudentQrCameraPermissionState,
-  studentAttendancePermissionStateValues,
-} from "../student-attendance"
-import {
-  type CardTone,
-  type StudentDashboardActionModel,
-  buildStudentDashboardModel,
-  buildStudentLectureTimeline,
-  mapStudentApiErrorToMessage,
-} from "../student-models"
-import {
-  buildStudentInvalidationKeys,
-  invalidateStudentExperienceQueries,
-  requireStudentAccessToken,
-  studentQueryKeys,
-  useStudentRefreshAction,
-} from "../student-query"
+import { mapStudentApiErrorToMessage } from "../student-models"
 import { studentRoutes } from "../student-routes"
 import { useStudentSession } from "../student-session"
 import {
-  type StudentScreenStatus,
-  buildStudentAttendanceRefreshStatus,
-  buildStudentDashboardStatus,
-  buildStudentHistoryRefreshStatus,
-  buildStudentJoinBanner,
-  buildStudentReportsStatus,
-} from "../student-view-state"
-import {
-  type StudentAttendanceCandidate,
-  type StudentProfileDraft,
-  buildStudentAttendanceCandidates,
-  buildStudentAttendanceHistoryRows,
-  buildStudentAttendanceHistorySummaryModel,
-  buildStudentAttendanceInsightModel,
-  buildStudentAttendanceOverviewModel,
-  buildStudentClassroomDetailSummaryModel,
-  buildStudentCourseDiscoveryCards,
-  buildStudentDeviceStatusSummaryModel,
-  buildStudentReportOverviewModel,
-  buildStudentScheduleOverviewModel,
-  buildStudentSubjectReportModel,
-  buildStudentSubjectReportSummaryModel,
-  createStudentProfileDraft,
-  hasStudentProfileDraftChanges,
-  normalizeStudentProfileDraft,
-} from "../student-workflow-models"
-
-import {
-  useStudentAttendanceController,
-  useStudentAttendanceHistoryData,
-  useStudentAttendanceOverview,
-  useStudentAttendanceReadyQuery,
-  useStudentClassroomAnnouncementsQuery,
-  useStudentClassroomDetailData,
-  useStudentClassroomsQuery,
   useStudentCourseDiscoveryData,
-  useStudentDashboardData,
-  useStudentJoinClassroomMutation,
-  useStudentLiveAttendanceSessionsQuery,
-  useStudentMeQuery,
-  useStudentQrMarkAttendanceMutation,
-  useStudentReportsData,
-  useStudentSubjectReportData,
 } from "./queries"
 import {
-  AnnouncementRow,
-  AttendanceCandidateRow,
-  StudentCard,
-  StudentDashboardSpotlightCard,
   StudentEmptyCard,
   StudentErrorCard,
   StudentLoadingCard,
   StudentNavAction,
-  StudentQuickActions,
+  StudentProfileButton,
   StudentScreen,
   StudentSessionSetupCard,
-  StudentStatusBanner,
-  formatAttendanceMode,
-  formatDateTime,
-  formatEnum,
-  resolveStudentDashboardActionHref,
-  spotlightToneStyle,
   styles,
-  toneColorStyle,
 } from "./shared-ui"
 
 export function StudentClassroomsScreen() {
   const { session } = useStudentSession()
+  const router = useRouter()
+  const c = getColors()
   const discovery = useStudentCourseDiscoveryData()
   const discoveryError =
     discovery.meQuery.error ??
     discovery.classroomsQuery.error ??
     discovery.attendanceReadyQuery.error ??
-    discovery.lectureQueries.find((query) => query.error)?.error ??
+    discovery.lectureQueries.find((q) => q.error)?.error ??
     null
 
+  // Sort: live courses first, then alphabetical
+  const sortedCourses = [...discovery.courseCards].sort((a, b) => {
+    if (a.hasOpenAttendance && !b.hasOpenAttendance) return -1
+    if (!a.hasOpenAttendance && b.hasOpenAttendance) return 1
+    return a.title.localeCompare(b.title)
+  })
+  const liveCount = sortedCourses.filter((c) => c.hasOpenAttendance).length
+
   return (
-    <StudentScreen
-      title="Classrooms"
-      subtitle="Choose a course to see updates, schedule, and any attendance sessions that are open right now."
-    >
+    <StudentScreen title="My Courses" subtitle={`${discovery.courseCards.length} enrolled`} headerRight={<StudentProfileButton />}>
       {!session ? (
         <StudentSessionSetupCard />
       ) : discovery.meQuery.isLoading ||
         discovery.classroomsQuery.isLoading ||
         discovery.attendanceReadyQuery.isLoading ? (
-        <StudentLoadingCard label="Loading your classrooms" />
+        <StudentLoadingCard label="Loading your courses…" />
       ) : discoveryError ? (
         <StudentErrorCard label={mapStudentApiErrorToMessage(discoveryError)} />
-      ) : discovery.courseCards.length > 0 ? (
+      ) : sortedCourses.length > 0 ? (
         <>
-          {!discovery.gateModel.canContinue ? (
-            <StudentStatusBanner
-              status={{
-                tone: discovery.gateModel.tone,
-                title: discovery.gateModel.title,
-                message: discovery.gateModel.message,
-              }}
-            />
-          ) : null}
-          {discovery.courseCards.map((course) => (
-            <StudentCard key={course.classroomId} title={course.title} subtitle={course.subtitle}>
-              <Text style={[styles.bodyText, toneColorStyle(course.attendanceTone)]}>
-                {course.attendanceTitle}
-              </Text>
-              <Text style={styles.listMeta}>{course.attendanceMessage}</Text>
-              <Text style={styles.listMeta}>{course.scheduleLabel}</Text>
-              <Text style={styles.listMeta}>{course.updatesLabel}</Text>
-              <View style={styles.actionGrid}>
-                <StudentNavAction
-                  href={studentRoutes.classroomDetail(course.classroomId)}
-                  label="Open course"
-                />
-                <StudentNavAction
-                  href={studentRoutes.classroomStream(course.classroomId)}
-                  label="Updates"
-                />
-                <StudentNavAction
-                  href={studentRoutes.classroomSchedule(course.classroomId)}
-                  label="Schedule"
-                />
-                {course.hasOpenAttendance ? (
-                  <StudentNavAction href={studentRoutes.attendance} label="Attendance" />
-                ) : null}
+          {/* Live Attendance Banner */}
+          {liveCount > 0 ? (
+            <Animated.View entering={FadeInDown.duration(350)}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  backgroundColor: c.dangerSoft,
+                  borderRadius: 14,
+                  padding: 14,
+                  borderWidth: 1.5,
+                  borderColor: c.dangerBorder,
+                }}
+              >
+                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: c.danger }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 15, fontWeight: "700", color: c.text }}>
+                    {liveCount} live session{liveCount === 1 ? "" : "s"}
+                  </Text>
+                  <Text style={{ fontSize: 13, color: c.textMuted }}>
+                    Tap the highlighted course{liveCount === 1 ? "" : "s"} below to mark attendance
+                  </Text>
+                </View>
+                <Ionicons name="arrow-down" size={18} color={c.danger} />
               </View>
-            </StudentCard>
-          ))}
+            </Animated.View>
+          ) : null}
+
+          {/* Course Cards */}
+          {sortedCourses.map((course, i) => {
+            const codeLabel = course.subtitle.split("·")[0]?.trim() ?? ""
+            const isLive = course.hasOpenAttendance
+            return (
+              <Animated.View key={course.classroomId} entering={FadeInDown.duration(300).delay((liveCount > 0 ? 60 : 0) + i * 60)}>
+                <Pressable
+                  onPress={() => router.push(studentRoutes.classroomDetail(course.classroomId))}
+                  style={{
+                    borderRadius: 16,
+                    backgroundColor: isLive ? c.dangerSoft : c.surfaceRaised,
+                    borderWidth: isLive ? 2 : 1,
+                    borderColor: isLive ? c.danger : c.border,
+                    overflow: "hidden",
+                    ...mobileTheme.shadow.soft,
+                  }}
+                >
+                  {/* Live banner strip at top of card */}
+                  {isLive ? (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        backgroundColor: c.danger,
+                        paddingVertical: 6,
+                      }}
+                    >
+                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#fff" }} />
+                      <Text style={{ fontSize: 12, fontWeight: "800", color: "#fff", letterSpacing: 0.5 }}>
+                        ATTENDANCE LIVE — TAP TO MARK
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  <View style={{ padding: 16, gap: 8 }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                      <View
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 14,
+                          backgroundColor: isLive ? c.danger + "20" : c.primarySoft,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Text style={{ fontSize: 14, fontWeight: "800", color: isLive ? c.danger : c.primary }}>
+                          {codeLabel.slice(0, 3).toUpperCase()}
+                        </Text>
+                      </View>
+                      <View style={{ flex: 1, gap: 2 }}>
+                        <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }} numberOfLines={1}>
+                          {course.title}
+                        </Text>
+                        <Text style={{ fontSize: 13, color: c.textMuted }} numberOfLines={1}>
+                          {codeLabel}{course.teacherName ? ` · ${course.teacherName}` : ""}
+                        </Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color={isLive ? c.danger : c.textSubtle} />
+                    </View>
+                  </View>
+                </Pressable>
+              </Animated.View>
+            )
+          })}
+          <StudentNavAction href={studentRoutes.join} label="Join Classroom" icon="enter-outline" />
         </>
       ) : (
-        <StudentCard
-          title="No classrooms yet"
-          subtitle="Join a classroom to unlock course updates, schedule, and attendance actions."
-        >
-          <View style={styles.actionGrid}>
-            <StudentNavAction href={studentRoutes.join} label="Join classroom" />
+        <Animated.View entering={FadeInDown.duration(400)}>
+          <View style={{ alignItems: "center", gap: 14, paddingVertical: 32, paddingHorizontal: 24 }}>
+            <Ionicons name="school-outline" size={44} color={c.textSubtle} />
+            <Text style={{ fontSize: 17, fontWeight: "600", color: c.text }}>No courses yet</Text>
+            <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", lineHeight: 21 }}>
+              Ask your teacher for a join code and tap the button below to enroll.
+            </Text>
+            <StudentNavAction href={studentRoutes.join} label="Join Classroom" icon="enter-outline" />
           </View>
-        </StudentCard>
+        </Animated.View>
       )}
     </StudentScreen>
   )

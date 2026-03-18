@@ -19,12 +19,23 @@ describe("mobile entry flow", () => {
     })
   })
 
+  it("routes unauthenticated admin to admin sign-in screen", () => {
+    expect(resolveMobileRoleGate("admin", false)).toEqual({
+      allowed: false,
+      redirectHref: mobileEntryRoutes.adminSignIn,
+    })
+  })
+
   it("keeps protected routes open after role authentication", () => {
     expect(resolveMobileRoleGate("student", true)).toEqual({
       allowed: true,
       redirectHref: null,
     })
     expect(resolveMobileRoleGate("teacher", true)).toEqual({
+      allowed: true,
+      redirectHref: null,
+    })
+    expect(resolveMobileRoleGate("admin", true)).toEqual({
       allowed: true,
       redirectHref: null,
     })
@@ -60,6 +71,22 @@ describe("mobile entry flow", () => {
     })
   })
 
+  it("builds admin landing card with sign-in only and no registration action", () => {
+    const adminCard = buildMobileEntryCardModel({
+      role: "admin",
+      hasSession: false,
+    })
+
+    expect(adminCard).toMatchObject({
+      title: "Admin",
+      primaryLabel: "Admin sign in",
+      primaryHref: mobileEntryRoutes.adminSignIn,
+      secondaryLabel: "",
+      canSignOut: false,
+    })
+    expect(adminCard.secondaryHref).toBeUndefined()
+  })
+
   it("builds landing cards with continue and sign-out actions when already signed in", () => {
     expect(
       buildMobileEntryCardModel({
@@ -84,6 +111,19 @@ describe("mobile entry flow", () => {
       primaryLabel: "Open teacher home",
       secondaryLabel: "Sign out",
       sessionSummary: "Signed in as Teacher One.",
+      canSignOut: true,
+    })
+
+    expect(
+      buildMobileEntryCardModel({
+        role: "admin",
+        hasSession: true,
+        displayName: "Admin User",
+      }),
+    ).toMatchObject({
+      primaryLabel: "Open admin home",
+      secondaryLabel: "Sign out",
+      sessionSummary: "Signed in as Admin User.",
       canSignOut: true,
     })
   })
@@ -117,6 +157,59 @@ describe("mobile entry flow", () => {
       submitLabel: "Sign in",
       helperText: "Your account details are already filled in. Review them before signing in.",
       errorMessage: "Teacher sign-in failed.",
+      isSubmitting: false,
+    })
+  })
+
+  it("builds admin auth form state with admin-specific copy", () => {
+    expect(
+      buildMobileAuthFormState({
+        role: "admin",
+        mode: "sign_in",
+        status: "idle",
+        hasDevelopmentCredentials: true,
+        errorMessage: null,
+      }),
+    ).toMatchObject({
+      title: "Admin sign in",
+      submitLabel: "Sign in",
+      helperText: "Your account details are already filled in. Review them before signing in.",
+      alternateLabel: "Back to role choice",
+      isSubmitting: false,
+      errorMessage: null,
+    })
+  })
+
+  it("builds admin auth form state during sign-in attempt", () => {
+    expect(
+      buildMobileAuthFormState({
+        role: "admin",
+        mode: "sign_in",
+        status: "bootstrapping",
+        hasDevelopmentCredentials: false,
+        errorMessage: null,
+      }),
+    ).toMatchObject({
+      title: "Admin sign in",
+      submitLabel: "Signing in...",
+      helperText: "Enter your admin account details to continue.",
+      isSubmitting: true,
+    })
+  })
+
+  it("builds admin auth form state with error message", () => {
+    expect(
+      buildMobileAuthFormState({
+        role: "admin",
+        mode: "sign_in",
+        status: "error",
+        hasDevelopmentCredentials: false,
+        errorMessage: "Admin sign-in failed.",
+      }),
+    ).toMatchObject({
+      title: "Admin sign in",
+      submitLabel: "Sign in",
+      errorMessage: "Admin sign-in failed.",
       isSubmitting: false,
     })
   })

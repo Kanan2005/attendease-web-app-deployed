@@ -6,12 +6,14 @@ import {
   authOperationSuccessSchema,
   authRefreshRequestSchema,
   authSessionResponseSchema,
+  profileResponseSchema,
   studentRegistrationRequestSchema,
   studentRegistrationResponseSchema,
   teacherRegistrationRequestSchema,
   teacherRegistrationResponseSchema,
+  updateProfileRequestSchema,
 } from "@attendease/contracts"
-import { Body, Controller, Get, Inject, Post, UseGuards } from "@nestjs/common"
+import { Body, Controller, Get, Inject, Patch, Post, UseGuards } from "@nestjs/common"
 
 import { RateLimit } from "../../infrastructure/rate-limit.decorator.js"
 import { RateLimitGuard } from "../../infrastructure/rate-limit.guard.js"
@@ -88,5 +90,19 @@ export class AuthController {
   @Get("me")
   async getMe(@CurrentAuth() auth: AuthRequestContext) {
     return authMeResponseSchema.parse(await this.authService.getMe(auth))
+  }
+
+  @UseGuards(AuthGuard)
+  @Get("profile")
+  async getProfile(@CurrentAuth() auth: AuthRequestContext) {
+    return profileResponseSchema.parse(await this.authService.getProfile(auth))
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch("profile")
+  async updateProfile(@CurrentAuth() auth: AuthRequestContext, @Body() body: unknown) {
+    return profileResponseSchema.parse(
+      await this.authService.updateProfile(auth, parseWithSchema(updateProfileRequestSchema, body)),
+    )
   }
 }

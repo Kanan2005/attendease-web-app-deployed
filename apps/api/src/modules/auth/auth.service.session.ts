@@ -100,11 +100,17 @@ export function buildAuthenticatedUser(input: {
   user: Pick<SessionUserRecord, "id" | "email" | "displayName" | "status">
   availableRoles: AppRole[]
   activeRole: AppRole
+  rollNumber?: string | null
+  degree?: string | null
+  branch?: string | null
 }): AuthenticatedUser {
   return {
     id: input.user.id,
     email: input.user.email,
     displayName: input.user.displayName,
+    rollNumber: input.rollNumber ?? null,
+    degree: input.degree ?? null,
+    branch: input.branch ?? null,
     status: input.user.status as AuthenticatedUser["status"],
     availableRoles: input.availableRoles,
     activeRole: input.activeRole,

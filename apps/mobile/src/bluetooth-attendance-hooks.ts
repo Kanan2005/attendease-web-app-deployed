@@ -6,6 +6,7 @@ import type {
 } from "@attendease/contracts"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { PermissionsAndroid, Platform } from "react-native"
 
 import { getMobileAttendanceSessionPollInterval } from "./attendance-live"
 import {
@@ -33,6 +34,17 @@ import { teacherQueryKeys } from "./teacher-query"
 import { getTeacherAccessToken, useTeacherSession } from "./teacher-session"
 
 const env = loadMobileEnv(process.env as Record<string, string | undefined>)
+
+function describeAdvertiseErrorCode(code: number): string {
+  switch (code) {
+    case 1: return "Data too large (payload exceeds BLE limit)"
+    case 2: return "Too many advertisers"
+    case 3: return "Already started"
+    case 4: return "Internal error"
+    case 5: return "Feature unsupported"
+    default: return `Unknown error (${code})`
+  }
+}
 const authClient = createAuthApiClient({
   baseUrl: env.EXPO_PUBLIC_API_URL,
 })
@@ -81,16 +93,27 @@ export function useTeacherBluetoothAdvertiser(runtime: BluetoothSessionCreateRes
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [lastPayload, setLastPayload] = useState<string | null>(null)
   const startedSessionId = useRef<string | null>(null)
+  const runtimeRef = useRef(runtime)
+  runtimeRef.current = runtime
+  const startRef = useRef<() => Promise<boolean>>(() => Promise.resolve(false))
 
   useEffect(() => {
     const unsubscribeState = AttendEaseBluetooth.subscribeToAdvertiserState((event) => {
-      setState(mapBluetoothAdvertiserEventToRuntimeState(event))
+      const mappedState = mapBluetoothAdvertiserEventToRuntimeState(event)
+      setState(mappedState)
 
       if (event.payload) {
         setLastPayload(event.payload)
       }
 
-      if (event.message) {
+      // Show errorCode in the message if present
+      if (event.state === "FAILED") {
+        const errorCode = (event as { errorCode?: number }).errorCode
+        const errorMsg = errorCode !== undefined 
+          ? `BLE Error Code ${errorCode}: ${describeAdvertiseErrorCode(errorCode)}`
+          : (event.message || "Bluetooth advertising failed")
+        setErrorMessage(errorMsg)
+      } else if (event.message) {
         setErrorMessage(event.message)
       }
     })
@@ -113,9 +136,8 @@ export function useTeacherBluetoothAdvertiser(runtime: BluetoothSessionCreateRes
   }, [])
 
   const start = useCallback(async () => {
-    if (!runtime) {
-      return false
-    }
+    const rt = runtimeRef.current
+    if (!rt) return false
 
     const nextAvailability = await refreshAvailability()
 
@@ -126,16 +148,20 @@ export function useTeacherBluetoothAdvertiser(runtime: BluetoothSessionCreateRes
 
     try {
       setErrorMessage(null)
-      await AttendEaseBluetooth.startAdvertising(runtime.advertiser)
-      setState("ADVERTISING")
-      startedSessionId.current = runtime.session.id
+      setState("READY")
+      await AttendEaseBluetooth.startAdvertising(rt.advertiser)
+      startedSessionId.current = rt.session.id
       return true
     } catch (error) {
+      console.error("[BLE-ADV] startAdvertising failed:", error)
       setState(resolveBluetoothAdvertiserFailureState(error))
       setErrorMessage(describeBluetoothAdvertiserFailure(error))
       return false
     }
-  }, [refreshAvailability, runtime])
+  }, [refreshAvailability])
+
+  // Keep startRef updated so the effect can call it without depending on it
+  startRef.current = start
 
   const stop = useCallback(async () => {
     try {
@@ -147,19 +173,57 @@ export function useTeacherBluetoothAdvertiser(runtime: BluetoothSessionCreateRes
     }
   }, [])
 
+  const sessionId = runtime?.session.id ?? null
+  const wasBluetoothOff = useRef(false)
+
   useEffect(() => {
-    if (!runtime || startedSessionId.current === runtime.session.id) {
-      return
-    }
+    if (!sessionId || startedSessionId.current === sessionId) return
+    void startRef.current()
 
-    void start()
+    // Only cleanup on unmount, not on re-renders
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId])
 
-    return () => {
-      if (startedSessionId.current === runtime.session.id) {
-        void AttendEaseBluetooth.stopAdvertising()
+  // Continuous health monitoring: poll BT availability every 3s during active session
+  useEffect(() => {
+    if (!sessionId) return
+
+    let cancelled = false
+
+    const healthCheck = async () => {
+      if (cancelled) return
+      try {
+        const avail = await AttendEaseBluetooth.getAvailability()
+        if (cancelled) return
+        setAvailability(avail)
+
+        if (!avail.poweredOn) {
+          wasBluetoothOff.current = true
+          setState("FAILED")
+          setErrorMessage("Bluetooth was turned off. Turn it back on to resume broadcasting.")
+        } else if (!avail.canAdvertise) {
+          setState("PERMISSION_REQUIRED")
+          setErrorMessage("Bluetooth advertising permission was revoked. Grant 'Nearby devices' in Settings.")
+        } else if (wasBluetoothOff.current) {
+          // BT is back on after being off → auto-restart advertising
+          wasBluetoothOff.current = false
+          setErrorMessage(null)
+          void startRef.current()
+        }
+      } catch {
+        // Silently ignore health check failures
       }
     }
-  }, [runtime, start])
+
+    // First check after a short delay (let advertising start first)
+    const initialTimeout = setTimeout(healthCheck, 3000)
+    const interval = setInterval(healthCheck, 3000)
+    return () => {
+      cancelled = true
+      clearTimeout(initialTimeout)
+      clearInterval(interval)
+    }
+  }, [sessionId])
 
   return {
     availability,
@@ -209,6 +273,28 @@ export function useStudentBluetoothScanner(serviceUuid: string | null, enabled =
       return false
     }
 
+    // Request runtime BLE permissions on Android 12+ (API 31+)
+    if (Platform.OS === "android" && (Platform.Version as number) >= 31) {
+      try {
+        const results = await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+          PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+        ])
+        const allGranted = Object.values(results).every(
+          (r) => r === PermissionsAndroid.RESULTS.GRANTED,
+        )
+        if (!allGranted) {
+          setState("PERMISSION_REQUIRED")
+          setErrorMessage("Bluetooth scan permission is required. Grant 'Nearby devices' in Settings.")
+          return false
+        }
+      } catch {
+        setState("PERMISSION_REQUIRED")
+        setErrorMessage("Failed to request Bluetooth permissions.")
+        return false
+      }
+    }
+
     const nextAvailability = await refreshAvailability()
 
     if (!canStartBluetoothScanning(nextAvailability)) {
@@ -241,6 +327,10 @@ export function useStudentBluetoothScanner(serviceUuid: string | null, enabled =
     }
   }, [])
 
+  const startRef = useRef(start)
+  startRef.current = start
+  const wasBluetoothOffScanner = useRef(false)
+
   useEffect(() => {
     if (!enabled) {
       setState("IDLE")
@@ -259,6 +349,45 @@ export function useStudentBluetoothScanner(serviceUuid: string | null, enabled =
       void AttendEaseBluetooth.stopScanning()
     }
   }, [enabled, serviceUuid, start])
+
+  // Continuous health monitoring for scanner: poll BT availability every 3s
+  useEffect(() => {
+    if (!enabled || !serviceUuid) return
+
+    let cancelled = false
+
+    const healthCheck = async () => {
+      if (cancelled) return
+      try {
+        const avail = await AttendEaseBluetooth.getAvailability()
+        if (cancelled) return
+        setAvailability(avail)
+
+        if (!avail.poweredOn) {
+          wasBluetoothOffScanner.current = true
+          setState("FAILED")
+          setErrorMessage("Bluetooth was turned off. Turn it back on to scan for your teacher.")
+        } else if (!avail.canScan) {
+          setState("PERMISSION_REQUIRED")
+          setErrorMessage("Bluetooth scan permission was revoked. Grant 'Nearby devices' in Settings.")
+        } else if (wasBluetoothOffScanner.current) {
+          wasBluetoothOffScanner.current = false
+          setErrorMessage(null)
+          void startRef.current()
+        }
+      } catch {
+        // Silently ignore health check failures
+      }
+    }
+
+    const initialTimeout = setTimeout(healthCheck, 3000)
+    const interval = setInterval(healthCheck, 3000)
+    return () => {
+      cancelled = true
+      clearTimeout(initialTimeout)
+      clearInterval(interval)
+    }
+  }, [enabled, serviceUuid])
 
   return {
     availability,

@@ -1,3 +1,4 @@
+import { adminRoutes } from "./admin-routes"
 import { type MobileEntryMode, type MobileEntryRole, buildMobileSessionEntryCopy } from "./shell"
 import { studentRoutes } from "./student-routes"
 import { teacherRoutes } from "./teacher-routes"
@@ -8,6 +9,7 @@ export const mobileEntryRoutes = {
   studentRegister: "/(entry)/student/register" as const,
   teacherSignIn: "/(entry)/teacher/sign-in" as const,
   teacherRegister: "/(entry)/teacher/register" as const,
+  adminSignIn: "/(entry)/admin/sign-in" as const,
 } as const
 
 export interface MobileRoleGate {
@@ -45,10 +47,15 @@ export function resolveMobileRoleGate(role: MobileEntryRole, hasSession: boolean
     }
   }
 
+  const signInRoutes: Record<MobileEntryRole, string> = {
+    student: mobileEntryRoutes.studentSignIn,
+    teacher: mobileEntryRoutes.teacherSignIn,
+    admin: mobileEntryRoutes.adminSignIn,
+  }
+
   return {
     allowed: false,
-    redirectHref:
-      role === "student" ? mobileEntryRoutes.studentSignIn : mobileEntryRoutes.teacherSignIn,
+    redirectHref: signInRoutes[role],
   }
 }
 
@@ -58,35 +65,61 @@ export function buildMobileEntryCardModel(input: {
   displayName?: string | null | undefined
 }): MobileEntryCardModel {
   const entryCopy = buildMobileSessionEntryCopy(input.role, "sign_in")
-  const registerCopy = buildMobileSessionEntryCopy(input.role, "register")
+
+  const roleTitles: Record<MobileEntryRole, string> = {
+    student: "Student",
+    teacher: "Teacher",
+    admin: "Admin",
+  }
+
+  const homeHrefs: Record<MobileEntryRole, string> = {
+    student: studentRoutes.classrooms,
+    teacher: teacherRoutes.dashboard,
+    admin: adminRoutes.dashboard,
+  }
+
+  const signInHrefs: Record<MobileEntryRole, string> = {
+    student: mobileEntryRoutes.studentSignIn,
+    teacher: mobileEntryRoutes.teacherSignIn,
+    admin: mobileEntryRoutes.adminSignIn,
+  }
 
   if (input.hasSession) {
     return {
       role: input.role,
-      title: input.role === "student" ? "Student" : "Teacher",
+      title: roleTitles[input.role],
       description: entryCopy.roleSummary,
-      primaryLabel: input.role === "student" ? "Open student home" : "Open teacher home",
-      primaryHref: input.role === "student" ? studentRoutes.home : teacherRoutes.dashboard,
+      primaryLabel: `Open ${input.role} home`,
+      primaryHref: homeHrefs[input.role],
       secondaryLabel: "Sign out",
       sessionSummary: input.displayName ? `Signed in as ${input.displayName}.` : "Signed in.",
       canSignOut: true,
     }
   }
 
-  return {
+  const hasRegister = input.role !== "admin"
+
+  const base = {
     role: input.role,
-    title: input.role === "student" ? "Student" : "Teacher",
+    title: roleTitles[input.role],
     description: entryCopy.roleSummary,
     primaryLabel: entryCopy.title,
-    primaryHref:
-      input.role === "student" ? mobileEntryRoutes.studentSignIn : mobileEntryRoutes.teacherSignIn,
-    secondaryLabel: registerCopy.title,
-    secondaryHref:
-      input.role === "student"
-        ? mobileEntryRoutes.studentRegister
-        : mobileEntryRoutes.teacherRegister,
-    canSignOut: false,
+    primaryHref: signInHrefs[input.role],
+    secondaryLabel: hasRegister ? buildMobileSessionEntryCopy(input.role, "register").title : "",
+    canSignOut: false as const,
   }
+
+  if (hasRegister) {
+    return {
+      ...base,
+      secondaryHref:
+        input.role === "student"
+          ? mobileEntryRoutes.studentRegister
+          : mobileEntryRoutes.teacherRegister,
+    }
+  }
+
+  return base
 }
 
 export function buildMobileAuthFormState(input: {

@@ -49,8 +49,9 @@ export async function seedAcademicClassrooms(
   const physicsClassroomFixture = developmentAcademicFixtures.classrooms.physics
 
   const mathCourseOffering = await transaction.courseOffering.upsert({
-    where: { code: mathClassroomFixture.classroomCode },
+    where: { id: developmentSeedIds.courseOfferings.math },
     update: {
+      code: mathClassroomFixture.classroomCode,
       semesterId: foundation.semesterId,
       classId: foundation.academicClassId,
       sectionId: foundation.sectionId,
@@ -75,7 +76,7 @@ export async function seedAcademicClassrooms(
       defaultAttendanceMode: AttendanceMode[mathClassroomFixture.defaultAttendanceMode],
       defaultGpsRadiusMeters: 100,
       defaultSessionDurationMinutes: 15,
-      qrRotationWindowSeconds: 15,
+      qrRotationWindowSeconds: 2,
       bluetoothRotationWindowSeconds: 10,
       timezone: "Asia/Kolkata",
       requiresTrustedDevice: true,
@@ -83,8 +84,9 @@ export async function seedAcademicClassrooms(
   })
 
   const physicsCourseOffering = await transaction.courseOffering.upsert({
-    where: { code: physicsClassroomFixture.classroomCode },
+    where: { id: developmentSeedIds.courseOfferings.physics },
     update: {
+      code: physicsClassroomFixture.classroomCode,
       semesterId: foundation.semesterId,
       classId: foundation.academicClassId,
       sectionId: foundation.sectionId,
@@ -109,7 +111,7 @@ export async function seedAcademicClassrooms(
       defaultAttendanceMode: AttendanceMode[physicsClassroomFixture.defaultAttendanceMode],
       defaultGpsRadiusMeters: 100,
       defaultSessionDurationMinutes: 15,
-      qrRotationWindowSeconds: 15,
+      qrRotationWindowSeconds: 2,
       bluetoothRotationWindowSeconds: 10,
       timezone: "Asia/Kolkata",
       requiresTrustedDevice: true,

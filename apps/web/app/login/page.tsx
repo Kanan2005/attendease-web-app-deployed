@@ -1,4 +1,4 @@
-import { WebAuthEntryPage } from "../../src/web-auth-entry"
+import { redirect } from "next/navigation"
 
 export default async function TeacherLoginPage(props: {
   searchParams?: Promise<{
@@ -7,13 +7,8 @@ export default async function TeacherLoginPage(props: {
   }>
 }) {
   const searchParams = (await props.searchParams) ?? {}
-  const nextPath = searchParams.next?.startsWith("/") ? searchParams.next : ""
-
-  return (
-    <WebAuthEntryPage
-      variant="teacher-login"
-      error={searchParams.error ?? null}
-      nextPath={nextPath}
-    />
-  )
+  const params = new URLSearchParams({ mode: "teacher" })
+  if (searchParams.error) params.set("error", searchParams.error)
+  if (searchParams.next) params.set("next", searchParams.next)
+  redirect(`/?${params.toString()}`)
 }

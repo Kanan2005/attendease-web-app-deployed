@@ -12,16 +12,23 @@ import { getToneStyles } from "./shared-tones"
 
 export const bootstrap = createWebAuthBootstrap(process.env as Record<string, string | undefined>)
 
+const fieldLabelStyle = {
+  fontSize: 12,
+  fontWeight: 600,
+  color: webTheme.colors.textMuted,
+  letterSpacing: "0.02em",
+} as const
+
 export function WorkflowField(props: {
   label: string
   value: string
   onChange: (value: string) => void
   placeholder?: string
-  type?: "text" | "number" | "date"
+  type?: "text" | "number" | "date" | "datetime-local"
 }) {
   return (
     <label style={{ display: "grid", gap: 6 }}>
-      <span>{props.label}</span>
+      <span style={fieldLabelStyle}>{props.label}</span>
       <input
         value={props.value}
         onChange={(event) => props.onChange(event.target.value)}
@@ -41,7 +48,7 @@ export function WorkflowSelectField(props: {
 }) {
   return (
     <label style={{ display: "grid", gap: 6 }}>
-      <span>{props.label}</span>
+      <span style={fieldLabelStyle}>{props.label}</span>
       <select
         value={props.value}
         onChange={(event) => props.onChange(event.target.value)}
@@ -71,8 +78,8 @@ export function WorkflowSummaryGrid(props: {
             background: getToneStyles(card.tone).background,
           }}
         >
-          <div style={{ color: webTheme.colors.textMuted, fontSize: 13 }}>{card.label}</div>
-          <strong style={{ display: "block", fontSize: 24, marginTop: 6 }}>{card.value}</strong>
+          <div style={{ color: webTheme.colors.textSubtle, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>{card.label}</div>
+          <strong style={{ display: "block", fontSize: 22, marginTop: 6, letterSpacing: "-0.02em" }}>{card.value}</strong>
         </div>
       ))}
     </div>
@@ -129,15 +136,18 @@ export function WorkflowBanner(props: {
   tone: "info" | "danger"
   message: string
 }) {
+  const isDanger = props.tone === "danger"
   return (
     <div
       style={{
-        ...workflowStyles.rowCard,
-        borderColor:
-          props.tone === "danger" ? webTheme.colors.dangerBorder : webTheme.colors.borderStrong,
-        background:
-          props.tone === "danger" ? webTheme.colors.dangerSoft : webTheme.colors.surfaceHero,
-        color: props.tone === "danger" ? webTheme.colors.danger : webTheme.colors.primary,
+        borderRadius: 10,
+        padding: "12px 16px",
+        fontSize: 14,
+        lineHeight: 1.5,
+        borderColor: isDanger ? webTheme.colors.dangerBorder : webTheme.colors.accentBorder,
+        border: `1px solid ${isDanger ? webTheme.colors.dangerBorder : webTheme.colors.accentBorder}`,
+        background: isDanger ? webTheme.colors.dangerSoft : webTheme.colors.accentSoft,
+        color: isDanger ? webTheme.colors.danger : webTheme.colors.accent,
       }}
     >
       {props.message}

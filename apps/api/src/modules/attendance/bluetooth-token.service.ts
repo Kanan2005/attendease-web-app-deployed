@@ -56,6 +56,82 @@ export class BluetoothTokenService {
     return rollingBluetoothTokenPayloadSchema.parse(JSON.parse(payload))
   }
 
+  isCompactPayload(payload: string): boolean {
+    return !payload.startsWith("{") && /^[0-9a-f]{12}$/i.test(payload)
+  }
+
+  parseCompactPayload(payload: string): { pidShort: string; eidShort: string } {
+    return {
+      pidShort: payload.slice(0, 4),
+      eidShort: payload.slice(4, 12),
+    }
+  }
+
+  validateCompactToken(params: {
+    publicId: string | null
+    bleSeed: string | null
+    protocolVersion: number | null
+    rotationWindowSeconds: number | null
+    pidShort: string
+    eidShort: string
+    now?: Date
+  }): BluetoothTokenValidationResult {
+    if (
+      !params.publicId ||
+      !params.bleSeed ||
+      !params.protocolVersion ||
+      !params.rotationWindowSeconds
+    ) {
+      return { accepted: false, reason: "INVALID" }
+    }
+
+    if (!params.publicId.startsWith(params.pidShort)) {
+      return { accepted: false, reason: "SESSION_MISMATCH" }
+    }
+
+    const now = params.now ?? new Date()
+    const currentSlice = this.getSliceIndex(now, params.rotationWindowSeconds)
+    const allowedSkew = this.env.ATTENDANCE_BLUETOOTH_ALLOWED_CLOCK_SKEW_SLICES
+
+    // Try current slice ± allowed skew
+    for (let slice = currentSlice - allowedSkew; slice <= currentSlice + 1; slice++) {
+      const fullEid = this.createEphemeralId({
+        publicId: params.publicId,
+        bleSeed: params.bleSeed,
+        protocolVersion: params.protocolVersion,
+        slice,
+      })
+
+      if (fullEid.startsWith(params.eidShort)) {
+        return {
+          accepted: true,
+          parsed: {
+            v: params.protocolVersion,
+            pid: params.publicId,
+            ts: slice,
+            eid: fullEid,
+          },
+        }
+      }
+    }
+
+    // Check older slices to distinguish EXPIRED from INVALID
+    for (let slice = currentSlice - allowedSkew * 3; slice < currentSlice - allowedSkew; slice++) {
+      const fullEid = this.createEphemeralId({
+        publicId: params.publicId,
+        bleSeed: params.bleSeed,
+        protocolVersion: params.protocolVersion,
+        slice,
+      })
+
+      if (fullEid.startsWith(params.eidShort)) {
+        return { accepted: false, reason: "EXPIRED" }
+      }
+    }
+
+    return { accepted: false, reason: "INVALID" }
+  }
+
   validateToken(params: {
     publicId: string | null
     bleSeed: string | null

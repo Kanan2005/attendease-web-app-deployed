@@ -13,7 +13,7 @@ export const markQrAttendanceRequestSchema = z.object({
 export type MarkQrAttendanceRequest = z.infer<typeof markQrAttendanceRequestSchema>
 
 export const markBluetoothAttendanceRequestSchema = z.object({
-  detectedPayload: z.string().trim().min(16),
+  detectedPayload: z.string().trim().min(8),
   rssi: z.coerce.number().int().min(-127).max(20).optional(),
   deviceTimestamp: isoDateTimeSchema.optional(),
 })

@@ -1,7 +1,8 @@
 import { createAuthApiClient } from "@attendease/auth"
 import { loadMobileEnv } from "@attendease/config"
 import type { AttendanceMode, TrustedDeviceAttendanceReadyResponse } from "@attendease/contracts"
-import { mobileTheme } from "@attendease/ui-mobile"
+import { getColors, mobileTheme } from "@attendease/ui-mobile"
+import { Ionicons } from "@expo/vector-icons"
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link } from "expo-router"
 import { useEffect, useState } from "react"
@@ -114,6 +115,7 @@ import {
   StudentLoadingCard,
   StudentNavAction,
   StudentQuickActions,
+  StudentBackButton,
   StudentScreen,
   StudentSessionSetupCard,
   StudentStatusBanner,
@@ -128,6 +130,7 @@ import {
 
 export function StudentHistoryScreen() {
   const { session, draft } = useStudentSession()
+  const c = getColors()
   const history = useStudentAttendanceHistoryData()
   const refreshStudentExperience = useStudentRefreshAction({
     installId: draft.installId,
@@ -148,8 +151,9 @@ export function StudentHistoryScreen() {
   return (
     <StudentScreen
       title="Attendance History"
-      subtitle="Review your recent attendance record by course."
+      subtitle="Your attendance record."
     >
+      <StudentBackButton label="Back to Attendance" />
       {session ? <StudentStatusBanner status={historyStatus} /> : null}
       {!session ? (
         <StudentSessionSetupCard />
@@ -160,15 +164,45 @@ export function StudentHistoryScreen() {
       ) : history.historyRows.length ? (
         <>
           <StudentCard title={historyInsight.title} subtitle={historyInsight.message}>
-            <View style={styles.cardGrid}>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Attendance</Text>
-                <Text style={[styles.metricValue, toneColorStyle(historyInsight.tone)]}>
+            {/* Attendance Progress Bar */}
+            <View style={{ gap: 6 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
+                <Text style={{ fontSize: 28, fontWeight: "800", color: toneColorStyle(historyInsight.tone).color }}>
                   {history.historySummary.attendancePercentage}%
                 </Text>
+                <Pressable
+                  disabled={isRefreshing}
+                  onPress={async () => {
+                    setIsRefreshing(true)
+                    try {
+                      await refreshStudentExperience()
+                    } finally {
+                      setIsRefreshing(false)
+                    }
+                  }}
+                  style={{ flexDirection: "row", alignItems: "center", gap: 4, opacity: isRefreshing ? 0.5 : 1 }}
+                >
+                  <Ionicons name="refresh-outline" size={14} color={c.primary} />
+                  <Text style={{ fontSize: 13, fontWeight: "600", color: c.primary }}>
+                    {isRefreshing ? "Refreshing…" : "Refresh"}
+                  </Text>
+                </Pressable>
               </View>
+              <View style={{ height: 8, borderRadius: 4, backgroundColor: c.surfaceMuted, overflow: "hidden" }}>
+                <View
+                  style={{
+                    height: 8,
+                    borderRadius: 4,
+                    width: `${Math.min(100, history.historySummary.attendancePercentage)}%`,
+                    backgroundColor: toneColorStyle(historyInsight.tone).color,
+                  }}
+                />
+              </View>
+            </View>
+
+            <View style={styles.cardGrid}>
               <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Recorded Sessions</Text>
+                <Text style={styles.metricLabel}>Sessions</Text>
                 <Text style={[styles.metricValue, styles.primaryTone]}>
                   {history.historySummary.totalRecords}
                 </Text>
@@ -186,47 +220,61 @@ export function StudentHistoryScreen() {
                 </Text>
               </View>
             </View>
-            <Text style={styles.listMeta}>
-              Last recorded session:{" "}
-              {history.historySummary.lastRecordedAt
-                ? formatDateTime(history.historySummary.lastRecordedAt)
-                : "No attendance has been marked yet"}
-            </Text>
-            <Pressable
-              style={styles.secondaryButton}
-              disabled={isRefreshing}
-              onPress={async () => {
-                setIsRefreshing(true)
-                try {
-                  await refreshStudentExperience()
-                } finally {
-                  setIsRefreshing(false)
-                }
-              }}
-            >
-              <Text style={styles.secondaryButtonLabel}>
-                {isRefreshing ? "Refreshing..." : "Refresh History"}
+            {history.historySummary.lastRecordedAt ? (
+              <Text style={styles.listMeta}>
+                Last recorded: {formatDateTime(history.historySummary.lastRecordedAt)}
               </Text>
-            </Pressable>
+            ) : null}
           </StudentCard>
           <StudentCard
             title="Recent Records"
-            subtitle="Each row shows whether you were present or absent for that class session."
           >
-            {history.historyRows.map((item) => (
-              <View key={item.attendanceRecordId} style={styles.listRow}>
-                <Text style={styles.listTitle}>{item.title}</Text>
-                <Text style={styles.listMeta}>{item.subtitle}</Text>
-                <Text style={[styles.bodyText, toneColorStyle(item.statusTone)]}>
-                  {item.statusLabel} · {item.timeLabel}
-                </Text>
-                <Text style={styles.listMeta}>{item.detailLabel}</Text>
-              </View>
-            ))}
+            {history.historyRows.map((item) => {
+              const isPresent = item.statusTone === "success"
+              return (
+                <View
+                  key={item.attendanceRecordId}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "flex-start",
+                    gap: 12,
+                    paddingVertical: 10,
+                    borderBottomWidth: StyleSheet.hairlineWidth,
+                    borderBottomColor: c.border,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: isPresent ? c.successSoft : c.dangerSoft,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginTop: 2,
+                    }}
+                  >
+                    <Ionicons
+                      name={isPresent ? "checkmark-circle" : "close-circle"}
+                      size={20}
+                      color={isPresent ? c.success : c.danger}
+                    />
+                  </View>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={styles.listTitle}>{item.title}</Text>
+                    <Text style={styles.listMeta}>{item.subtitle}</Text>
+                    <Text style={[styles.bodyText, toneColorStyle(item.statusTone)]}>
+                      {item.statusLabel} · {item.timeLabel}
+                    </Text>
+                    <Text style={styles.listMeta}>{item.detailLabel}</Text>
+                  </View>
+                </View>
+              )
+            })}
           </StudentCard>
         </>
       ) : (
-        <StudentEmptyCard label="Your marked class sessions will appear here after attendance is recorded." />
+        <StudentEmptyCard label="No attendance records yet." />
       )}
     </StudentScreen>
   )

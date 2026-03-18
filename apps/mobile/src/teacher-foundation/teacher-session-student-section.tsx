@@ -1,82 +1,88 @@
-import { Pressable, Text, View } from "react-native"
+import { Pressable, StyleSheet, Text, View } from "react-native"
+
+import { getColors } from "@attendease/ui-mobile"
+import { Ionicons } from "@expo/vector-icons"
+import Animated, { FadeInDown } from "react-native-reanimated"
 
 import type { TeacherSessionRosterRowModel } from "../teacher-operational"
-import { formatDateTime } from "./shared-ui"
-import { styles } from "./shared-ui"
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length >= 2) return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase()
+  return (parts[0]?.[0] ?? "?").toUpperCase()
+}
 
 export function TeacherSessionStudentSection(props: {
   title: string
-  subtitle: string
+  subtitle?: string
   rows: TeacherSessionRosterRowModel[]
   emptyLabel: string
   isEditable?: boolean
   onToggleStatus?: (row: TeacherSessionRosterRowModel) => void
 }) {
+  const c = getColors()
+
+  if (!props.rows.length) {
+    return (
+      <View style={{ alignItems: "center", paddingVertical: 20 }}>
+        <Ionicons name="people-outline" size={28} color={c.textSubtle} />
+        <Text style={{ fontSize: 13, color: c.textMuted, marginTop: 6 }}>{props.emptyLabel}</Text>
+      </View>
+    )
+  }
+
   return (
-    <View style={styles.sessionSection}>
-      <Text style={styles.sectionTitle}>{props.title}</Text>
-      <Text style={styles.listMeta}>{props.subtitle}</Text>
-      {props.rows.length ? (
-        props.rows.map((row) => (
-          <View key={row.attendanceRecordId} style={styles.sessionStudentCard}>
-            <View style={styles.sessionStudentHeader}>
-              <Text style={styles.listTitle}>{row.studentDisplayName}</Text>
-              <View
-                style={[
-                  styles.statusChip,
-                  row.statusTone === "success"
-                    ? styles.successChip
-                    : row.statusTone === "warning"
-                      ? styles.warningChip
-                      : row.statusTone === "danger"
-                        ? styles.dangerChip
-                        : styles.primaryChip,
-                ]}
-              >
-                <Text style={styles.statusChipText}>
-                  {row.effectiveStatus === "PRESENT" ? "Present" : "Absent"}
-                </Text>
+    <View style={{ gap: 6 }}>
+      {props.rows.map((row, i) => {
+        const isAbsentAction = row.actionTargetStatus === "ABSENT"
+        return (
+          <Animated.View key={row.attendanceRecordId} entering={FadeInDown.duration(180).delay(i * 20)}>
+            <View style={[ss.studentRow, { backgroundColor: c.surfaceRaised, borderColor: row.pendingChangeLabel ? c.warning : c.border }]}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                {/* Avatar */}
+                <View style={[ss.avatar, { backgroundColor: c.primarySoft }]}>
+                  <Text style={{ fontSize: 12, fontWeight: "700", color: c.primary }}>{getInitials(row.studentDisplayName)}</Text>
+                </View>
+                {/* Info */}
+                <View style={{ flex: 1, gap: 1 }}>
+                  <Text style={{ fontSize: 14, fontWeight: "600", color: c.text }} numberOfLines={1}>{row.studentDisplayName}</Text>
+                  <Text style={{ fontSize: 11, color: c.textMuted }} numberOfLines={1}>{row.identityLabel}</Text>
+                  {row.pendingChangeLabel ? (
+                    <Text style={{ fontSize: 11, fontWeight: "600", color: c.warning }}>{row.pendingChangeLabel}</Text>
+                  ) : null}
+                </View>
+                {/* Action */}
+                {props.isEditable && row.actionLabel && props.onToggleStatus ? (
+                  <Pressable
+                    style={[ss.actionBtn, { backgroundColor: isAbsentAction ? c.dangerSoft : c.primarySoft }]}
+                    onPress={() => props.onToggleStatus?.(row)}
+                  >
+                    <Ionicons
+                      name={isAbsentAction ? "close-circle-outline" : "checkmark-circle-outline"}
+                      size={14}
+                      color={isAbsentAction ? c.danger : c.primary}
+                    />
+                    <Text style={{ fontSize: 12, fontWeight: "600", color: isAbsentAction ? c.danger : c.primary }}>{row.actionLabel}</Text>
+                  </Pressable>
+                ) : null}
               </View>
             </View>
-            <Text style={styles.listMeta}>{row.identityLabel}</Text>
-            <Text style={styles.listMeta}>
-              {row.markedAt
-                ? `Last marked ${formatDateTime(row.markedAt)}`
-                : row.effectiveStatus === "PRESENT"
-                  ? "Ready to count as present once you save."
-                  : "No attendance mark recorded yet."}
-            </Text>
-            {row.pendingChangeLabel ? (
-              <Text style={styles.pendingText}>{row.pendingChangeLabel}</Text>
-            ) : null}
-            {props.isEditable && row.actionLabel && props.onToggleStatus ? (
-              <View style={styles.actionGrid}>
-                <Pressable
-                  style={[
-                    row.actionTargetStatus === "ABSENT"
-                      ? styles.dangerButton
-                      : styles.secondaryButton,
-                    row.pendingChangeLabel ? styles.selectedActionButton : null,
-                  ]}
-                  onPress={() => props.onToggleStatus?.(row)}
-                >
-                  <Text
-                    style={
-                      row.actionTargetStatus === "ABSENT"
-                        ? styles.primaryButtonLabel
-                        : styles.secondaryButtonLabel
-                    }
-                  >
-                    {row.actionLabel}
-                  </Text>
-                </Pressable>
-              </View>
-            ) : null}
-          </View>
-        ))
-      ) : (
-        <Text style={styles.listMeta}>{props.emptyLabel}</Text>
-      )}
+          </Animated.View>
+        )
+      })}
     </View>
   )
 }
+
+const ss = StyleSheet.create({
+  studentRow: {
+    borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10,
+  },
+  avatar: {
+    width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center",
+  },
+  actionBtn: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8,
+  },
+})

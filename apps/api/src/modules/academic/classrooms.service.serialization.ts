@@ -183,6 +183,9 @@ export function toClassroomSummary(
     bluetoothRotationWindowSeconds: input.bluetoothRotationWindowSeconds,
     timezone: input.timezone,
     requiresTrustedDevice: input.requiresTrustedDevice,
+    degree: input.degree ?? null,
+    semesterLabel: input.semesterLabel ?? null,
+    streamLabel: input.streamLabel ?? null,
     archivedAt: input.archivedAt?.toISOString() ?? null,
     activeJoinCode:
       options.includeJoinCode === false ? null : toJoinCodeSummary(input.joinCodes[0] ?? null),

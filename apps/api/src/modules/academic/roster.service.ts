@@ -115,6 +115,8 @@ export class RosterService {
       return nextEnrollment
     })
 
+    await this.classroomsService.activateIfDraft(classroomId)
+
     return toRosterMemberSummary(enrollment, classroom)
   }
 
@@ -315,7 +317,9 @@ export class RosterService {
         },
       },
       include: {
-        courseOffering: true,
+        courseOffering: {
+          include: { primaryTeacher: { select: { displayName: true } } },
+        },
       },
       orderBy: [{ joinedAt: "desc" }, { createdAt: "desc" }],
     })

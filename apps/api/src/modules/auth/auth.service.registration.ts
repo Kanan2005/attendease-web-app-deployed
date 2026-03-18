@@ -70,7 +70,10 @@ export async function registerStudentAccount(
             },
           },
           studentProfile: {
-            create: {},
+            create: {
+              ...(request.degree ? { degree: request.degree } : {}),
+              ...(request.branch ? { branch: request.branch } : {}),
+            },
           },
         },
         include: {

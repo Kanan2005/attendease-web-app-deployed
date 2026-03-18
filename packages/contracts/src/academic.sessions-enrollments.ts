@@ -78,6 +78,12 @@ export type LecturesResponse = z.infer<typeof lecturesResponseSchema>
 export const classSessionsResponseSchema = lecturesResponseSchema
 export type ClassSessionsResponse = LecturesResponse
 
+export const classroomLectureParamsSchema = z.object({
+  classroomId: z.string().min(1),
+  lectureId: z.string().min(1),
+})
+export type ClassroomLectureParams = z.infer<typeof classroomLectureParamsSchema>
+
 export const enrollmentSummarySchema = academicScopeSchema.extend({
   id: z.string().min(1),
   courseOfferingId: z.string().min(1),

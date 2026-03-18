@@ -680,6 +680,9 @@ describe("student workflow models", () => {
       hasStudentProfileDraftChanges(initialDraft, {
         displayName: "Aarav Sharma",
         preferredShortName: "Aarav S",
+        rollNumber: "",
+        degree: "",
+        branch: "",
       }),
     ).toBe(true)
   })

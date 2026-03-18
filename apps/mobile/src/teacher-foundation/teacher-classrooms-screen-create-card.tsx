@@ -54,7 +54,7 @@ export function TeacherClassroomsCreateCard({
     <>
       <TeacherCard
         title="Manage Classrooms"
-        subtitle="Open an existing classroom or create a new one from an approved teaching scope."
+        subtitle="Create or manage classrooms."
       >
         <View style={styles.actionGrid}>
           {canCreateClassroom ? (
@@ -70,7 +70,7 @@ export function TeacherClassroomsCreateCard({
               </Text>
             </Pressable>
           ) : null}
-          <TeacherNavAction href={teacherRoutes.home} label="Teacher Home" />
+          <TeacherNavAction href={teacherRoutes.home} label="Teacher Home" icon="home-outline" />
         </View>
         {createMessage ? <Text style={styles.successText}>{createMessage}</Text> : null}
         {!canCreateClassroom ? (
@@ -197,7 +197,7 @@ export function TeacherClassroomsCreateCard({
               ) : null}
             </>
           ) : (
-            <TeacherEmptyCard label="No create-ready teaching scope is available for this teacher account yet." />
+            <TeacherEmptyCard label="No teaching scopes available." />
           )}
         </TeacherCard>
       ) : null}

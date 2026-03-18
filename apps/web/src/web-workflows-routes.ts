@@ -24,6 +24,12 @@ export const teacherWorkflowRoutes = {
   classroomLectures(classroomId: string) {
     return `/teacher/classrooms/${classroomId}/lectures`
   },
+  lectureSession(classroomId: string, lectureId: string) {
+    return `/teacher/classrooms/${classroomId}/lectures/${lectureId}`
+  },
+  classroomReports(classroomId: string) {
+    return `/teacher/classrooms/${classroomId}/reports`
+  },
   activeSession(sessionId: string) {
     return `/teacher/sessions/active/${sessionId}`
   },
@@ -139,5 +145,8 @@ export const webWorkflowQueryKeys = {
   },
   adminImports() {
     return ["web-workflows", "admin-imports"] as const
+  },
+  profile() {
+    return ["web-workflows", "profile"] as const
   },
 } as const

@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { cookies } from "next/headers"
 import type { ReactNode } from "react"
 
@@ -7,6 +8,8 @@ import {
   teacherPortalNavigation,
 } from "../../../src/web-portal"
 import { WebPortalLayout } from "../../../src/web-shell"
+
+export const metadata: Metadata = { title: "Teacher Portal" }
 
 export default async function TeacherPortalLayout(props: { children: ReactNode }) {
   const cookieStore = await cookies()

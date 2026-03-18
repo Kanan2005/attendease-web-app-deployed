@@ -221,5 +221,16 @@ export function buildAuthClientClassroomMethods(request: AuthApiRequest) {
         parse: lectureSummarySchema.parse,
       })
     },
+    deleteClassroomLecture(
+      token: string,
+      classroomId: string,
+      lectureId: string,
+    ): Promise<{ success: boolean }> {
+      return request(`/classrooms/${classroomId}/lectures/${lectureId}`, {
+        method: "DELETE",
+        token,
+        parse: (v) => v as { success: boolean },
+      })
+    },
   }
 }

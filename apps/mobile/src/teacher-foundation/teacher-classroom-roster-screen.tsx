@@ -1,5 +1,6 @@
 import type { ClassroomRosterMemberSummary } from "@attendease/contracts"
 import { useState } from "react"
+import { Alert } from "react-native"
 
 import { mapTeacherApiErrorToMessage } from "../teacher-models"
 import { buildTeacherRosterImportDraftModel } from "../teacher-operational"
@@ -233,11 +234,24 @@ export function TeacherClassroomRosterScreen(props: { classroomId: string }) {
         action: { kind: "REMOVE" | "UPDATE"; membershipStatus?: string },
       ) => {
         if (action.kind === "REMOVE") {
-          removeRosterMutation.mutate(member.id, {
-            onSuccess: () => {
-              setRosterMessage(`Removed ${member.studentDisplayName} from this classroom.`)
-            },
-          })
+          Alert.alert(
+            "Remove Student",
+            `Remove ${member.studentDisplayName} from this classroom?`,
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Remove",
+                style: "destructive",
+                onPress: () => {
+                  removeRosterMutation.mutate(member.id, {
+                    onSuccess: () => {
+                      setRosterMessage(`Removed ${member.studentDisplayName} from this classroom.`)
+                    },
+                  })
+                },
+              },
+            ],
+          )
           return
         }
 

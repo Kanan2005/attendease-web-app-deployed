@@ -16,6 +16,9 @@ export type ClassroomWithRelations = {
   bluetoothRotationWindowSeconds: number
   timezone: string
   requiresTrustedDevice: boolean
+  degree: string | null
+  semesterLabel: string | null
+  streamLabel: string | null
   archivedAt: Date | null
   semester?: {
     id: string

@@ -25,37 +25,50 @@ export async function markAttendanceFromBluetooth(
   request: MarkBluetoothAttendanceRequest,
 ): Promise<MarkBluetoothAttendanceResponse> {
   const now = new Date()
+  const isCompact = context.bluetoothTokenService.isCompactPayload(request.detectedPayload)
+
   let parsedPayload: {
     pid: string
     ts: number
   } | null = null
 
-  try {
-    const parsed = context.bluetoothTokenService.parsePayload(request.detectedPayload)
-    parsedPayload = {
-      pid: parsed.pid,
-      ts: parsed.ts,
-    }
-  } catch {
-    await recordBluetoothValidationFailure(context, {
-      auth,
-      trustedDevice,
-      session: null,
-      reason: "INVALID",
-      detectionSlice: null,
-      publicId: null,
-      detectionRssi: request.rssi ?? null,
-      description:
-        "Bluetooth attendance was rejected because the detected payload could not be parsed.",
-    })
+  // For compact payloads (pid4+eid8 from BLE advertising), extract the short prefix
+  // and find the session by prefix match. For JSON payloads, parse normally.
+  let compactParts: { pidShort: string; eidShort: string } | null = null
 
-    throw new BadRequestException("The Bluetooth attendance payload is invalid.")
+  if (isCompact) {
+    compactParts = context.bluetoothTokenService.parseCompactPayload(request.detectedPayload)
+  } else {
+    try {
+      const parsed = context.bluetoothTokenService.parsePayload(request.detectedPayload)
+      parsedPayload = {
+        pid: parsed.pid,
+        ts: parsed.ts,
+      }
+    } catch {
+      await recordBluetoothValidationFailure(context, {
+        auth,
+        trustedDevice,
+        session: null,
+        reason: "INVALID",
+        detectionSlice: null,
+        publicId: null,
+        detectionRssi: request.rssi ?? null,
+        description:
+          "Bluetooth attendance was rejected because the detected payload could not be parsed.",
+      })
+
+      throw new BadRequestException("The Bluetooth attendance payload is invalid.")
+    }
   }
 
   const session = await context.database.prisma.attendanceSession.findFirst({
     where: {
       mode: "BLUETOOTH",
-      blePublicId: parsedPayload.pid,
+      status: "ACTIVE",
+      ...(isCompact && compactParts
+        ? { blePublicId: { startsWith: compactParts.pidShort } }
+        : { blePublicId: parsedPayload!.pid }),
     },
   })
 
@@ -65,8 +78,8 @@ export async function markAttendanceFromBluetooth(
       trustedDevice,
       session: null,
       reason: "SESSION_MISMATCH",
-      detectionSlice: parsedPayload.ts,
-      publicId: parsedPayload.pid,
+      detectionSlice: parsedPayload?.ts ?? null,
+      publicId: compactParts?.pidShort ?? parsedPayload?.pid ?? null,
       detectionRssi: request.rssi ?? null,
       description:
         "Bluetooth attendance was rejected because the detected payload did not match an active AttendEase session.",
@@ -94,14 +107,24 @@ export async function markAttendanceFromBluetooth(
       } satisfies MarkAttendanceAttemptResult
     }
 
-    const tokenValidation = context.bluetoothTokenService.validateToken({
-      publicId: sessionForMark.blePublicId,
-      bleSeed: sessionForMark.bleSeed,
-      protocolVersion: sessionForMark.bleProtocolVersion,
-      rotationWindowSeconds: sessionForMark.bluetoothRotationWindowSeconds,
-      payload: request.detectedPayload,
-      now,
-    })
+    const tokenValidation = isCompact && compactParts
+      ? context.bluetoothTokenService.validateCompactToken({
+          publicId: sessionForMark.blePublicId,
+          bleSeed: sessionForMark.bleSeed,
+          protocolVersion: sessionForMark.bleProtocolVersion,
+          rotationWindowSeconds: sessionForMark.bluetoothRotationWindowSeconds,
+          pidShort: compactParts.pidShort,
+          eidShort: compactParts.eidShort,
+          now,
+        })
+      : context.bluetoothTokenService.validateToken({
+          publicId: sessionForMark.blePublicId,
+          bleSeed: sessionForMark.bleSeed,
+          protocolVersion: sessionForMark.bleProtocolVersion,
+          rotationWindowSeconds: sessionForMark.bluetoothRotationWindowSeconds,
+          payload: request.detectedPayload,
+          now,
+        })
 
     if (!tokenValidation.accepted) {
       return {
@@ -109,7 +132,7 @@ export async function markAttendanceFromBluetooth(
         session: sessionForMark,
         reason: tokenValidation.reason,
         detectionSlice: parsedPayload?.ts ?? null,
-        publicId: parsedPayload?.pid ?? null,
+        publicId: compactParts?.pidShort ?? parsedPayload?.pid ?? null,
       } satisfies MarkAttendanceAttemptResult
     }
 

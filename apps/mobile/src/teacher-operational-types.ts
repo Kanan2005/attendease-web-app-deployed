@@ -189,10 +189,27 @@ export interface TeacherReportFilterOption {
   label: string
 }
 
+export interface TeacherSessionTrendRow {
+  sessionId: string
+  classroomId: string
+  classroomTitle: string
+  subjectTitle: string
+  startedAt: string | null
+  endedAt: string | null
+  status: string
+  mode: string
+  presentCount: number
+  absentCount: number
+  totalStudents: number
+  attendancePercentage: number
+  tone: TeacherCardTone
+}
+
 export interface TeacherReportOverviewModel {
   summaryCards: TeacherReportCard[]
   subjectRows: TeacherSubjectReportRow[]
   daywiseRows: TeacherDaywiseReportRowModel[]
+  sessionTrendRows: TeacherSessionTrendRow[]
   studentRows: TeacherStudentReportRowModel[]
   availabilityMessage: string
   filterSummary: string

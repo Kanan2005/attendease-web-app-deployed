@@ -1,5 +1,6 @@
 import type {
   AttendanceSessionDetail,
+  AttendanceSessionHistoryItem,
   ClassroomSummary,
   RosterImportRowInput,
   TeacherDaywiseAttendanceReportRow,
@@ -18,6 +19,7 @@ import type {
   TeacherReportFilterOption,
   TeacherReportOverviewModel,
   TeacherRosterImportDraftModel,
+  TeacherSessionTrendRow,
   TeacherStudentReportRowModel,
   TeacherSubjectReportRow,
 } from "./teacher-operational-types"
@@ -65,6 +67,7 @@ export function buildTeacherReportFilterOptions(input: {
   subjectRows: TeacherSubjectwiseAttendanceReportRow[]
 }) {
   const classroomOptions: TeacherReportFilterOption[] = input.classrooms
+    .filter((c) => c.status !== "ARCHIVED")
     .map((classroom) => ({
       value: classroom.id,
       label: classroom.displayTitle,
@@ -94,6 +97,7 @@ export function buildTeacherReportOverviewModel(input: {
   daywiseRows: TeacherDaywiseAttendanceReportRow[]
   subjectRows: TeacherSubjectwiseAttendanceReportRow[]
   studentRows: TeacherStudentAttendancePercentageReportRow[]
+  sessions: AttendanceSessionHistoryItem[]
   filterLabels?: {
     classroom?: string | null
     subject?: string | null
@@ -124,16 +128,6 @@ export function buildTeacherReportOverviewModel(input: {
   return {
     summaryCards: [
       {
-        label: "Classrooms",
-        value: String(uniqueClassroomIds.size),
-        tone: uniqueClassroomIds.size > 0 ? "primary" : "warning",
-      },
-      {
-        label: "Subjects",
-        value: String(uniqueSubjectIds.size),
-        tone: uniqueSubjectIds.size > 0 ? "success" : "warning",
-      },
-      {
         label: "Students",
         value: String(uniqueStudentIds.size),
         tone: uniqueStudentIds.size > 0 ? "primary" : "warning",
@@ -142,6 +136,11 @@ export function buildTeacherReportOverviewModel(input: {
         label: "Attendance",
         value: `${overallAttendance}%`,
         tone: toneForAttendancePercentage(overallAttendance),
+      },
+      {
+        label: "Follow-up",
+        value: String(studentsNeedingFollowUp),
+        tone: studentsNeedingFollowUp > 0 ? "danger" : "success",
       },
     ],
     subjectRows: input.subjectRows.map((row) => ({
@@ -184,6 +183,28 @@ export function buildTeacherReportOverviewModel(input: {
         : `Attendance date ${formatTeacherDateTime(row.attendanceDate)}`,
       tone: toneForAttendancePercentage(row.attendancePercentage),
     })),
+    sessionTrendRows: [...input.sessions]
+      .filter((s) => s.status === "ENDED" || s.status === "ACTIVE")
+      .sort((a, b) => new Date(b.startedAt ?? 0).getTime() - new Date(a.startedAt ?? 0).getTime())
+      .map((s): TeacherSessionTrendRow => {
+        const total = s.presentCount + s.absentCount
+        const pct = total > 0 ? Math.round((s.presentCount / total) * 100) : 0
+        return {
+          sessionId: s.id,
+          classroomId: s.classroomId,
+          classroomTitle: s.classroomDisplayTitle,
+          subjectTitle: s.subjectTitle,
+          startedAt: s.startedAt,
+          endedAt: s.endedAt,
+          status: s.status,
+          mode: s.mode,
+          presentCount: s.presentCount,
+          absentCount: s.absentCount,
+          totalStudents: total,
+          attendancePercentage: pct,
+          tone: toneForAttendancePercentage(pct),
+        }
+      }),
     studentRows: input.studentRows.map((row) => ({
       studentId: row.studentId,
       studentDisplayName: row.studentDisplayName,

@@ -136,6 +136,7 @@ export interface StudentCourseDiscoveryCardModel {
   classroomId: string
   title: string
   subtitle: string
+  teacherName: string | null
   attendanceTitle: string
   attendanceMessage: string
   attendanceTone: CardTone
@@ -159,4 +160,7 @@ export interface StudentClassroomDetailSummaryModel {
 export interface StudentProfileDraft {
   displayName: string
   preferredShortName: string
+  rollNumber: string
+  degree: string
+  branch: string
 }

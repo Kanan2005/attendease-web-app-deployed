@@ -12,8 +12,10 @@ import {
   getAttendanceCorrectionReviewPollInterval,
 } from "@attendease/domain"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import Link from "next/link"
 import { useEffect, useState } from "react"
 
+import { webTheme } from "@attendease/ui-web"
 import {
   type TeacherWebHistoryFilterDraft,
   buildTeacherWebAcademicFilterOptions,
@@ -200,6 +202,30 @@ export function TeacherSessionHistoryWorkspace(props: {
 
   return (
     <div style={workflowStyles.grid}>
+      <Link
+        href="/teacher/classrooms"
+        className="ui-back-link"
+        style={{ fontSize: 13, color: webTheme.colors.textMuted, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+      >
+        <span aria-hidden>←</span> Back to classrooms
+      </Link>
+
+      <div style={{ marginBottom: 16 }}>
+        <h1
+          style={{
+            margin: 0,
+            fontSize: 24,
+            fontWeight: 700,
+            color: webTheme.colors.text,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          Attendance sessions
+        </h1>
+        <p style={{ margin: "4px 0 0", fontSize: 14, color: webTheme.colors.textMuted }}>
+          Filter by classroom, view records, and save corrections before the edit window closes.
+        </p>
+      </div>
       <TeacherSessionHistoryFiltersPanel
         accessToken={props.accessToken}
         filters={filters}

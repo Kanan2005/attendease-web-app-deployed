@@ -4,6 +4,7 @@ import type { ClassroomSummary } from "@attendease/contracts"
 import { webTheme } from "@attendease/ui-web"
 
 import {
+  buildClassroomMetaLabel,
   buildTeacherWebClassroomScopeSummary,
   formatTeacherWebAttendanceModeLabel,
 } from "../../teacher-classroom-management"
@@ -17,12 +18,17 @@ export function TeacherClassroomOverviewCard(props: {
 }) {
   const courseTitle = props.classroom.classroomTitle ?? props.classroom.displayTitle
   const courseCode = props.classroom.courseCode ?? props.classroom.code
-  const scopeSummary = buildTeacherWebClassroomScopeSummary(props.classroom)
+  const metaLabel = buildClassroomMetaLabel({
+    degree: props.classroom.degree,
+    semesterLabel: props.classroom.semesterLabel,
+    streamLabel: props.classroom.streamLabel,
+  })
+  const scopeSummary = metaLabel ?? buildTeacherWebClassroomScopeSummary(props.classroom)
 
   return (
     <WebSectionCard
       title={`${courseTitle} (${courseCode})`}
-      description="Keep course details, classroom status, join code, QR launch, and the next classroom tools together."
+      description="Course scope, join code, and attendance mode."
     >
       <div style={workflowStyles.summaryGrid}>
         <div style={workflowStyles.summaryMetric}>

@@ -1,285 +1,290 @@
+import { getColors } from "@attendease/ui-mobile"
+import { Ionicons } from "@expo/vector-icons"
+import type React from "react"
 import type { ComponentType } from "react"
-import { Pressable, Text, TextInput, View } from "react-native"
+import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from "react-native"
 
 import {
-  AttendanceCandidateRow,
-  StudentCard,
-  StudentEmptyCard,
   StudentErrorCard,
   StudentLoadingCard,
-  StudentNavAction,
   StudentScreen,
   StudentSessionSetupCard,
-  StudentStatusBanner,
+  formatDateTime,
   styles,
-  toneColorStyle,
 } from "./shared-ui"
 
-type StudentQrAttendanceScreenContentProps = {
-  session: unknown
-  mapStudentApiErrorToMessage: (error: unknown) => string
-  readinessErrorMessage: unknown
-  controller: {
-    meQuery: { isLoading: boolean; error: unknown }
-    classroomsQuery: { isLoading: boolean; error: unknown }
-  }
-  gateModel: {
-    title: string
-    message: string
-    tone: "primary" | "success" | "warning" | "danger"
-    supportHint: string
-    canContinue: boolean
-  }
-  scannerMessage: string | null
-  locationBanner: {
-    tone: "primary" | "success" | "warning" | "danger"
-    title: string
-    message: string
-  } | null
-  locationState: string
-  locationSnapshot: {
-    latitude: number
-    longitude: number
-    accuracyMeters: number
-  } | null
-  markAttendance:
-    | {
-        isPending: boolean
-        data?: {
-          distanceMeters: number
-          presentCount: number
-          absentCount: number
-        }
-      }
-    | unknown
-  markRequest: {
-    qrPayload: string
-    latitude: number
-    longitude: number
-    accuracyMeters: number
-  } | null
-  scanBanner: {
-    tone: "primary" | "success" | "warning" | "danger"
-    title: string
-    message: string
-  }
-  cameraMode: "manual" | "camera"
-  isPreparingCamera: boolean
-  studentRoutes: { deviceStatus: string }
-  selectedCandidate: unknown
-  candidates: Array<unknown>
-  selectedSessionId: string | null
-  scanValue: string
-  cameraViewComponent: ComponentType<{
+type Props = {
+  hasSession: boolean
+  isLoading: boolean
+  loadError: string | null
+  phase: "loading" | "camera_denied" | "location_denied" | "location_unavailable" | "camera" | "verifying" | "success" | "error"
+  errorMessage: string | null
+  gpsStatus: "pending" | "acquiring" | "ready" | "denied" | "unavailable"
+  isLocationError: boolean
+  CameraView: ComponentType<{
     style?: object
-    barcodeScannerSettings?: {
-      barcodeTypes: string[]
-    }
+    zoom?: number
+    barcodeScannerSettings?: { barcodeTypes: string[] }
     onBarcodeScanned?: (event: { data?: string }) => void
   }> | null
-  canPrepareSubmission: boolean
-  resultBanner: { tone: string; title: string; message: string } | null
-  submissionBanner: { tone: string; title: string; message: string } | null
-  submitEnabled: boolean
-  onChangeScanValue: (nextValue: string) => void
-  onSelectSession: (sessionId: string) => void
-  onEnableCameraScanner: () => void | Promise<void>
-  onCaptureCurrentLocation: () => void | Promise<void>
-  onScannedQrPayload: (payload: string) => void
-  onSubmitQrAttendance: () => void | Promise<void>
+  markData: { distanceMeters?: number; markedAt?: string } | null
+  classroomTitle: string | null
+  onBarcodeScan: (payload: string) => void
+  onRetry: () => void
 }
 
-export function StudentQrAttendanceScreenContent(props: StudentQrAttendanceScreenContentProps) {
-  const CameraPreview = props.cameraViewComponent
-  const selectedCandidate = props.selectedCandidate as {
-    classroomTitle: string
-    lectureTitle: string
-    timestamp: string
-  } | null
-  const markAttendance = props.markAttendance as {
-    isPending: boolean
-    data?: {
-      distanceMeters: number
-      presentCount: number
-      absentCount: number
-    }
-  }
+export function StudentQrAttendanceScreenContent(props: Props) {
+  const c = getColors()
+  const CameraPreview = props.CameraView
 
   return (
     <StudentScreen
       title="QR Attendance"
-      subtitle="Scan the live classroom QR, confirm your location, and mark attendance in one short flow."
+      subtitle={props.classroomTitle ?? "Scan the teacher's QR code"}
     >
-      {!props.session ? (
+      {!props.hasSession ? (
         <StudentSessionSetupCard />
-      ) : props.controller.meQuery.isLoading || props.controller.classroomsQuery.isLoading ? (
-        <StudentLoadingCard label="Preparing QR attendance" />
-      ) : props.controller.meQuery.error || props.controller.classroomsQuery.error ? (
-        <StudentErrorCard label={props.mapStudentApiErrorToMessage(props.readinessErrorMessage)} />
-      ) : (
-        <>
-          <StudentCard
-            title={
-              selectedCandidate
-                ? `${selectedCandidate.classroomTitle} is ready`
-                : props.gateModel.title
-            }
-            subtitle={
-              selectedCandidate
-                ? "Follow the steps below while the live QR attendance session is open."
-                : props.gateModel.supportHint
-            }
+      ) : props.isLoading || props.phase === "loading" ? (
+        <StudentLoadingCard label="Opening camera…" />
+      ) : props.loadError ? (
+        <StudentErrorCard label={props.loadError} />
+      ) : props.phase === "location_unavailable" ? (
+        <View style={{ alignItems: "center", gap: 16, paddingVertical: 40 }}>
+          <View style={localStyles.iconCircle(c.warningSoft)}>
+            <Ionicons name="location-outline" size={40} color={c.warning} />
+          </View>
+          <Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>
+            Location Services Off
+          </Text>
+          <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}>
+            QR attendance requires GPS to verify you are in the classroom. Turn on Location Services in your device settings.
+          </Text>
+          <Pressable
+            style={localStyles.settingsButton(c.primary)}
+            onPress={() => void Linking.openSettings()}
           >
-            <Text style={[styles.bodyText, toneColorStyle(props.gateModel.tone)]}>
-              {props.gateModel.message}
-            </Text>
-            {!props.gateModel.canContinue ? (
-              <View style={styles.actionGrid}>
-                <StudentNavAction
-                  href={props.studentRoutes.deviceStatus}
-                  label="Open device status"
-                />
-              </View>
-            ) : null}
-          </StudentCard>
-
-          <StudentCard
-            title="1. Choose session"
-            subtitle="Pick the classroom that is open for QR attendance right now."
+            <Ionicons name="settings-outline" size={18} color="#fff" />
+            <Text style={{ fontSize: 15, fontWeight: "700", color: "#fff" }}>Open Settings</Text>
+          </Pressable>
+          <Pressable style={styles.secondaryButton} onPress={props.onRetry}>
+            <Text style={styles.secondaryButtonLabel}>Retry</Text>
+          </Pressable>
+        </View>
+      ) : props.phase === "location_denied" ? (
+        <View style={{ alignItems: "center", gap: 16, paddingVertical: 40 }}>
+          <View style={localStyles.iconCircle(c.dangerSoft)}>
+            <Ionicons name="location-outline" size={40} color={c.danger} />
+          </View>
+          <Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>
+            Location Access Denied
+          </Text>
+          <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}>
+            QR attendance needs location access to verify you are near the teacher. Please enable it in your device settings.
+          </Text>
+          <Pressable
+            style={localStyles.settingsButton(c.primary)}
+            onPress={() => void Linking.openSettings()}
           >
-            {props.candidates.length ? (
-              props.candidates.map((candidate) => (
-                <AttendanceCandidateRow
-                  key={(candidate as { sessionId: string }).sessionId}
-                  candidate={candidate as never}
-                  selected={
-                    props.selectedSessionId === (candidate as { sessionId: string }).sessionId
-                  }
-                  onPress={() =>
-                    props.onSelectSession((candidate as { sessionId: string }).sessionId)
-                  }
-                />
-              ))
-            ) : (
-              <StudentEmptyCard label="No QR attendance session is open for your classrooms right now." />
-            )}
-          </StudentCard>
-
-          {props.candidates.length > 0 ? (
-            <>
-              <StudentCard
-                title="2. Scan QR"
-                subtitle="Use the camera for the fastest path, or paste the live QR if you already have it."
-              >
-                <StudentStatusBanner status={props.scanBanner} />
-                <TextInput
-                  value={props.scanValue}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  placeholder="Paste live QR"
-                  onChangeText={props.onChangeScanValue}
-                  style={styles.input}
-                />
-                <View style={styles.actionGrid}>
-                  <Pressable
-                    style={styles.secondaryButton}
-                    disabled={props.isPreparingCamera}
-                    onPress={() => void props.onEnableCameraScanner()}
-                  >
-                    <Text style={styles.secondaryButtonLabel}>
-                      {props.isPreparingCamera ? "Opening camera..." : "Use camera"}
-                    </Text>
-                  </Pressable>
-                </View>
-
-                {props.scannerMessage ? (
-                  <Text style={styles.listMeta}>{props.scannerMessage}</Text>
-                ) : null}
-                {props.cameraMode === "camera" && CameraPreview ? (
-                  <View style={styles.cameraPreviewFrame}>
-                    <CameraPreview
-                      style={styles.cameraPreview}
-                      barcodeScannerSettings={{
-                        barcodeTypes: ["qr"],
-                      }}
-                      onBarcodeScanned={(event: { data?: string }) => {
-                        if (typeof event.data === "string" && event.data.length > 0) {
-                          props.onScannedQrPayload(event.data)
-                        }
-                      }}
-                    />
-                  </View>
-                ) : null}
-              </StudentCard>
-
-              <StudentCard
-                title="3. Confirm location"
-                subtitle="AttendEase checks that you are inside the allowed classroom area before it marks attendance."
-              >
-                {props.locationBanner ? (
-                  <StudentStatusBanner status={props.locationBanner} />
-                ) : null}
-                <View style={styles.actionGrid}>
-                  <Pressable
-                    style={styles.secondaryButton}
-                    disabled={props.locationState === "CAPTURING"}
-                    onPress={() => void props.onCaptureCurrentLocation()}
-                  >
-                    <Text style={styles.secondaryButtonLabel}>
-                      {props.locationState === "CAPTURING"
-                        ? "Checking location..."
-                        : "Confirm location"}
-                    </Text>
-                  </Pressable>
-                </View>
-
-                {props.locationSnapshot ? (
-                  <Text style={styles.listMeta}>
-                    {props.locationSnapshot.latitude.toFixed(6)},{" "}
-                    {props.locationSnapshot.longitude.toFixed(6)} ·{" "}
-                    {Math.round(props.locationSnapshot.accuracyMeters)}m accuracy
-                  </Text>
-                ) : null}
-              </StudentCard>
-
-              <StudentCard
-                title="4. Mark attendance"
-                subtitle={
-                  selectedCandidate
-                    ? `${selectedCandidate.lectureTitle} · ${selectedCandidate.timestamp}`
-                    : "Submit once the live QR and your location are ready."
-                }
-              >
-                {props.resultBanner ? (
-                  <StudentStatusBanner status={props.resultBanner as never} />
-                ) : null}
-                {props.submissionBanner ? (
-                  <StudentStatusBanner status={props.submissionBanner as never} />
-                ) : null}
-
-                <Pressable
-                  style={styles.primaryButton}
-                  disabled={
-                    !props.canPrepareSubmission || !props.markRequest || props.submitEnabled
-                  }
-                  onPress={() => void props.onSubmitQrAttendance()}
-                >
-                  <Text style={styles.primaryButtonLabel}>
-                    {props.submitEnabled ? "Marking attendance..." : "Mark attendance"}
-                  </Text>
-                </Pressable>
-
-                {markAttendance.data ? (
-                  <Text style={styles.listMeta}>
-                    Recorded within {Math.round(markAttendance.data.distanceMeters)}m · Present{" "}
-                    {markAttendance.data.presentCount} · Absent {markAttendance.data.absentCount}
-                  </Text>
-                ) : null}
-              </StudentCard>
-            </>
+            <Ionicons name="settings-outline" size={18} color="#fff" />
+            <Text style={{ fontSize: 15, fontWeight: "700", color: "#fff" }}>Open Settings</Text>
+          </Pressable>
+          <Pressable style={styles.secondaryButton} onPress={props.onRetry}>
+            <Text style={styles.secondaryButtonLabel}>Retry</Text>
+          </Pressable>
+        </View>
+      ) : props.phase === "camera_denied" ? (
+        <View style={{ alignItems: "center", gap: 16, paddingVertical: 40 }}>
+          <View style={localStyles.iconCircle(c.dangerSoft)}>
+            <Ionicons name="camera-outline" size={40} color={c.danger} />
+          </View>
+          <Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>
+            Camera Access Denied
+          </Text>
+          <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}>
+            QR attendance needs camera access to scan the code. Please enable it in your device settings.
+          </Text>
+          <Pressable
+            style={localStyles.settingsButton(c.primary)}
+            onPress={() => void Linking.openSettings()}
+          >
+            <Ionicons name="settings-outline" size={18} color="#fff" />
+            <Text style={{ fontSize: 15, fontWeight: "700", color: "#fff" }}>Open Settings</Text>
+          </Pressable>
+          <Pressable style={styles.secondaryButton} onPress={props.onRetry}>
+            <Text style={styles.secondaryButtonLabel}>Retry</Text>
+          </Pressable>
+        </View>
+      ) : props.phase === "success" ? (
+        <View style={{ alignItems: "center", gap: 12, paddingVertical: 40 }}>
+          <View style={localStyles.iconCircle(c.successSoft)}>
+            <Ionicons name="checkmark-circle" size={64} color={c.success} />
+          </View>
+          <Text style={{ fontSize: 22, fontWeight: "800", color: c.success }}>
+            Attendance Marked!
+          </Text>
+          {props.classroomTitle ? (
+            <Text style={{ fontSize: 15, color: c.textMuted }}>{props.classroomTitle}</Text>
           ) : null}
-        </>
+          {props.markData?.markedAt ? (
+            <Text style={{ fontSize: 13, color: c.textSubtle }}>
+              {formatDateTime(props.markData.markedAt)}
+            </Text>
+          ) : null}
+        </View>
+      ) : props.phase === "error" ? (
+        <View style={{ alignItems: "center", gap: 16, paddingVertical: 40 }}>
+          <View style={localStyles.iconCircle(c.dangerSoft)}>
+            <Ionicons name="close-circle" size={48} color={c.danger} />
+          </View>
+          <Text style={{ fontSize: 18, fontWeight: "700", color: c.danger }}>
+            Failed
+          </Text>
+          <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}>
+            {props.errorMessage ?? "Could not mark attendance. Please try again."}
+          </Text>
+          {props.isLocationError ? (
+            <Pressable
+              style={localStyles.settingsButton(c.primary)}
+              onPress={() => void Linking.openSettings()}
+            >
+              <Ionicons name="settings-outline" size={18} color="#fff" />
+              <Text style={{ fontSize: 15, fontWeight: "700", color: "#fff" }}>Open Settings</Text>
+            </Pressable>
+          ) : null}
+          <Pressable
+            style={[styles.primaryButton, { paddingHorizontal: 32 }]}
+            onPress={props.onRetry}
+          >
+            <Text style={styles.primaryButtonLabel}>Retry</Text>
+          </Pressable>
+        </View>
+      ) : props.phase === "verifying" ? (
+        <View style={{ alignItems: "center", gap: 16, paddingVertical: 40 }}>
+          <View style={localStyles.iconCircle(c.primarySoft)}>
+            <ActivityIndicator size="large" color={c.primary} />
+          </View>
+          <Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>
+            Verifying & Marking…
+          </Text>
+          <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}>
+            Checking enrollment, capturing GPS, and marking your attendance.
+          </Text>
+          {props.classroomTitle ? (
+            <Text style={{ fontSize: 13, fontWeight: "600", color: c.primary }}>
+              {props.classroomTitle}
+            </Text>
+          ) : null}
+        </View>
+      ) : CameraPreview ? (
+        <View style={{ gap: 12 }}>
+          <Text style={{ fontSize: 15, fontWeight: "600", color: c.text, textAlign: "center" }}>
+            Point the camera at the QR code
+          </Text>
+          <View
+            style={{
+              borderRadius: 16,
+              overflow: "hidden",
+              aspectRatio: 1,
+              backgroundColor: "#000",
+            }}
+          >
+            <CameraPreview
+              style={StyleSheet.absoluteFill}
+              zoom={0}
+              barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+              onBarcodeScanned={(event: { data?: string }) => {
+                if (typeof event.data === "string" && event.data.length > 0) {
+                  props.onBarcodeScan(event.data)
+                }
+              }}
+            />
+          </View>
+          <GpsStatusBanner status={props.gpsStatus} />
+          <Text style={{ fontSize: 13, color: c.textMuted, textAlign: "center" }}>
+            Attendance will be marked automatically after scanning.
+          </Text>
+        </View>
+      ) : (
+        <StudentLoadingCard label="Preparing camera…" />
       )}
     </StudentScreen>
   )
+}
+
+function GpsStatusBanner(props: { status: "pending" | "acquiring" | "ready" | "denied" | "unavailable" }) {
+  const c = getColors()
+  let icon: React.ComponentProps<typeof Ionicons>["name"] = "location-outline"
+  let label = ""
+  let color = c.textMuted
+  let bg = c.surfaceMuted
+
+  switch (props.status) {
+    case "ready":
+      icon = "checkmark-circle"
+      label = "GPS locked"
+      color = c.success
+      bg = c.successSoft
+      break
+    case "acquiring":
+      icon = "locate-outline"
+      label = "Acquiring GPS…"
+      color = c.primary
+      bg = c.primarySoft
+      break
+    case "denied":
+      icon = "warning-outline"
+      label = "GPS denied — scan may fail"
+      color = c.danger
+      bg = c.dangerSoft
+      break
+    case "unavailable":
+      icon = "warning-outline"
+      label = "GPS unavailable"
+      color = c.warning
+      bg = c.warningSoft
+      break
+    default:
+      icon = "locate-outline"
+      label = "GPS pending"
+      color = c.textMuted
+      bg = c.surfaceMuted
+  }
+
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+        paddingVertical: 8,
+        paddingHorizontal: 14,
+        borderRadius: 10,
+        backgroundColor: bg,
+        alignSelf: "center",
+      }}
+    >
+      <Ionicons name={icon} size={16} color={color} />
+      <Text style={{ fontSize: 13, fontWeight: "600", color }}>{label}</Text>
+    </View>
+  )
+}
+
+const localStyles = {
+  iconCircle: (bg: string) => ({
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: bg,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+  }),
+  settingsButton: (bg: string) => ({
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 8,
+    backgroundColor: bg,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+  }),
 }

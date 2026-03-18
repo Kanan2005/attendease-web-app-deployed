@@ -7,7 +7,7 @@ import type { ClassroomSummary, LectureSummary } from "@attendease/contracts"
 import { WebSectionCard } from "../../web-shell"
 import {
   buildTeacherClassroomLinks,
-  formatPortalDateTime,
+  formatPortalDate,
   teacherWorkflowRoutes,
 } from "../../web-workflows"
 
@@ -15,26 +15,23 @@ import { WorkflowBanner, WorkflowStateCard, workflowStyles } from "../shared"
 
 export function TeacherClassroomNextToolsCard(props: { classroomId: string }) {
   return (
-    <WebSectionCard
-      title="Next classroom tools"
-      description="Keep the main classroom routes close to course management instead of sending teachers back through the main dashboard."
-    >
+    <WebSectionCard title="Quick links" description="Course, roster, schedule, and announcements.">
       <div style={workflowStyles.cardGrid}>
         {buildTeacherClassroomLinks(props.classroomId).map((link) => (
           <Link key={link.href} href={link.href} style={workflowStyles.linkCard}>
             <strong style={{ display: "block", marginBottom: 6 }}>{link.label}</strong>
             <span style={{ color: webTheme.colors.textSubtle, lineHeight: 1.5 }}>
               {link.label === "Course"
-                ? "Review course settings, join code, and QR launch."
+                ? "Settings and QR launch"
                 : link.label === "Roster"
-                  ? "Manage students and membership state."
+                  ? "Students"
                   : link.label === "Schedule"
-                    ? "Plan recurring slots and class exceptions."
+                    ? "Slots and exceptions"
                     : link.label === "Updates"
-                      ? "Post announcements and review classroom activity."
+                      ? "Announcements"
                       : link.label === "Class Sessions"
-                        ? "Review class-session rows linked to attendance."
-                        : "Review classroom import status."}
+                        ? "Lecture sessions"
+                        : "Import status"}
             </span>
           </Link>
         ))}
@@ -50,7 +47,7 @@ export function TeacherClassroomQrLaunchCard(props: {
   return (
     <WebSectionCard
       title="QR + GPS attendance"
-      description="Open the short QR setup flow with this classroom preselected, then move straight into the live teacher controls."
+      description="Start a session with this classroom preselected."
     >
       <div style={workflowStyles.grid}>
         <div style={workflowStyles.summaryGrid}>
@@ -103,10 +100,7 @@ export function TeacherClassroomRecentSessionsCard(props: {
   error: unknown
 }) {
   return (
-    <WebSectionCard
-      title="Recent class sessions"
-      description="Recent class sessions stay nearby so QR launch does not feel disconnected from the classroom schedule."
-    >
+    <WebSectionCard title="Recent lectures" description="Latest lecture sessions for this classroom.">
       {props.loading ? (
         <WorkflowStateCard message="Loading class sessions..." />
       ) : props.error ? (
@@ -122,7 +116,7 @@ export function TeacherClassroomRecentSessionsCard(props: {
             <div key={lecture.id} style={workflowStyles.rowCard}>
               <strong>{lecture.title ?? "Untitled class session"}</strong>
               <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
-                {formatPortalDateTime(lecture.lectureDate)}
+                {formatPortalDate(lecture.lectureDate)}
               </div>
             </div>
           ))}

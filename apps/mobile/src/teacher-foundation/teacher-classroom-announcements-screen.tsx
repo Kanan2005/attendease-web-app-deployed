@@ -1,30 +1,8 @@
-import { createAuthApiClient } from "@attendease/auth"
-import { loadMobileEnv } from "@attendease/config"
-import type {
-  AttendanceSessionDetail,
-  AttendanceSessionStudentSummary,
-  ClassroomDetail,
-  ClassroomRosterListQuery,
-  ClassroomRosterMemberSummary,
-  ExportJobType,
-  LectureSummary,
-  TeacherReportFilters,
-} from "@attendease/contracts"
-import {
-  buildAttendanceCorrectionSaveMessage,
-  buildAttendanceEditChanges,
-  createAttendanceEditDraft,
-  getAttendanceCorrectionReviewPollInterval,
-  updateAttendanceEditDraft,
-} from "@attendease/domain"
-import { mobileTheme } from "@attendease/ui-mobile"
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Link, useRouter } from "expo-router"
-import { useEffect, useState } from "react"
-import type { ReactNode } from "react"
+import { getColors } from "@attendease/ui-mobile"
+import { Ionicons } from "@expo/vector-icons"
+import { useState } from "react"
 import {
   ActivityIndicator,
-  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -32,277 +10,160 @@ import {
   TextInput,
   View,
 } from "react-native"
+import Animated, { FadeInDown } from "react-native-reanimated"
 
-import { buildTeacherSchedulingPreview } from "../academic-management"
-import {
-  getMobileAttendanceListPollInterval,
-  getMobileAttendanceSessionPollInterval,
-} from "../attendance-live"
-import {
-  useTeacherBluetoothAdvertiser,
-  useTeacherBluetoothRuntime,
-  useTeacherBluetoothSessionCreateMutation,
-  useTeacherBluetoothSessionQuery,
-} from "../bluetooth-attendance"
-import { buildTeacherRosterImportPreview } from "../classroom-communications"
-import { mobileEntryRoutes } from "../mobile-entry-models"
-import {
-  buildTeacherClassroomCreateRequest,
-  buildTeacherClassroomScopeOptions,
-  buildTeacherClassroomScopeSummary,
-  buildTeacherClassroomSupportingText,
-  buildTeacherClassroomUpdateRequest,
-  createTeacherClassroomCreateDraft,
-  createTeacherClassroomEditDraft,
-  hasTeacherClassroomEditChanges,
-} from "../teacher-classroom-management"
-import {
-  type TeacherCardTone,
-  type TeacherDashboardActionModel,
-  buildTeacherDashboardModel,
-  buildTeacherRecentSessionTimeline,
-  buildTeacherSessionHistoryPreview,
-  mapTeacherApiErrorToMessage,
-} from "../teacher-models"
-import {
-  type TeacherSessionRosterRowModel,
-  buildTeacherBluetoothActiveStatusModel,
-  buildTeacherBluetoothCandidates,
-  buildTeacherBluetoothControlModel,
-  buildTeacherBluetoothEndSessionModel,
-  buildTeacherBluetoothRecoveryModel,
-  buildTeacherBluetoothSessionShellSnapshot,
-  buildTeacherBluetoothSetupStatusModel,
-  buildTeacherExportAvailabilityModel,
-  buildTeacherExportRequestModel,
-  buildTeacherJoinCodeActionModel,
-  buildTeacherReportFilterOptions,
-  buildTeacherReportOverviewModel,
-  buildTeacherRosterImportDraftModel,
-  buildTeacherSessionDetailOverviewModel,
-  buildTeacherSessionDetailStatusModel,
-  buildTeacherSessionRosterModel,
-} from "../teacher-operational"
-import {
-  buildTeacherInvalidationKeys,
-  invalidateTeacherExperienceQueries,
-  teacherQueryKeys,
-} from "../teacher-query"
-import {
-  type TeacherRosterStatusFilter,
-  buildTeacherRosterAddRequest,
-  buildTeacherRosterFilters,
-  buildTeacherRosterMemberActions,
-  buildTeacherRosterMemberIdentityText,
-  buildTeacherRosterResultSummary,
-  teacherRosterStatusFilters,
-} from "../teacher-roster-management"
+import { mapTeacherApiErrorToMessage } from "../teacher-models"
 import { teacherRoutes } from "../teacher-routes"
+import { useTeacherSession } from "../teacher-session"
 import {
-  type TeacherScheduleDraft,
-  addTeacherScheduleExceptionDraft,
-  addTeacherWeeklySlotDraft,
-  buildTeacherScheduleSaveRequest,
-  createTeacherScheduleDraft,
-  removeTeacherWeeklySlotDraft,
-  updateTeacherScheduleExceptionDraft,
-  updateTeacherWeeklySlotDraft,
-} from "../teacher-schedule-draft"
-import {
-  buildTeacherLoginRequest,
-  getTeacherAccessToken,
-  useTeacherSession,
-} from "../teacher-session"
-import {
-  buildTeacherClassroomsStatus,
-  buildTeacherDashboardStatus,
-  buildTeacherReportsStatus,
-  buildTeacherRosterStatus,
-  buildTeacherSessionHistoryStatus,
-} from "../teacher-view-state"
-
-import {
-  useTeacherAddRosterMemberMutation,
-  useTeacherApplyRosterImportMutation,
-  useTeacherArchiveClassroomMutation,
-  useTeacherAssignmentsQuery,
-  useTeacherAttendanceSessionDetailQuery,
-  useTeacherAttendanceSessionStudentsQuery,
-  useTeacherAttendanceSessionsQuery,
-  useTeacherBluetoothCandidates,
   useTeacherClassroomDetailData,
-  useTeacherClassroomsQuery,
   useTeacherCreateAnnouncementMutation,
-  useTeacherCreateClassroomMutation,
-  useTeacherCreateExportJobMutation,
-  useTeacherCreateLectureMutation,
-  useTeacherCreateRosterImportMutation,
-  useTeacherDashboardData,
-  useTeacherExportAvailability,
-  useTeacherExportJobsQuery,
-  useTeacherFilteredReportsData,
-  useTeacherResetJoinCodeMutation,
-  useTeacherSaveScheduleMutation,
-  useTeacherUpdateAttendanceSessionMutation,
-  useTeacherUpdateClassroomMutation,
-  useTeacherUpdateRosterMemberMutation,
 } from "./queries"
-import {
-  TeacherCard,
-  TeacherEmptyCard,
-  TeacherErrorCard,
-  TeacherLoadingCard,
-  TeacherNavAction,
-  TeacherScreen,
-  TeacherSessionSetupCard,
-  TeacherStatusBanner,
-  clampInteger,
-  formatDateTime,
-  formatEnum,
-  formatMinutes,
-  formatWeekday,
-  resolveTeacherDashboardActionHref,
-  statusCardToneStyle,
-  styles,
-  toneColorStyle,
-} from "./shared-ui"
+import { formatDateTime, styles } from "./shared-ui"
+
+function fmtEnum(s: string) {
+  return s.toLowerCase().split("_").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+}
 
 export function TeacherClassroomAnnouncementsScreen(props: { classroomId: string }) {
   const { session } = useTeacherSession()
+  const c = getColors()
   const classroom = useTeacherClassroomDetailData(props.classroomId)
   const announcementMutation = useTeacherCreateAnnouncementMutation(props.classroomId)
-  const classroomContext = teacherRoutes.classroomContext(props.classroomId)
   const [title, setTitle] = useState("")
   const [body, setBody] = useState("")
-  const [visibility, setVisibility] = useState<"TEACHER_ONLY" | "STUDENT_AND_TEACHER">(
-    "TEACHER_ONLY",
-  )
+  const [visibility, setVisibility] = useState<"TEACHER_ONLY" | "STUDENT_AND_TEACHER">("TEACHER_ONLY")
   const [shouldNotify, setShouldNotify] = useState(false)
 
+  const isLoading = classroom.detailQuery.isLoading || classroom.announcementsQuery.isLoading
+  const loadError = classroom.detailQuery.error ?? classroom.announcementsQuery.error
+  const announcements = classroom.announcementsQuery.data ?? []
+  const canPost = !announcementMutation.isPending && body.trim().length > 0
+
+  if (!session) {
+    return (
+      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+        <Ionicons name="lock-closed-outline" size={40} color={c.textSubtle} />
+        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>Sign in required</Text>
+      </View>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator size="large" color={c.primary} />
+        <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 12 }}>Loading updates…</Text>
+      </View>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+        <Ionicons name="alert-circle" size={40} color={c.danger} />
+        <Text style={{ fontSize: 14, color: c.danger, marginTop: 12, textAlign: "center" }}>{mapTeacherApiErrorToMessage(loadError)}</Text>
+      </View>
+    )
+  }
+
   return (
-    <TeacherScreen
-      title="Announcements"
-      subtitle="Teacher mobile can already read and create classroom stream posts through the live backend."
+    <ScrollView
+      style={{ flex: 1, backgroundColor: c.surface }}
+      contentContainerStyle={{ paddingBottom: 48 }}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
     >
-      {!session ? (
-        <TeacherSessionSetupCard />
-      ) : classroom.detailQuery.isLoading || classroom.announcementsQuery.isLoading ? (
-        <TeacherLoadingCard label="Loading classroom stream" />
-      ) : classroom.detailQuery.error || classroom.announcementsQuery.error ? (
-        <TeacherErrorCard
-          label={mapTeacherApiErrorToMessage(
-            classroom.detailQuery.error ?? classroom.announcementsQuery.error,
-          )}
-        />
-      ) : (
-        <>
-          <TeacherCard
-            title={classroom.detailQuery.data?.displayTitle ?? "Classroom"}
-            subtitle="Teacher-only and student-visible posts share the same classroom stream route."
-          >
-            <View style={styles.actionGrid}>
-              <TeacherNavAction href={classroomContext.detail} label="Back To Detail" />
-              <TeacherNavAction href={classroomContext.roster} label="Open Roster" />
-            </View>
-          </TeacherCard>
+      {/* ── Post form ── */}
+      <View style={as.section}>
+        <Text style={[as.sectionTitle, { color: c.text }]}>Post Update</Text>
+        <View style={[as.card, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}>
+          <TextInput value={title} autoCapitalize="sentences" placeholder="Title (optional)" placeholderTextColor={c.textSubtle} onChangeText={setTitle} style={styles.input} />
+          <TextInput value={body} autoCapitalize="sentences" multiline placeholder="Write your announcement…" placeholderTextColor={c.textSubtle} onChangeText={setBody} style={[styles.input, { minHeight: 80, textAlignVertical: "top" }]} />
 
-          <TeacherCard
-            title="Post Announcement"
-            subtitle="Student-visible posts can also request notification fan-out through the backend abstraction."
-          >
-            <TextInput
-              value={title}
-              autoCapitalize="sentences"
-              placeholder="Optional title"
-              onChangeText={setTitle}
-              style={styles.input}
-            />
-            <TextInput
-              value={body}
-              autoCapitalize="sentences"
-              multiline
-              placeholder="Announcement body"
-              onChangeText={setBody}
-              style={[styles.input, styles.multilineInput]}
-            />
-            <View style={styles.actionGrid}>
-              <Pressable
-                style={styles.secondaryButton}
-                onPress={() => setVisibility("TEACHER_ONLY")}
-              >
-                <Text style={styles.secondaryButtonLabel}>Teacher Only</Text>
-              </Pressable>
-              <Pressable
-                style={styles.secondaryButton}
-                onPress={() => setVisibility("STUDENT_AND_TEACHER")}
-              >
-                <Text style={styles.secondaryButtonLabel}>Student Visible</Text>
-              </Pressable>
-              <Pressable
-                style={styles.secondaryButton}
-                onPress={() => setShouldNotify((currentValue) => !currentValue)}
-              >
-                <Text style={styles.secondaryButtonLabel}>
-                  Notify: {shouldNotify ? "On" : "Off"}
-                </Text>
-              </Pressable>
-            </View>
+          <View style={{ flexDirection: "row", gap: 8 }}>
             <Pressable
-              style={styles.primaryButton}
-              disabled={announcementMutation.isPending || body.trim().length === 0}
-              onPress={() =>
-                announcementMutation.mutate(
-                  {
-                    title,
-                    body,
-                    visibility,
-                    shouldNotify,
-                  },
-                  {
-                    onSuccess: () => {
-                      setTitle("")
-                      setBody("")
-                      setVisibility("TEACHER_ONLY")
-                      setShouldNotify(false)
-                    },
-                  },
-                )
-              }
+              onPress={() => setVisibility("TEACHER_ONLY")}
+              style={[as.toggle, { borderColor: visibility === "TEACHER_ONLY" ? c.primary : c.border, backgroundColor: visibility === "TEACHER_ONLY" ? c.primarySoft : c.surfaceMuted }]}
             >
-              <Text style={styles.primaryButtonLabel}>
-                {announcementMutation.isPending ? "Posting..." : "Post Announcement"}
-              </Text>
+              <Ionicons name="eye-off-outline" size={14} color={visibility === "TEACHER_ONLY" ? c.primary : c.textMuted} />
+              <Text style={{ fontSize: 12, fontWeight: "600", color: visibility === "TEACHER_ONLY" ? c.primary : c.textMuted }}>Teacher Only</Text>
             </Pressable>
-            {announcementMutation.error ? (
-              <Text style={styles.errorText}>
-                {mapTeacherApiErrorToMessage(announcementMutation.error)}
-              </Text>
-            ) : null}
-          </TeacherCard>
+            <Pressable
+              onPress={() => setVisibility("STUDENT_AND_TEACHER")}
+              style={[as.toggle, { borderColor: visibility === "STUDENT_AND_TEACHER" ? c.primary : c.border, backgroundColor: visibility === "STUDENT_AND_TEACHER" ? c.primarySoft : c.surfaceMuted }]}
+            >
+              <Ionicons name="people-outline" size={14} color={visibility === "STUDENT_AND_TEACHER" ? c.primary : c.textMuted} />
+              <Text style={{ fontSize: 12, fontWeight: "600", color: visibility === "STUDENT_AND_TEACHER" ? c.primary : c.textMuted }}>All Students</Text>
+            </Pressable>
+          </View>
 
-          <TeacherCard
-            title="Announcement Feed"
-            subtitle="Teacher mobile sees both operational and student-visible posts."
+          <Pressable onPress={() => setShouldNotify((v) => !v)} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 4 }}>
+            <Ionicons name={shouldNotify ? "notifications" : "notifications-off-outline"} size={16} color={shouldNotify ? c.primary : c.textSubtle} />
+            <Text style={{ fontSize: 13, color: shouldNotify ? c.primary : c.textMuted, fontWeight: "600" }}>
+              {shouldNotify ? "Push notification enabled" : "No notification"}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={[styles.primaryButton, { opacity: canPost ? 1 : 0.5 }]}
+            disabled={!canPost}
+            onPress={() =>
+              announcementMutation.mutate(
+                { title, body, visibility, shouldNotify },
+                { onSuccess: () => { setTitle(""); setBody(""); setVisibility("TEACHER_ONLY"); setShouldNotify(false) } },
+              )
+            }
           >
-            {classroom.announcementsQuery.data?.length ? (
-              classroom.announcementsQuery.data.map((announcement) => (
-                <View key={announcement.id} style={styles.listRow}>
-                  <Text style={styles.listTitle}>
-                    {announcement.title ?? formatEnum(announcement.postType)}
+            <Text style={styles.primaryButtonLabel}>{announcementMutation.isPending ? "Posting…" : "Post"}</Text>
+          </Pressable>
+          {announcementMutation.error ? <Text style={{ fontSize: 12, color: c.danger }}>{mapTeacherApiErrorToMessage(announcementMutation.error)}</Text> : null}
+        </View>
+      </View>
+
+      {/* ── Feed ── */}
+      <View style={as.section}>
+        <Text style={[as.sectionTitle, { color: c.text }]}>Feed ({announcements.length})</Text>
+        {announcements.length === 0 ? (
+          <View style={{ alignItems: "center", paddingVertical: 32, gap: 8 }}>
+            <Ionicons name="megaphone-outline" size={36} color={c.textSubtle} />
+            <Text style={{ fontSize: 14, color: c.textMuted }}>No announcements yet</Text>
+          </View>
+        ) : (
+          announcements.map((a, i) => {
+            const isStudentVisible = a.visibility === "STUDENT_AND_TEACHER"
+            return (
+              <Animated.View key={a.id} entering={FadeInDown.duration(200).delay(i * 30)}>
+                <View style={[as.feedCard, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}>
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                    <Text style={{ fontSize: 14, fontWeight: "700", color: c.text }} numberOfLines={1}>
+                      {a.title ?? fmtEnum(a.postType)}
+                    </Text>
+                    <View style={[as.visBadge, { backgroundColor: isStudentVisible ? c.primarySoft : c.surfaceTint }]}>
+                      <Text style={{ fontSize: 9, fontWeight: "700", color: isStudentVisible ? c.primary : c.textSubtle }}>
+                        {isStudentVisible ? "Public" : "Private"}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={{ fontSize: 13, color: c.text, lineHeight: 19 }}>{a.body}</Text>
+                  <Text style={{ fontSize: 11, color: c.textMuted }}>
+                    {a.authorDisplayName} · {formatDateTime(a.createdAt)}
                   </Text>
-                  <Text style={styles.listMeta}>
-                    {announcement.authorDisplayName} · {formatEnum(announcement.visibility)} ·{" "}
-                    {formatDateTime(announcement.createdAt)}
-                  </Text>
-                  <Text style={styles.bodyText}>{announcement.body}</Text>
                 </View>
-              ))
-            ) : (
-              <TeacherEmptyCard label="No classroom announcements are available yet." />
-            )}
-          </TeacherCard>
-        </>
-      )}
-    </TeacherScreen>
+              </Animated.View>
+            )
+          })
+        )}
+      </View>
+    </ScrollView>
   )
 }
+
+const as = StyleSheet.create({
+  section: { paddingHorizontal: 16, marginTop: 12, gap: 10 },
+  sectionTitle: { fontSize: 16, fontWeight: "700" },
+  card: { borderWidth: 1, borderRadius: 14, padding: 14, gap: 10 },
+  toggle: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 8, borderRadius: 8, borderWidth: 1 },
+  feedCard: { borderWidth: 1, borderRadius: 12, padding: 14, gap: 6 },
+  visBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+})

@@ -53,7 +53,7 @@ function createClassroomSummary(overrides: Partial<ClassroomSummary> = {}): Clas
 }
 
 describe("teacher QR session management helpers", () => {
-  it("keeps only active QR + GPS classrooms in the setup chooser", () => {
+  it("keeps only active and draft classrooms in the setup chooser, excludes archived", () => {
     const options = buildTeacherWebQrSessionClassroomOptions([
       createClassroomSummary(),
       createClassroomSummary({
@@ -76,10 +76,10 @@ describe("teacher QR session management helpers", () => {
       }),
     ])
 
-    expect(options.map((entry) => entry.classroomId)).toEqual(["classroom_1", "classroom_2"])
+    expect(options.map((entry) => entry.classroomId)).toEqual(["classroom_3", "classroom_1", "classroom_2"])
     expect(options[0]).toMatchObject({
-      classroomTitle: "Mathematics",
-      attendanceModeLabel: "QR + GPS",
+      classroomTitle: "Bluetooth Lab",
+      attendanceModeLabel: "Bluetooth",
       deviceRuleLabel: "Device registration required for students",
     })
   })
@@ -100,6 +100,7 @@ describe("teacher QR session management helpers", () => {
 
     expect(createTeacherWebQrSessionStartDraft(options, "classroom_2")).toEqual({
       classroomId: "classroom_2",
+      lectureId: "",
       sessionDurationMinutes: "25",
       gpsRadiusMeters: "60",
       anchorLatitude: "",
@@ -109,6 +110,7 @@ describe("teacher QR session management helpers", () => {
 
     expect(applyTeacherWebQrSessionClassroomSelection(options, "classroom_1")).toEqual({
       classroomId: "classroom_1",
+      lectureId: "",
       sessionDurationMinutes: "15",
       gpsRadiusMeters: "100",
       anchorLatitude: "",
@@ -160,6 +162,7 @@ describe("teacher QR session management helpers", () => {
     expect(
       buildTeacherWebQrSessionStartRequest({
         classroomId: "classroom_1",
+        lectureId: "",
         sessionDurationMinutes: "30",
         gpsRadiusMeters: "75",
         anchorLatitude: "12.971599",

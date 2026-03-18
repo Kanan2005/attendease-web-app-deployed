@@ -76,14 +76,8 @@ export function buildTeacherSessionRosterModel(input: {
   return {
     presentRows,
     absentRows,
-    presentSummary:
-      presentRows.length === 0
-        ? "No students are currently marked present."
-        : `${presentRows.length} student${presentRows.length === 1 ? "" : "s"} currently marked present.`,
-    absentSummary:
-      absentRows.length === 0
-        ? "Everyone in this session is currently marked present."
-        : `${absentRows.length} student${absentRows.length === 1 ? "" : "s"} currently marked absent.`,
+    presentSummary: `${presentRows.length} present`,
+    absentSummary: `${absentRows.length} absent`,
   }
 }
 
@@ -132,31 +126,21 @@ export function buildTeacherSessionDetailOverviewModel(input: {
     ],
     rosterSummary:
       totalStudents > 0
-        ? `${input.session?.presentCount ?? 0} of ${totalStudents} students are currently marked present.`
-        : "No student roster has been loaded for this attendance session yet.",
+        ? `${input.session?.presentCount ?? 0} of ${totalStudents} present`
+        : "",
     timingSummary:
-      input.session?.endedAt && input.session?.editableUntil
-        ? `Ended ${formatTeacherDateTime(input.session.endedAt)} · editable until ${formatTeacherDateTime(input.session.editableUntil)}.`
-        : input.session?.endedAt
-          ? `Ended ${formatTeacherDateTime(input.session.endedAt)}.`
-          : input.session?.startedAt
-            ? `Live since ${formatTeacherDateTime(input.session.startedAt)}.`
-            : "Timing details will appear here once the session starts.",
+      input.session?.endedAt
+        ? `Ended ${formatTeacherDateTime(input.session.endedAt)}`
+        : input.session?.startedAt
+          ? `Started ${formatTeacherDateTime(input.session.startedAt)}`
+          : "",
     correctionSummary: input.session?.editability.isEditable
       ? input.pendingChangeCount > 0
-        ? `${input.pendingChangeCount} correction${input.pendingChangeCount === 1 ? "" : "s"} will refresh the saved attendance totals everywhere once you save.`
-        : "Use the lists below to move a student between present and absent, then save once."
-      : input.session?.status === "ACTIVE"
-        ? "Bluetooth attendance is still live. Present and absent lists keep updating until the session ends."
-        : "The manual correction window is closed. The lists below are now the final saved result.",
-    presentSectionSubtitle:
-      input.session?.status === "ACTIVE"
-        ? "Students already marked during the live attendance session appear here first."
-        : "Students counted present in the saved result stay here unless you move them back to absent.",
-    absentSectionSubtitle:
-      input.session?.status === "ACTIVE"
-        ? "Students who have not checked in yet remain here until the live session ends."
-        : "Students still counted absent stay here unless you move them into the present list.",
+        ? `${input.pendingChangeCount} unsaved correction${input.pendingChangeCount === 1 ? "" : "s"}`
+        : ""
+      : "",
+    presentSectionSubtitle: "",
+    absentSectionSubtitle: "",
   }
 }
 
@@ -167,35 +151,31 @@ export function buildTeacherSessionDetailStatusModel(input: {
 }): TeacherSessionDetailStatusModel {
   if (input.sessionStatus === "ACTIVE" || input.editability?.state === "PENDING_SESSION_END") {
     return {
-      title: "Attendance is still live",
-      message:
-        "Present and absent lists update below while students check in. End the session before making manual corrections.",
+      title: "Session is live",
+      message: "Students are checking in.",
       stateTone: "warning",
     }
   }
 
   if (input.editability?.isEditable && input.pendingChangeCount > 0) {
     return {
-      title: `${input.pendingChangeCount} correction${input.pendingChangeCount === 1 ? "" : "s"} ready to save`,
-      message:
-        "Review the updated present and absent lists, then save once to refresh final counts everywhere.",
+      title: `${input.pendingChangeCount} unsaved correction${input.pendingChangeCount === 1 ? "" : "s"}`,
+      message: "Save when ready.",
       stateTone: "warning",
     }
   }
 
   if (input.editability?.isEditable) {
     return {
-      title: "Corrections are open",
-      message:
-        "Mark students present or absent from these lists, then save once when the attendance truth looks right.",
+      title: "Corrections open",
+      message: "Tap a student to change status.",
       stateTone: "success",
     }
   }
 
   return {
-    title: "Session is read-only",
-    message:
-      "The manual correction window is closed. The present and absent lists below are the final saved result.",
+    title: "Session finalized",
+    message: "No further edits allowed.",
     stateTone: "warning",
   }
 }

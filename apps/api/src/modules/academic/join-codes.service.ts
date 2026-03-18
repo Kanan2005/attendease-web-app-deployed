@@ -211,6 +211,11 @@ export class JoinCodesService {
         },
       })
 
+      await transaction.courseOffering.updateMany({
+        where: { id: joinCode.courseOffering.id, status: "DRAFT" },
+        data: { status: "ACTIVE" },
+      })
+
       await queueOutboxEvent(transaction, {
         topic: "classroom.student.joined",
         aggregateType: "course_offering",

@@ -1,184 +1,128 @@
-import { useEffect, useState } from "react"
+import { getColors } from "@attendease/ui-mobile"
+import { Ionicons } from "@expo/vector-icons"
+import { useNavigation, useRouter } from "expo-router"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { Linking, Pressable } from "react-native"
 
 import { loadMobileEnv } from "@attendease/config"
 import {
-  buildStudentBluetoothDetectionBanner,
-  buildStudentBluetoothScannerBanner,
-  buildStudentBluetoothSubmissionBanner,
-  describeBluetoothSignalStrength,
   mapBluetoothAvailabilityToPermissionState,
-  resolveSelectedBluetoothDetection,
   usePreferredBluetoothDetection,
   useStudentBluetoothMarkAttendanceMutation,
   useStudentBluetoothScanner,
 } from "../bluetooth-attendance"
-import { useStudentBluetoothMarkAttendanceMutation as useBluetoothMarkMutation } from "../bluetooth-attendance"
 import {
   type StudentAttendancePermissionState,
-  buildStudentBluetoothAttendanceErrorBanner,
   buildStudentBluetoothMarkRequest,
 } from "../student-attendance"
 import { mapStudentApiErrorToMessage } from "../student-models"
 import { studentRoutes } from "../student-routes"
 import { useStudentSession } from "../student-session"
-import { buildStudentAttendanceRefreshStatus } from "../student-view-state"
-import type { StudentAttendanceCandidate } from "../student-workflow-models"
 import { useStudentAttendanceController } from "./queries"
 import { StudentBluetoothAttendanceScreenContent } from "./student-bluetooth-attendance-screen-content"
 
 const env = loadMobileEnv(process.env as Record<string, string | undefined>)
 
-export function StudentBluetoothAttendanceScreen() {
+export function StudentBluetoothAttendanceScreen(props: { classroomId?: string }) {
   const { session } = useStudentSession()
+  const router = useRouter()
+  const navigation = useNavigation()
+
+  useLayoutEffect(() => {
+    if (props.classroomId) {
+      navigation.setOptions({
+        headerLeft: () => (
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={12}
+            style={{ marginLeft: 4 }}
+          >
+            <Ionicons name="chevron-back" size={26} color={getColors().primary} />
+          </Pressable>
+        ),
+      })
+    }
+  }, [props.classroomId, navigation, router])
   const controller = useStudentAttendanceController("BLUETOOTH")
   const scannerEnabled = Boolean(controller.selectedCandidate && controller.gateModel.canContinue)
   const scanner = useStudentBluetoothScanner(
     env.EXPO_PUBLIC_ATTENDANCE_BLUETOOTH_SERVICE_UUID,
     scannerEnabled,
   )
-  const bluetoothMarkMutation = useBluetoothMarkMutation()
-  const [selectedDetectionPayload, setSelectedDetectionPayload] = useState<string | null>(null)
-  const preferredDetection = resolveSelectedBluetoothDetection({
-    detections: scanner.detections,
-    selectedPayload: selectedDetectionPayload,
-  })
+  const bluetoothMarkMutation = useStudentBluetoothMarkAttendanceMutation()
   const suggestedDetection = usePreferredBluetoothDetection(scanner.detections)
   const bluetoothPermissionState: StudentAttendancePermissionState =
     mapBluetoothAvailabilityToPermissionState(scanner.availability)
-  const scanBanner = buildStudentBluetoothScannerBanner({
-    availability: scanner.availability,
-    state: scanner.state,
-    errorMessage: scanner.errorMessage,
-  })
-  const detectionBanner = buildStudentBluetoothDetectionBanner({
-    detectionCount: scanner.detections.length,
-    scannerState: scanner.state,
-    selectedDetection: preferredDetection,
-  })
-  const [isRefreshingSessions, setIsRefreshingSessions] = useState(false)
-  const refreshStatus = buildStudentAttendanceRefreshStatus({
-    isRefreshing: isRefreshingSessions,
-    openAttendanceCount: controller.candidates.length,
-    mode: "BLUETOOTH",
-  })
-  const submissionBanner = buildStudentBluetoothSubmissionBanner({
-    detectionCount: scanner.detections.length,
-    selectedDetection: preferredDetection,
-    canPrepareSubmission: controller.canPrepareSubmission,
-    hasSelectedCandidate: Boolean(controller.selectedCandidate),
-    gateCanContinue: controller.gateModel.canContinue,
-  })
-  const hasMultipleDetections = scanner.detections.length > 1
 
+  const didAutoMark = useRef(false)
+  const [phase, setPhase] = useState<"scanning" | "marking" | "success" | "error">("scanning")
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
+  // Sync bluetooth permission state
   useEffect(() => {
-    if (!scanner.availability) {
-      return
-    }
-
-    if (bluetoothPermissionState === controller.permissionState) {
-      return
-    }
-
+    if (!scanner.availability) return
+    if (bluetoothPermissionState === controller.permissionState) return
     controller.setPermissionState(bluetoothPermissionState)
-  }, [
-    bluetoothPermissionState,
-    controller.permissionState,
-    controller.setPermissionState,
-    scanner.availability,
-  ])
+  }, [bluetoothPermissionState, controller.permissionState, controller.setPermissionState, scanner.availability])
 
+  // Auto-mark attendance when a detection is found
   useEffect(() => {
-    if (!suggestedDetection) {
-      setSelectedDetectionPayload(null)
-      return
-    }
+    if (didAutoMark.current) return
+    if (!suggestedDetection) return
+    if (!controller.selectedCandidate) return
+    if (!controller.canPrepareSubmission) return
+    if (bluetoothMarkMutation.isPending) return
 
-    setSelectedDetectionPayload((current) =>
-      current && scanner.detections.some((detection) => detection.payload === current)
-        ? current
-        : suggestedDetection.payload,
-    )
-  }, [scanner.detections, suggestedDetection])
-
-  const refreshSessions = async () => {
-    setIsRefreshingSessions(true)
-    try {
-      await controller.refreshExperience()
-    } finally {
-      setIsRefreshingSessions(false)
-    }
-  }
-
-  const markAttendance = async () => {
-    if (!preferredDetection) {
-      return
-    }
+    didAutoMark.current = true
+    setPhase("marking")
 
     controller.prepareSubmission()
-
-    try {
-      await bluetoothMarkMutation.mutateAsync(
+    bluetoothMarkMutation
+      .mutateAsync(
         buildStudentBluetoothMarkRequest({
-          detectedPayload: preferredDetection.payload,
-          rssi: preferredDetection.rssi,
-          deviceTimestamp: new Date(preferredDetection.detectedAt).toISOString(),
+          detectedPayload: suggestedDetection.payload,
+          rssi: suggestedDetection.rssi,
+          deviceTimestamp: new Date(suggestedDetection.detectedAt).toISOString(),
         }),
       )
-      await controller.refreshAfterSuccess()
-    } catch {
-      controller.setResultKind("ERROR")
-    }
-  }
+      .then(async () => {
+        await controller.refreshAfterSuccess()
+        setPhase("success")
+      })
+      .catch((err) => {
+        setPhase("error")
+        setErrorMsg(err instanceof Error ? err.message : "Failed to mark attendance")
+        didAutoMark.current = false
+      })
+  }, [suggestedDetection, controller.selectedCandidate, controller.canPrepareSubmission, bluetoothMarkMutation.isPending])
 
-  const selectSession = (sessionId: string) => {
-    setSelectedDetectionPayload(null)
-    controller.setSelectedSessionId(sessionId)
-    scanner.clearDetections()
-  }
-
-  const canPrepareSubmission = controller.canPrepareSubmission && Boolean(preferredDetection)
+  const isLoading = controller.meQuery.isLoading || controller.classroomsQuery.isLoading
+  const loadError = controller.meQuery.error ?? controller.classroomsQuery.error
+  const isBluetoothOff = Boolean(scanner.availability && !scanner.availability.poweredOn)
+  const isPermissionIssue = !isBluetoothOff && (scanner.state === "PERMISSION_REQUIRED" || scanner.state === "FAILED")
+  const noCandidates = !isLoading && !loadError && controller.candidates.length === 0
 
   return (
     <StudentBluetoothAttendanceScreenContent
-      session={session as unknown}
-      mapStudentApiErrorToMessage={mapStudentApiErrorToMessage}
-      studentRoutes={studentRoutes}
-      gateModel={controller.gateModel}
-      meQuery={controller.meQuery}
-      classroomsQuery={controller.classroomsQuery}
-      candidates={controller.candidates as StudentAttendanceCandidate[]}
-      selectedSessionId={controller.selectedSessionId}
-      onSelectSession={selectSession}
-      isRefreshingSessions={isRefreshingSessions}
-      onRefreshSessions={refreshSessions}
-      refreshStatus={refreshStatus}
-      scanBanner={scanBanner}
-      detectionBanner={detectionBanner}
-      scanner={scanner}
-      hasMultipleDetections={hasMultipleDetections}
-      detectionCount={scanner.detections.length}
-      preferredDetection={preferredDetection}
-      selectedDetectionPayload={selectedDetectionPayload}
-      onSelectDetection={setSelectedDetectionPayload}
-      onScanStart={() => scanner.start()}
-      onScanStop={() => scanner.stop()}
-      onRefreshBluetooth={() => scanner.refreshAvailability()}
-      onMarkAttendance={markAttendance}
-      canPrepareSubmission={canPrepareSubmission}
-      markInProgress={bluetoothMarkMutation.isPending}
-      markErrorBanner={
-        bluetoothMarkMutation.error
-          ? buildStudentBluetoothAttendanceErrorBanner(bluetoothMarkMutation.error)
-          : null
-      }
-      submissionBanner={submissionBanner}
-      resultBanner={controller.snapshot.resultBanner}
-      selectedCandidate={controller.selectedCandidate as { classroomTitle?: string } | null}
-      describeBluetoothSignalStrength={describeBluetoothSignalStrength}
-      onClearDetections={() => {
+      hasSession={Boolean(session)}
+      isLoading={isLoading}
+      loadError={loadError ? mapStudentApiErrorToMessage(loadError) : null}
+      phase={phase}
+      errorMessage={errorMsg ?? scanner.errorMessage ?? null}
+      isBluetoothOff={isBluetoothOff}
+      isPermissionIssue={isPermissionIssue}
+      noCandidates={noCandidates}
+      scannerState={scanner.state}
+      classroomTitle={controller.selectedCandidate?.classroomTitle ?? null}
+      markData={bluetoothMarkMutation.data ?? null}
+      onRetry={() => {
+        didAutoMark.current = false
+        setPhase("scanning")
+        setErrorMsg(null)
         scanner.clearDetections()
-        setSelectedDetectionPayload(null)
+        void scanner.start()
       }}
+      onOpenSettings={() => void Linking.openSettings()}
     />
   )
 }

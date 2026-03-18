@@ -105,6 +105,7 @@ export function buildStudentCourseDiscoveryCards(input: {
         classroomId: classroom.id,
         title: classroom.displayTitle,
         subtitle: `${classroom.code} · ${formatAttendanceModeLabel(classroom.defaultAttendanceMode)}`,
+        teacherName: classroom.primaryTeacherDisplayName ?? null,
         attendanceTitle:
           candidates.length > 0
             ? candidates.length === 1

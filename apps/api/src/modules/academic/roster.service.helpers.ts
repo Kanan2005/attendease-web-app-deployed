@@ -304,6 +304,7 @@ export function toStudentClassroomMembershipSummary(input: {
     defaultAttendanceMode: "QR_GPS" | "BLUETOOTH" | "MANUAL"
     timezone: string
     requiresTrustedDevice: boolean
+    primaryTeacher?: { displayName: string | null } | null
   }
 }): StudentClassroomMembershipSummary {
   return studentClassroomMembershipSummarySchema.parse({
@@ -314,6 +315,7 @@ export function toStudentClassroomMembershipSummary(input: {
     sectionId: input.sectionId,
     subjectId: input.subjectId,
     primaryTeacherId: input.courseOffering.primaryTeacherId,
+    primaryTeacherDisplayName: input.courseOffering.primaryTeacher?.displayName ?? null,
     code: input.courseOffering.code,
     displayTitle: input.courseOffering.displayTitle,
     classroomStatus: input.courseOffering.status,

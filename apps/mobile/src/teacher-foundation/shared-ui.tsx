@@ -28,12 +28,14 @@ import {
   ActivityIndicator,
   Linking,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   TextInput,
   View,
 } from "react-native"
 import Animated, { FadeInDown } from "react-native-reanimated"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { buildTeacherSchedulingPreview } from "../academic-management"
 import {
@@ -124,14 +126,48 @@ import {
 } from "../teacher-view-state"
 import { styles } from "./styles"
 
-export function TeacherScreen(props: { title: string; subtitle: string; children: ReactNode }) {
+export function TeacherScreen(props: {
+  title: string
+  subtitle: string
+  children: ReactNode
+  headerLeft?: ReactNode
+  onRefresh?: () => void
+  refreshing?: boolean
+}) {
+  const insets = useSafeAreaInsets()
+  const c = getColors()
+
   return (
     <ScrollView
       style={styles.screen}
-      contentContainerStyle={styles.screenContent}
+      contentContainerStyle={[
+        styles.screenContent,
+        { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 32 },
+      ]}
       keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        props.onRefresh ? (
+          <RefreshControl
+            refreshing={props.refreshing ?? false}
+            onRefresh={props.onRefresh}
+            tintColor={c.primary}
+            colors={[c.primary]}
+          />
+        ) : undefined
+      }
     >
-      <GradientHeader title={props.title} subtitle={props.subtitle} eyebrow="Teacher" />
+      {props.headerLeft ? (
+        <View style={{ position: "absolute", top: insets.top + 16, left: 16, zIndex: 10 }}>
+          {props.headerLeft}
+        </View>
+      ) : null}
+      <GradientHeader
+        title={props.title}
+        subtitle={props.subtitle}
+        eyebrow="Teacher"
+        icon={<Ionicons name="briefcase" size={14} color={c.primary} />}
+      />
       {props.children}
     </ScrollView>
   )
@@ -157,6 +193,39 @@ export function resolveTeacherDashboardActionHref(
     default:
       return teacherRoutes.sessionHistory
   }
+}
+
+export function TeacherQuickActions() {
+  return (
+    <AnimatedCard index={2}>
+      <Text style={styles.cardTitle}>Quick actions</Text>
+      <View style={styles.quickActionGrid}>
+        <TeacherQuickActionTile href={teacherRoutes.classrooms} label="Classrooms" icon="library-outline" />
+        <TeacherQuickActionTile href={teacherRoutes.bluetoothCreate} label="Bluetooth" icon="bluetooth-outline" />
+        <TeacherQuickActionTile href={teacherRoutes.sessionHistory} label="Sessions" icon="timer-outline" />
+        <TeacherQuickActionTile href={teacherRoutes.reports} label="Reports" icon="bar-chart-outline" />
+        <TeacherQuickActionTile href={teacherRoutes.exports} label="Exports" icon="download-outline" />
+      </View>
+    </AnimatedCard>
+  )
+}
+
+function TeacherQuickActionTile(props: {
+  href: string
+  label: string
+  icon: React.ComponentProps<typeof Ionicons>["name"]
+}) {
+  const c = getColors()
+  return (
+    <Link href={props.href} asChild>
+      <Pressable style={styles.quickActionTile}>
+        <View style={styles.quickActionIcon}>
+          <Ionicons name={props.icon} size={22} color={c.primary} />
+        </View>
+        <Text style={styles.quickActionLabel}>{props.label}</Text>
+      </Pressable>
+    </Link>
+  )
 }
 
 export function TeacherStatusBanner(props: {
@@ -186,15 +255,26 @@ export function TeacherNavAction(props: {
       }
   label: string
   variant?: "primary" | "secondary"
+  icon?: React.ComponentProps<typeof Ionicons>["name"]
 }) {
+  const c = getColors()
   return (
     <Link href={props.href} asChild>
       <Pressable style={props.variant === "primary" ? styles.primaryNavButton : styles.navButton}>
-        <Text
-          style={props.variant === "primary" ? styles.primaryNavButtonLabel : styles.navButtonLabel}
-        >
-          {props.label}
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          {props.icon ? (
+            <Ionicons
+              name={props.icon}
+              size={15}
+              color={props.variant === "primary" ? c.primaryContrast : c.primary}
+            />
+          ) : null}
+          <Text
+            style={props.variant === "primary" ? styles.primaryNavButtonLabel : styles.navButtonLabel}
+          >
+            {props.label}
+          </Text>
+        </View>
       </Pressable>
     </Link>
   )
@@ -247,7 +327,7 @@ export function TeacherSessionSetupCard() {
   return (
     <TeacherCard
       title="Teacher sign in required"
-      subtitle="Sign in to open classrooms, Bluetooth attendance, session history, reports, and exports."
+      subtitle="Sign in to access your teacher dashboard."
     >
       <Link href={mobileEntryRoutes.teacherSignIn} asChild>
         <Pressable style={styles.primaryButton}>

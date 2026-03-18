@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useEffect, useState } from "react"
-import { Pressable, Text, View } from "react-native"
+import { useNavigation, useRouter } from "expo-router"
+import { useEffect, useLayoutEffect, useState } from "react"
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
 
 import {
   buildAttendanceCorrectionSaveMessage,
@@ -9,39 +10,30 @@ import {
   getAttendanceCorrectionReviewPollInterval,
   updateAttendanceEditDraft,
 } from "@attendease/domain"
+import { getColors } from "@attendease/ui-mobile"
+import { StatCard } from "@attendease/ui-mobile/animated"
+import { Ionicons } from "@expo/vector-icons"
 import { mapTeacherApiErrorToMessage } from "../teacher-models"
 import {
   buildTeacherSessionDetailOverviewModel,
-  buildTeacherSessionDetailStatusModel,
   buildTeacherSessionRosterModel,
 } from "../teacher-operational"
 import { teacherQueryKeys } from "../teacher-query"
-import { teacherRoutes } from "../teacher-routes"
 import { useTeacherSession } from "../teacher-session"
 import {
   useTeacherAttendanceSessionDetailQuery,
   useTeacherAttendanceSessionStudentsQuery,
   useTeacherUpdateAttendanceSessionMutation,
 } from "./queries"
-import {
-  TeacherCard,
-  TeacherEmptyCard,
-  TeacherErrorCard,
-  TeacherLoadingCard,
-  TeacherNavAction,
-  TeacherScreen,
-  TeacherSessionSetupCard,
-  TeacherStatusBanner,
-  formatDateTime,
-  formatEnum,
-  styles,
-  toneColorStyle,
-} from "./shared-ui"
+import { formatEnum, styles } from "./shared-ui"
 import { TeacherSessionStudentSection } from "./teacher-session-student-section"
 
-export function TeacherSessionDetailScreen(props: { sessionId: string }) {
+export function TeacherSessionDetailScreen(props: { sessionId: string; classroomId?: string | undefined }) {
   const { session } = useTeacherSession()
+  const c = getColors()
   const queryClient = useQueryClient()
+  const router = useRouter()
+  const navigation = useNavigation()
   const detailQuery = useTeacherAttendanceSessionDetailQuery(props.sessionId, {
     refetchInterval: (query) => getAttendanceCorrectionReviewPollInterval(query.state.data ?? null),
   })
@@ -53,11 +45,6 @@ export function TeacherSessionDetailScreen(props: { sessionId: string }) {
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const students = studentsQuery.data ?? []
   const pendingChanges = buildAttendanceEditChanges(students, draft)
-  const detailStatus = buildTeacherSessionDetailStatusModel({
-    sessionStatus: detailQuery.data?.status ?? null,
-    editability: detailQuery.data?.editability ?? null,
-    pendingChangeCount: pendingChanges.length,
-  })
   const rosterModel = buildTeacherSessionRosterModel({
     students,
     draft,
@@ -68,194 +55,211 @@ export function TeacherSessionDetailScreen(props: { sessionId: string }) {
     pendingChangeCount: pendingChanges.length,
   })
 
-  useEffect(() => {
-    if (!studentsQuery.data) {
-      return
-    }
+  const resolvedClassroomId = props.classroomId ?? detailQuery.data?.classroomId
 
+  useLayoutEffect(() => {
+    if (resolvedClassroomId) {
+      navigation.setOptions({
+        headerLeft: () => (
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={12}
+            style={{ marginLeft: 4 }}
+          >
+            <Ionicons name="chevron-back" size={26} color={getColors().primary} />
+          </Pressable>
+        ),
+      })
+    }
+  }, [resolvedClassroomId, navigation, router])
+
+  useEffect(() => {
+    if (!studentsQuery.data) return
     setDraft(createAttendanceEditDraft(studentsQuery.data))
   }, [studentsQuery.data])
 
+  if (!session) {
+    return (
+      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+        <Ionicons name="lock-closed-outline" size={40} color={c.textSubtle} />
+        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>Sign in required</Text>
+      </View>
+    )
+  }
+
+  if (detailQuery.isLoading || studentsQuery.isLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator size="large" color={c.primary} />
+        <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 12 }}>Loading session…</Text>
+      </View>
+    )
+  }
+
+  if (detailQuery.error || studentsQuery.error) {
+    return (
+      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+        <Ionicons name="alert-circle" size={40} color={c.danger} />
+        <Text style={{ fontSize: 14, color: c.danger, marginTop: 12, textAlign: "center" }}>{mapTeacherApiErrorToMessage(detailQuery.error ?? studentsQuery.error)}</Text>
+      </View>
+    )
+  }
+
+  if (!detailQuery.data) {
+    return (
+      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+        <Ionicons name="help-circle-outline" size={40} color={c.textSubtle} />
+        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>Session not found</Text>
+      </View>
+    )
+  }
+
+  const sessionData = detailQuery.data
+  const isEditable = sessionData.editability.isEditable
+
   return (
-    <TeacherScreen
-      title="Session Detail"
-      subtitle="Review final attendance quickly, then correct present or absent counts from one clean session screen."
+    <ScrollView
+      style={{ flex: 1, backgroundColor: c.surface }}
+      contentContainerStyle={{ paddingBottom: 40 }}
+      showsVerticalScrollIndicator={false}
     >
-      {!session ? (
-        <TeacherSessionSetupCard />
-      ) : detailQuery.isLoading || studentsQuery.isLoading ? (
-        <TeacherLoadingCard label="Loading session detail" />
-      ) : detailQuery.error || studentsQuery.error ? (
-        <TeacherErrorCard
-          label={mapTeacherApiErrorToMessage(detailQuery.error ?? studentsQuery.error)}
+      {/* ── Overview header ── */}
+      <View style={sd.headerSection}>
+        <Text style={[sd.sessionTitle, { color: c.text }]} numberOfLines={2}>
+          {sessionData.lectureTitle?.length ? sessionData.lectureTitle : sessionData.classroomDisplayTitle}
+        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <Text style={{ fontSize: 13, color: c.textMuted }}>
+            {formatEnum(sessionData.mode)} · {formatEnum(sessionData.status)}
+          </Text>
+          {isEditable ? (
+            <View style={[sd.badge, { backgroundColor: c.warningSoft }]}>
+              <Ionicons name="create-outline" size={11} color={c.warning} />
+              <Text style={{ fontSize: 11, fontWeight: "700", color: c.warning }}>Editable</Text>
+            </View>
+          ) : sessionData.status !== "ACTIVE" ? (
+            <View style={[sd.badge, { backgroundColor: c.primarySoft }]}>
+              <Ionicons name="checkmark-done" size={11} color={c.primary} />
+              <Text style={{ fontSize: 11, fontWeight: "700", color: c.primary }}>Final</Text>
+            </View>
+          ) : null}
+        </View>
+      </View>
+
+      {/* ── Stat cards ── */}
+      <View style={sd.statsRow}>
+        {detailOverview.summaryCards.map((card, i) => (
+          <StatCard key={card.label} label={card.label} value={card.value} tone={card.tone} index={i} />
+        ))}
+      </View>
+      {detailOverview.timingSummary ? (
+        <Text style={{ fontSize: 12, color: c.textMuted, paddingHorizontal: 16, marginBottom: 4 }}>{detailOverview.timingSummary}</Text>
+      ) : null}
+
+      {/* ── Present ── */}
+      <View style={sd.section}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <View style={[sd.sectionIcon, { backgroundColor: c.successSoft }]}>
+            <Ionicons name="checkmark-circle" size={16} color={c.success} />
+          </View>
+          <Text style={[sd.sectionTitle, { color: c.text }]}>Present</Text>
+          <View style={[sd.countBadge, { backgroundColor: c.successSoft }]}>
+            <Text style={{ fontSize: 12, fontWeight: "700", color: c.success }}>{rosterModel.presentRows.length}</Text>
+          </View>
+        </View>
+        <TeacherSessionStudentSection
+          title="Present" subtitle=""
+          rows={rosterModel.presentRows}
+          emptyLabel="No students marked present."
+          isEditable={isEditable}
+          onToggleStatus={(row) => {
+            if (row.actionTargetStatus !== "PRESENT" && row.actionTargetStatus !== "ABSENT") return
+            setDraft((current) => updateAttendanceEditDraft(current, row.attendanceRecordId, row.actionTargetStatus))
+          }}
         />
-      ) : detailQuery.data ? (
-        <>
-          <TeacherStatusBanner
-            status={{
-              tone: detailStatus.stateTone,
-              title: detailStatus.title,
-              message: detailStatus.message,
-            }}
-          />
-          <TeacherCard
-            title={detailQuery.data.classroomDisplayTitle}
-            subtitle={`${formatEnum(detailQuery.data.mode)} · ${formatEnum(detailQuery.data.status)}`}
-          >
-            <Text style={styles.listMeta}>
-              {detailQuery.data.lectureTitle?.length
-                ? detailQuery.data.lectureTitle
-                : "Attendance session"}
-            </Text>
-            <View style={styles.cardGrid}>
-              {detailOverview.summaryCards.map((card) => (
-                <View key={card.label} style={styles.metricCard}>
-                  <Text style={styles.metricLabel}>{card.label}</Text>
-                  <Text style={[styles.metricValue, toneColorStyle(card.tone)]}>{card.value}</Text>
-                </View>
-              ))}
+      </View>
+
+      {/* ── Absent ── */}
+      <View style={sd.section}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <View style={[sd.sectionIcon, { backgroundColor: c.dangerSoft }]}>
+            <Ionicons name="close-circle" size={16} color={c.danger} />
+          </View>
+          <Text style={[sd.sectionTitle, { color: c.text }]}>Absent</Text>
+          <View style={[sd.countBadge, { backgroundColor: c.dangerSoft }]}>
+            <Text style={{ fontSize: 12, fontWeight: "700", color: c.danger }}>{rosterModel.absentRows.length}</Text>
+          </View>
+        </View>
+        <TeacherSessionStudentSection
+          title="Absent" subtitle=""
+          rows={rosterModel.absentRows}
+          emptyLabel="No students marked absent."
+          isEditable={isEditable}
+          onToggleStatus={(row) => {
+            if (row.actionTargetStatus !== "PRESENT" && row.actionTargetStatus !== "ABSENT") return
+            setDraft((current) => updateAttendanceEditDraft(current, row.attendanceRecordId, row.actionTargetStatus))
+          }}
+        />
+      </View>
+
+      {/* ── Corrections ── */}
+      {isEditable ? (
+        <View style={[sd.section, { gap: 10 }]}>
+          <Text style={[sd.sectionTitle, { color: c.text }]}>Corrections</Text>
+          {detailOverview.correctionSummary ? (
+            <Text style={{ fontSize: 12, color: c.textMuted }}>{detailOverview.correctionSummary}</Text>
+          ) : null}
+          {statusMessage ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: c.successSoft, borderRadius: 10, padding: 10 }}>
+              <Ionicons name="checkmark-circle" size={16} color={c.success} />
+              <Text style={{ fontSize: 13, color: c.success, flex: 1 }}>{statusMessage}</Text>
             </View>
-            <Text style={styles.bodyText}>{detailOverview.rosterSummary}</Text>
-            <Text style={styles.listMeta}>
-              Teacher: {detailQuery.data.teacherDisplayName} · {detailQuery.data.subjectCode}
-            </Text>
-            <Text style={styles.listMeta}>{detailOverview.timingSummary}</Text>
-            <Text style={styles.listMeta}>
-              Risk signals stay informational only: {detailQuery.data.suspiciousAttemptCount}
-            </Text>
-          </TeacherCard>
-
-          <TeacherCard title="Present Students" subtitle={detailOverview.presentSectionSubtitle}>
-            <Text style={styles.listMeta}>{rosterModel.presentSummary}</Text>
-            <TeacherSessionStudentSection
-              title="Present"
-              subtitle={detailOverview.presentSectionSubtitle}
-              rows={rosterModel.presentRows}
-              emptyLabel="No students are currently marked present."
-              isEditable={detailQuery.data.editability.isEditable}
-              onToggleStatus={(row) => {
-                if (row.actionTargetStatus !== "PRESENT" && row.actionTargetStatus !== "ABSENT") {
-                  return
-                }
-
-                const nextStatus = row.actionTargetStatus
-
-                setDraft((current) =>
-                  updateAttendanceEditDraft(current, row.attendanceRecordId, nextStatus),
-                )
+          ) : null}
+          {updateAttendanceMutation.error ? (
+            <Text style={{ fontSize: 13, color: c.danger }}>{mapTeacherApiErrorToMessage(updateAttendanceMutation.error)}</Text>
+          ) : null}
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <Pressable
+              style={[styles.primaryButton, { flex: 1, opacity: updateAttendanceMutation.isPending || pendingChanges.length === 0 ? 0.5 : 1 }]}
+              disabled={updateAttendanceMutation.isPending || pendingChanges.length === 0}
+              onPress={() => {
+                void updateAttendanceMutation.mutateAsync({ changes: pendingChanges })
+                  .then((result) => {
+                    setStatusMessage(buildAttendanceCorrectionSaveMessage(result.appliedChangeCount))
+                    setDraft(createAttendanceEditDraft(result.students))
+                    queryClient.setQueryData(teacherQueryKeys.sessionDetail(props.sessionId), result.session)
+                    queryClient.setQueryData(teacherQueryKeys.sessionStudents(props.sessionId), result.students)
+                  })
+                  .catch((err) => {
+                    setStatusMessage(err instanceof Error ? err.message : "Failed to save.")
+                  })
               }}
-            />
-          </TeacherCard>
-
-          <TeacherCard title="Absent Students" subtitle={detailOverview.absentSectionSubtitle}>
-            <Text style={styles.listMeta}>{rosterModel.absentSummary}</Text>
-            <TeacherSessionStudentSection
-              title="Absent"
-              subtitle={detailOverview.absentSectionSubtitle}
-              rows={rosterModel.absentRows}
-              emptyLabel="No students are currently marked absent."
-              isEditable={detailQuery.data.editability.isEditable}
-              onToggleStatus={(row) => {
-                if (row.actionTargetStatus !== "PRESENT" && row.actionTargetStatus !== "ABSENT") {
-                  return
-                }
-
-                const nextStatus = row.actionTargetStatus
-
-                setDraft((current) =>
-                  updateAttendanceEditDraft(current, row.attendanceRecordId, nextStatus),
-                )
-              }}
-            />
-          </TeacherCard>
-
-          <TeacherCard
-            title="Corrections"
-            subtitle={
-              detailQuery.data.editability.isEditable
-                ? "Review grouped present and absent lists, then save once when right."
-                : detailQuery.data.status === "ACTIVE"
-                  ? "Bluetooth attendance is still live. End the session before manual corrections."
-                  : "This attendance session is now read-only."
-            }
-          >
-            <Text style={styles.listMeta}>{detailOverview.correctionSummary}</Text>
-            {statusMessage ? <Text style={styles.bodyText}>{statusMessage}</Text> : null}
-            {updateAttendanceMutation.error ? (
-              <Text style={styles.errorText}>
-                {mapTeacherApiErrorToMessage(updateAttendanceMutation.error)}
+            >
+              <Text style={styles.primaryButtonLabel}>
+                {updateAttendanceMutation.isPending ? "Saving…" : `Save Changes${pendingChanges.length > 0 ? ` (${pendingChanges.length})` : ""}`}
               </Text>
-            ) : null}
-            <View style={styles.actionGrid}>
-              <Pressable
-                style={[
-                  styles.primaryButton,
-                  !detailQuery.data.editability.isEditable ||
-                  updateAttendanceMutation.isPending ||
-                  pendingChanges.length === 0
-                    ? styles.disabledButton
-                    : null,
-                ]}
-                disabled={
-                  !detailQuery.data.editability.isEditable ||
-                  updateAttendanceMutation.isPending ||
-                  pendingChanges.length === 0
-                }
-                onPress={() => {
-                  void updateAttendanceMutation
-                    .mutateAsync({
-                      changes: pendingChanges,
-                    })
-                    .then(async (result) => {
-                      setStatusMessage(
-                        buildAttendanceCorrectionSaveMessage(result.appliedChangeCount),
-                      )
-                      setDraft(createAttendanceEditDraft(result.students))
-                      queryClient.setQueryData(
-                        teacherQueryKeys.sessionDetail(props.sessionId),
-                        result.session,
-                      )
-                      queryClient.setQueryData(
-                        teacherQueryKeys.sessionStudents(props.sessionId),
-                        result.students,
-                      )
-                    })
-                }}
-              >
-                <Text style={styles.primaryButtonLabel}>
-                  {updateAttendanceMutation.isPending ? "Saving..." : "Save Attendance Changes"}
-                </Text>
-              </Pressable>
-              <Pressable
-                style={[
-                  styles.secondaryButton,
-                  pendingChanges.length === 0 ? styles.disabledSecondaryButton : null,
-                ]}
-                disabled={pendingChanges.length === 0}
-                onPress={() => {
-                  setDraft(createAttendanceEditDraft(students))
-                  setStatusMessage("Reset the local edit draft back to the saved session state.")
-                }}
-              >
-                <Text style={styles.secondaryButtonLabel}>Reset Draft</Text>
-              </Pressable>
-            </View>
-          </TeacherCard>
-
-          <TeacherCard
-            title="Navigation"
-            subtitle="Keep session history, reports, and teacher home close while you review final attendance."
-          >
-            <View style={styles.actionGrid}>
-              <TeacherNavAction href={teacherRoutes.sessionHistory} label="Session History" />
-              <TeacherNavAction href={teacherRoutes.reports} label="Reports" />
-              <TeacherNavAction href={teacherRoutes.home} label="Home" />
-            </View>
-          </TeacherCard>
-        </>
-      ) : (
-        <TeacherEmptyCard label="Session detail is unavailable for this attendance session." />
-      )}
-    </TeacherScreen>
+            </Pressable>
+            <Pressable
+              style={{ borderRadius: 10, borderWidth: 1, borderColor: c.border, paddingHorizontal: 16, paddingVertical: 12, alignItems: "center", justifyContent: "center", opacity: pendingChanges.length === 0 ? 0.4 : 1 }}
+              disabled={pendingChanges.length === 0}
+              onPress={() => { setDraft(createAttendanceEditDraft(students)); setStatusMessage("Changes discarded.") }}
+            >
+              <Text style={{ fontSize: 14, fontWeight: "600", color: c.text }}>Reset</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
+    </ScrollView>
   )
 }
+
+const sd = StyleSheet.create({
+  headerSection: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4, gap: 4 },
+  sessionTitle: { fontSize: 18, fontWeight: "700" },
+  badge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  statsRow: { flexDirection: "row", flexWrap: "wrap", gap: 10, paddingHorizontal: 16, paddingVertical: 10 },
+  section: { paddingHorizontal: 16, marginTop: 16, gap: 10 },
+  sectionTitle: { fontSize: 16, fontWeight: "700" },
+  sectionIcon: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  countBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
+})

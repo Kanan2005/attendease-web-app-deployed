@@ -15,15 +15,15 @@ export function TeacherRosterAddStudentCard(props: {
   return (
     <WebSectionCard
       title="Add student"
-      description="Use a student email or identifier so normal classroom roster work stays quick."
+      description="Enter the student's email to enroll them in this course."
     >
       <div style={workflowStyles.grid}>
         <div style={workflowStyles.formGrid}>
           <WorkflowField
-            label="Student email or identifier"
+            label="Email"
             value={props.studentLookup}
             onChange={props.setStudentLookup}
-            placeholder="student.one@attendease.dev or 23CS001"
+            placeholder="student@school.edu"
           />
           <WorkflowSelectField
             label="Starting membership state"
@@ -48,11 +48,7 @@ export function TeacherRosterAddStudentCard(props: {
         </div>
 
         <div style={workflowStyles.stateCard}>
-          Accepted lookup values:
-          <br />
-          student email
-          <br />
-          student identifier
+          You can enter an email address or a student identifier (e.g. roll number).
         </div>
       </div>
     </WebSectionCard>

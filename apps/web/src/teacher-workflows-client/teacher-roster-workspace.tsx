@@ -1,46 +1,49 @@
 "use client"
 
-import type { ClassroomRosterMemberSummary } from "@attendease/contracts"
+import { webTheme } from "@attendease/ui-web"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useState } from "react"
+import { useRef, useState } from "react"
+
+import { AuthApiClientError } from "@attendease/auth"
 
 import {
   buildTeacherWebRosterAddRequest,
   buildTeacherWebRosterFilters,
-  buildTeacherWebRosterResultSummary,
 } from "../teacher-roster-management"
 import { webWorkflowQueryKeys } from "../web-workflows"
 
-import { WorkflowBanner, WorkflowStateCard, bootstrap, workflowStyles } from "./shared"
-import {
-  TeacherRosterAddStudentCard,
-  TeacherRosterFiltersCard,
-} from "./teacher-roster-workspace/add-and-filter-cards"
-import { TeacherRosterHeaderSummary } from "./teacher-roster-workspace/header-summary"
+import { WorkflowBanner, WorkflowField, WorkflowStateCard, bootstrap, workflowStyles } from "./shared"
 import { TeacherRosterStudentsCard } from "./teacher-roster-workspace/students-card"
+
+interface BulkUploadResult {
+  total: number
+  added: number
+  skipped: string[]
+}
+
+function parseEmailsFromText(text: string): string[] {
+  const emailRegex = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g
+  const matches = text.match(emailRegex) ?? []
+  return [...new Set(matches.map((e) => e.toLowerCase()))]
+}
 
 export function TeacherRosterWorkspace(props: {
   accessToken: string | null
   classroomId: string
 }) {
   const queryClient = useQueryClient()
-  const [statusMessage, setStatusMessage] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [statusMessage, setStatusMessage] = useState<{ tone: "info" | "danger"; text: string } | null>(null)
   const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState<
-    "ALL" | "ACTIVE" | "PENDING" | "DROPPED" | "BLOCKED"
-  >("ALL")
-  const [studentLookup, setStudentLookup] = useState("")
-  const [newMemberStatus, setNewMemberStatus] = useState<"ACTIVE" | "PENDING">("PENDING")
+  const [studentEmail, setStudentEmail] = useState("")
+  const [bulkUploading, setBulkUploading] = useState(false)
+  const [bulkResult, setBulkResult] = useState<BulkUploadResult | null>(null)
+
   const rosterFilters = buildTeacherWebRosterFilters({
     searchText: search,
-    statusFilter,
+    statusFilter: "ACTIVE",
   })
 
-  const detailQuery = useQuery({
-    queryKey: webWorkflowQueryKeys.classroomDetail(props.classroomId),
-    enabled: Boolean(props.accessToken),
-    queryFn: () => bootstrap.authClient.getClassroom(props.accessToken ?? "", props.classroomId),
-  })
   const rosterQuery = useQuery({
     queryKey: webWorkflowQueryKeys.classroomRoster(props.classroomId, rosterFilters),
     enabled: Boolean(props.accessToken),
@@ -54,174 +57,286 @@ export function TeacherRosterWorkspace(props: {
 
   const addMember = useMutation({
     mutationFn: async () => {
-      if (!props.accessToken) {
-        throw new Error("Roster updates require an authenticated teacher or admin session.")
-      }
-
+      if (!props.accessToken) throw new Error("Sign in to add students.")
+      if (!studentEmail.trim()) throw new Error("Enter a student email address.")
       return bootstrap.authClient.addClassroomRosterMember(
         props.accessToken,
         props.classroomId,
         buildTeacherWebRosterAddRequest({
-          lookup: studentLookup,
-          membershipStatus: newMemberStatus,
+          lookup: studentEmail.trim(),
+          membershipStatus: "ACTIVE",
         }),
       )
     },
     onSuccess: async (member) => {
-      setStatusMessage(`Added ${member.studentName ?? member.studentDisplayName} to the roster.`)
-      setStudentLookup("")
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: webWorkflowQueryKeys.classroomRoster(props.classroomId),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: webWorkflowQueryKeys.classroomDetail(props.classroomId),
-        }),
-      ])
+      setStatusMessage({ tone: "info", text: `Added ${member.studentName ?? member.studentDisplayName}.` })
+      setStudentEmail("")
+      await queryClient.invalidateQueries({
+        queryKey: webWorkflowQueryKeys.classroomRoster(props.classroomId),
+      })
     },
     onError: (error) => {
-      setStatusMessage(error instanceof Error ? error.message : "Failed to add the roster member.")
-    },
-  })
-
-  const updateMember = useMutation({
-    mutationFn: async (input: {
-      enrollmentId: string
-      membershipStatus: ClassroomRosterMemberSummary["membershipState"]
-    }) => {
-      if (!props.accessToken) {
-        throw new Error("Roster changes require an authenticated teacher or admin session.")
+      let text = "Failed to add student."
+      if (error instanceof AuthApiClientError) {
+        const details = error.details as Record<string, unknown> | undefined
+        if (error.status === 404) text = "No student found with that email address."
+        else text = typeof details?.message === "string" ? details.message : error.message
+      } else if (error instanceof Error) {
+        text = error.message
       }
-
-      return bootstrap.authClient.updateClassroomRosterMember(
-        props.accessToken,
-        props.classroomId,
-        input.enrollmentId,
-        { membershipStatus: input.membershipStatus },
-      )
-    },
-    onSuccess: async (member) => {
-      setStatusMessage(
-        `Updated ${member.studentName ?? member.studentDisplayName} to ${member.membershipState}.`,
-      )
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: webWorkflowQueryKeys.classroomRoster(props.classroomId),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: webWorkflowQueryKeys.classroomDetail(props.classroomId),
-        }),
-      ])
-    },
-    onError: (error) => {
-      setStatusMessage(error instanceof Error ? error.message : "Failed to update roster state.")
+      setStatusMessage({ tone: "danger", text })
     },
   })
 
   const removeMember = useMutation({
     mutationFn: async (enrollmentId: string) => {
-      if (!props.accessToken) {
-        throw new Error("Roster changes require an authenticated teacher or admin session.")
-      }
-
+      if (!props.accessToken) throw new Error("Sign in to remove students.")
       return bootstrap.authClient.removeClassroomRosterMember(
         props.accessToken,
         props.classroomId,
         enrollmentId,
       )
     },
-    onSuccess: async (member) => {
-      setStatusMessage(
-        `Removed ${member.studentName ?? member.studentDisplayName} from the roster.`,
-      )
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: webWorkflowQueryKeys.classroomRoster(props.classroomId),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: webWorkflowQueryKeys.classroomDetail(props.classroomId),
-        }),
-      ])
+    onSuccess: async () => {
+      setStatusMessage({ tone: "info", text: "Student removed." })
+      await queryClient.invalidateQueries({
+        queryKey: webWorkflowQueryKeys.classroomRoster(props.classroomId),
+      })
     },
     onError: (error) => {
-      setStatusMessage(error instanceof Error ? error.message : "Failed to remove the student.")
+      let text = "Failed to remove student."
+      if (error instanceof AuthApiClientError) {
+        const details = error.details as Record<string, unknown> | undefined
+        text = typeof details?.message === "string" ? details.message : error.message
+      } else if (error instanceof Error) {
+        text = error.message
+      }
+      setStatusMessage({ tone: "danger", text })
     },
   })
 
-  if (!props.accessToken) {
-    return <WorkflowStateCard message="Sign in to manage this classroom roster." />
-  }
+  async function handleBulkUpload(file: File) {
+    if (!props.accessToken) return
+    setBulkUploading(true)
+    setBulkResult(null)
+    setStatusMessage(null)
 
-  if (detailQuery.isLoading) {
-    return <WorkflowStateCard message="Loading classroom roster..." />
-  }
+    try {
+      const text = await file.text()
+      const emails = parseEmailsFromText(text)
 
-  if (detailQuery.isError || !detailQuery.data) {
-    return (
-      <WorkflowBanner
-        tone="danger"
-        message={
-          detailQuery.error instanceof Error
-            ? detailQuery.error.message
-            : "Failed to load classroom context for the roster."
+      if (emails.length === 0) {
+        setStatusMessage({ tone: "danger", text: "No valid email addresses found in the uploaded file." })
+        setBulkUploading(false)
+        return
+      }
+
+      const rows = emails.map((email) => ({ studentEmail: email }))
+      const importJob = await bootstrap.authClient.createRosterImportJob(
+        props.accessToken,
+        props.classroomId,
+        { sourceFileName: file.name, rows },
+      )
+
+      const appliedJob = await bootstrap.authClient.applyRosterImportJob(
+        props.accessToken,
+        props.classroomId,
+        importJob.id,
+      )
+
+      const skipped: string[] = []
+      if (appliedJob.rows) {
+        for (const row of appliedJob.rows) {
+          if (row.status !== "APPLIED" && row.studentEmail) {
+            skipped.push(`${row.studentEmail}${row.errorMessage ? ` — ${row.errorMessage}` : ""}`)
+          }
         }
-      />
-    )
+      }
+
+      setBulkResult({
+        total: emails.length,
+        added: appliedJob.appliedRows,
+        skipped,
+      })
+
+      await queryClient.invalidateQueries({
+        queryKey: webWorkflowQueryKeys.classroomRoster(props.classroomId),
+      })
+    } catch (error) {
+      setStatusMessage({
+        tone: "danger",
+        text: error instanceof Error ? error.message : "Bulk upload failed.",
+      })
+    } finally {
+      setBulkUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+    }
   }
 
-  const classroom = detailQuery.data
-  const rosterMembers = rosterQuery.data ?? []
-  const activeCount = rosterMembers.filter((member) => member.membershipState === "ACTIVE").length
-  const pendingCount = rosterMembers.filter((member) => member.membershipState === "PENDING").length
-  const blockedCount = rosterMembers.filter((member) => member.membershipState === "BLOCKED").length
-  const rosterSummary = buildTeacherWebRosterResultSummary({
-    visibleCount: rosterMembers.length,
-    statusFilter,
-    searchText: search,
-  })
+  if (!props.accessToken) {
+    return <WorkflowStateCard message="Sign in to manage students." />
+  }
+
+  const members = rosterQuery.data ?? []
+  const filteredMembers = search.trim()
+    ? members.filter((m) => {
+        const q = search.toLowerCase()
+        return (
+          (m.studentName ?? m.studentDisplayName ?? "").toLowerCase().includes(q) ||
+          (m.studentEmail ?? "").toLowerCase().includes(q) ||
+          (m.studentIdentifier ?? "").toLowerCase().includes(q)
+        )
+      })
+    : members
 
   return (
     <div style={workflowStyles.grid}>
-      <TeacherRosterHeaderSummary
-        classroom={classroom}
-        visibleCount={rosterMembers.length}
-        pendingCount={pendingCount}
-        blockedCount={blockedCount}
-        loading={rosterQuery.isLoading}
-      />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          flexWrap: "wrap",
+          gap: 16,
+        }}
+      >
+        <div>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: 22,
+              fontWeight: 700,
+              color: webTheme.colors.text,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Students
+          </h2>
+          <p style={{ margin: "4px 0 0", fontSize: 14, color: webTheme.colors.textMuted }}>
+            {members.length} enrolled student{members.length !== 1 ? "s" : ""}
+          </p>
+        </div>
 
-      <div style={workflowStyles.twoColumn}>
-        <TeacherRosterAddStudentCard
-          studentLookup={studentLookup}
-          newMemberStatus={newMemberStatus}
-          addPending={addMember.isPending}
-          setStudentLookup={setStudentLookup}
-          setNewMemberStatus={setNewMemberStatus}
-          onAdd={() => addMember.mutate()}
-        />
-        <TeacherRosterFiltersCard
-          search={search}
-          statusFilter={statusFilter}
-          loading={rosterQuery.isLoading}
-          rosterSummary={rosterSummary}
-          activeCount={activeCount}
-          setSearch={setSearch}
-          setStatusFilter={setStatusFilter}
-        />
+        <div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,.txt"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) void handleBulkUpload(file)
+            }}
+          />
+          <button
+            type="button"
+            className="ui-secondary-btn"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={bulkUploading}
+            style={{
+              ...workflowStyles.secondaryButton,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            {bulkUploading ? "Uploading..." : "↑ Upload student list"}
+          </button>
+        </div>
       </div>
 
+      {/* Add student + search row */}
+      <div
+        style={{
+          borderRadius: webTheme.radius.card,
+          border: `1px solid ${webTheme.colors.border}`,
+          background: webTheme.colors.surfaceRaised,
+          padding: "16px 20px",
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr auto",
+          gap: 12,
+          alignItems: "end",
+        }}
+      >
+        <WorkflowField
+          label="Add by email"
+          value={studentEmail}
+          onChange={setStudentEmail}
+          placeholder="student@school.edu"
+        />
+        <WorkflowField
+          label="Search"
+          value={search}
+          onChange={setSearch}
+          placeholder="Name or email..."
+        />
+        <button
+          type="button"
+          className="ui-primary-btn"
+          onClick={() => addMember.mutate()}
+          disabled={addMember.isPending || !studentEmail.trim()}
+          style={workflowStyles.primaryButton}
+        >
+          {addMember.isPending ? "Adding..." : "+ Add"}
+        </button>
+      </div>
+
+      {statusMessage ? (
+        <WorkflowBanner tone={statusMessage.tone} message={statusMessage.text} />
+      ) : null}
+
+      {bulkResult ? (
+        <div
+          style={{
+            borderRadius: 10,
+            border: `1px solid ${bulkResult.skipped.length > 0 ? webTheme.colors.warningBorder : webTheme.colors.successBorder}`,
+            background: bulkResult.skipped.length > 0 ? webTheme.colors.warningSoft : webTheme.colors.successSoft,
+            padding: "14px 18px",
+            fontSize: 14,
+          }}
+        >
+          <p style={{ margin: "0 0 4px", fontWeight: 600, color: webTheme.colors.text }}>
+            Bulk upload complete — {bulkResult.added} of {bulkResult.total} students added
+          </p>
+          {bulkResult.skipped.length > 0 ? (
+            <div style={{ marginTop: 8 }}>
+              <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, color: webTheme.colors.warning }}>
+                Skipped ({bulkResult.skipped.length}):
+              </p>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: webTheme.colors.textMuted, lineHeight: 1.7 }}>
+                {bulkResult.skipped.map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setBulkResult(null)}
+            style={{
+              marginTop: 10,
+              border: "none",
+              background: "transparent",
+              color: webTheme.colors.textSubtle,
+              fontSize: 12,
+              cursor: "pointer",
+              padding: 0,
+              textDecoration: "underline",
+            }}
+          >
+            Dismiss
+          </button>
+        </div>
+      ) : null}
+
       <TeacherRosterStudentsCard
-        members={rosterQuery.data}
+        members={filteredMembers}
         loading={rosterQuery.isLoading}
         error={rosterQuery.error}
-        rosterSummary={rosterSummary}
-        updatePending={updateMember.isPending}
         removePending={removeMember.isPending}
-        onUpdate={(input) => updateMember.mutate(input)}
         onRemove={(enrollmentId) => removeMember.mutate(enrollmentId)}
+        hasSearchFilter={Boolean(search.trim())}
       />
-
-      {statusMessage ? <WorkflowBanner tone="info" message={statusMessage} /> : null}
     </div>
   )
 }

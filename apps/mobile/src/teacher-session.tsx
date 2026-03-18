@@ -168,6 +168,7 @@ export function TeacherSessionProvider(props: { children: ReactNode }) {
     setSession(null)
     setStatus("signed_out")
     setErrorMessage(null)
+    setDraft(bootstrap.defaultDraft)
     queryClient.removeQueries({
       queryKey: ["teacher"],
     })

@@ -3,12 +3,7 @@
 import type { ClassroomRosterMemberSummary } from "@attendease/contracts"
 import { webTheme } from "@attendease/ui-web"
 
-import {
-  buildTeacherWebRosterMemberActions,
-  buildTeacherWebRosterMemberIdentityText,
-} from "../../teacher-roster-management"
-import { WebSectionCard } from "../../web-shell"
-import { formatPortalDateTime } from "../../web-workflows"
+import { buildTeacherWebRosterMemberIdentityText } from "../../teacher-roster-management"
 
 import { WorkflowBanner, WorkflowStateCard, workflowStyles } from "../shared"
 
@@ -16,106 +11,129 @@ export function TeacherRosterStudentsCard(props: {
   members: ClassroomRosterMemberSummary[] | undefined
   loading: boolean
   error: unknown
-  rosterSummary: string
-  updatePending: boolean
   removePending: boolean
-  onUpdate: (input: {
-    enrollmentId: string
-    membershipStatus: ClassroomRosterMemberSummary["membershipState"]
-  }) => void
   onRemove: (enrollmentId: string) => void
+  hasSearchFilter?: boolean
 }) {
-  return (
-    <WebSectionCard
-      title="Students"
-      description="Review each student in course context, update membership state where policy allows, and remove a student explicitly when needed."
-    >
-      {props.loading ? <WorkflowStateCard message="Loading roster..." /> : null}
-      {props.error ? (
-        <WorkflowBanner
-          tone="danger"
-          message={
-            props.error instanceof Error ? props.error.message : "Failed to load the roster."
-          }
-        />
-      ) : null}
-      {props.members && props.members.length === 0 ? (
-        <WorkflowStateCard message={props.rosterSummary} />
-      ) : null}
+  if (props.loading) {
+    return (
+      <div
+        style={{
+          borderRadius: webTheme.radius.card,
+          overflow: "hidden",
+          border: `1px solid ${webTheme.colors.border}`,
+        }}
+      >
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="skeleton"
+            style={{
+              height: 48,
+              background: webTheme.colors.surfaceRaised,
+              borderBottom: `1px solid ${webTheme.colors.border}`,
+            }}
+          />
+        ))}
+      </div>
+    )
+  }
 
-      {props.members && props.members.length > 0 ? (
-        <div style={workflowStyles.cardGrid}>
-          {props.members.map((member) => {
-            const membershipSource = member.membershipSource ?? member.source
+  if (props.error) {
+    return (
+      <WorkflowBanner
+        tone="danger"
+        message={
+          props.error instanceof Error ? props.error.message : "Failed to load students."
+        }
+      />
+    )
+  }
 
-            return (
-              <div key={member.id} style={workflowStyles.rowCard}>
-                <div style={{ display: "grid", gap: 10 }}>
-                  <div>
-                    <strong style={{ display: "block", fontSize: 18 }}>
-                      {member.studentName ?? member.studentDisplayName}
-                    </strong>
-                    <div
-                      style={{ color: webTheme.colors.textSubtle, marginTop: 6, lineHeight: 1.5 }}
-                    >
-                      {buildTeacherWebRosterMemberIdentityText(member)}
-                    </div>
-                  </div>
-
-                  <div style={workflowStyles.buttonRow}>
-                    <span style={workflowStyles.pill}>{member.membershipState}</span>
-                    <span style={workflowStyles.pill}>{membershipSource}</span>
-                    {member.attendanceDisabled ? (
-                      <span style={workflowStyles.pill}>Attendance paused</span>
-                    ) : null}
-                  </div>
-
-                  <div style={{ color: webTheme.colors.textMuted, lineHeight: 1.6 }}>
-                    Member since {formatPortalDateTime(member.memberSince)}
-                    <br />
-                    Joined via {membershipSource.toLowerCase().replaceAll("_", " ")}
-                  </div>
-
-                  <div style={workflowStyles.buttonRow}>
-                    {buildTeacherWebRosterMemberActions(member).map((action) =>
-                      action.kind === "REMOVE" ? (
-                        <button
-                          type="button"
-                          key={`${member.id}-${action.label}`}
-                          onClick={() => props.onRemove(member.id)}
-                          disabled={props.removePending || props.updatePending}
-                          style={workflowStyles.dangerButton}
-                        >
-                          {props.removePending ? "Removing..." : action.label}
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          key={`${member.id}-${action.membershipStatus}`}
-                          onClick={() =>
-                            props.onUpdate({
-                              enrollmentId: member.id,
-                              membershipStatus: action.membershipStatus,
-                            })
-                          }
-                          disabled={props.updatePending || props.removePending}
-                          style={
-                            action.tone === "danger"
-                              ? workflowStyles.dangerButton
-                              : workflowStyles.secondaryButton
-                          }
-                        >
-                          {props.updatePending ? "Saving..." : action.label}
-                        </button>
-                      ),
-                    )}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+  if (!props.members || props.members.length === 0) {
+    const isFiltered = props.hasSearchFilter
+    return (
+      <div style={{ textAlign: "center", padding: "56px 24px", color: webTheme.colors.textMuted }}>
+        <div
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 14,
+            background: webTheme.colors.accentSoft,
+            display: "inline-grid",
+            placeItems: "center",
+            fontSize: 20,
+            marginBottom: 14,
+          }}
+        >
+          {isFiltered ? "🔍" : "👥"}
         </div>
-      ) : null}
-    </WebSectionCard>
+        <p style={{ fontSize: 16, fontWeight: 600, color: webTheme.colors.text, margin: "0 0 4px" }}>
+          {isFiltered ? "No students match your search" : "No students enrolled"}
+        </p>
+        <p style={{ margin: 0, fontSize: 14 }}>
+          {isFiltered ? "Try a different search term." : "Add students using their email address above."}
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      style={{
+        borderRadius: webTheme.radius.card,
+        border: `1px solid ${webTheme.colors.border}`,
+        overflow: "hidden",
+      }}
+    >
+      <table style={workflowStyles.table}>
+        <thead>
+          <tr>
+            <th style={{ ...workflowStyles.th, width: 48 }}>#</th>
+            <th style={workflowStyles.th}>Name</th>
+            <th style={workflowStyles.th}>Email / ID</th>
+            <th style={{ ...workflowStyles.th, width: 90, textAlign: "right" as const }}>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {props.members.map((member, index) => (
+            <tr key={member.id}>
+              <td style={{ ...workflowStyles.td, color: webTheme.colors.textSubtle, fontSize: 13 }}>
+                {index + 1}
+              </td>
+              <td style={workflowStyles.td}>
+                <span style={{ fontWeight: 500 }}>
+                  {member.studentName ?? member.studentDisplayName}
+                </span>
+              </td>
+              <td style={{ ...workflowStyles.td, color: webTheme.colors.textMuted, fontSize: 13 }}>
+                {buildTeacherWebRosterMemberIdentityText(member)}
+              </td>
+              <td style={{ ...workflowStyles.td, textAlign: "right" as const }}>
+                <button
+                  type="button"
+                  onClick={() => props.onRemove(member.id)}
+                  disabled={props.removePending}
+                  aria-label={`Remove ${member.studentName ?? member.studentDisplayName}`}
+                  className="ui-danger-action"
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    color: webTheme.colors.danger,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    padding: "4px 10px",
+                    borderRadius: 6,
+                  }}
+                >
+                  {props.removePending ? "..." : "Remove"}
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }

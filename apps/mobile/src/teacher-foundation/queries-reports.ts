@@ -11,10 +11,6 @@ import { getTeacherAccessToken, useTeacherSession } from "../teacher-session"
 import { useTeacherClassroomsQuery } from "./queries-core"
 import { authClient } from "./queries-shared"
 
-export function useTeacherReportsData() {
-  return useTeacherFilteredReportsData()
-}
-
 export function useTeacherFilteredReportsData(filters: TeacherReportFilters = {}) {
   const { session } = useTeacherSession()
   const classroomsQuery = useTeacherClassroomsQuery()
@@ -26,6 +22,16 @@ export function useTeacherFilteredReportsData(filters: TeacherReportFilters = {}
     ...(filters.from ? { from: filters.from } : {}),
     ...(filters.to ? { to: filters.to } : {}),
   }
+
+  const sessionsQuery = useQuery({
+    queryKey: [...teacherQueryKeys.sessionHistory(), normalizedFilters] as const,
+    enabled: Boolean(session),
+    queryFn: async () =>
+      authClient.listAttendanceSessions(getTeacherAccessToken(session), {
+        ...(normalizedFilters.classroomId ? { classroomId: normalizedFilters.classroomId } : {}),
+        ...(normalizedFilters.subjectId ? { subjectId: normalizedFilters.subjectId } : {}),
+      }),
+  })
 
   const daywiseQuery = useQuery({
     queryKey: teacherQueryKeys.reportDaywise(normalizedFilters),
@@ -82,6 +88,7 @@ export function useTeacherFilteredReportsData(filters: TeacherReportFilters = {}
 
   return {
     classroomsQuery,
+    sessionsQuery,
     daywiseQuery,
     subjectwiseQuery,
     studentPercentagesQuery,
@@ -91,6 +98,7 @@ export function useTeacherFilteredReportsData(filters: TeacherReportFilters = {}
       daywiseRows: daywiseQuery.data ?? [],
       subjectRows: subjectwiseQuery.data ?? [],
       studentRows: studentPercentagesQuery.data ?? [],
+      sessions: sessionsQuery.data ?? [],
       filterLabels: {
         classroom: selectedClassroomLabel,
         subject: selectedSubjectLabel,

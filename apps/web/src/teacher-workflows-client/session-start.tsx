@@ -101,6 +101,7 @@ import {
 export function TeacherSessionStartWorkspace(props: {
   accessToken: string | null
   initialClassroomId?: string | null
+  initialLectureId?: string | null
 }) {
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -139,7 +140,11 @@ export function TeacherSessionStartWorkspace(props: {
         return current
       }
 
-      return createTeacherWebQrSessionStartDraft(nextOptions, props.initialClassroomId ?? undefined)
+      return createTeacherWebQrSessionStartDraft(
+        nextOptions,
+        props.initialClassroomId ?? undefined,
+        props.initialLectureId ?? undefined,
+      )
     })
 
     if (
@@ -269,8 +274,20 @@ export function TeacherSessionStartWorkspace(props: {
     )
   }
 
+  const backHref = props.initialClassroomId
+    ? teacherWorkflowRoutes.classroomLectures(props.initialClassroomId)
+    : teacherWorkflowRoutes.classrooms
+
   return (
     <div style={workflowStyles.grid}>
+      <Link
+        href={backHref}
+        className="ui-back-link"
+        style={{ fontSize: 13, color: webTheme.colors.textMuted, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+      >
+        <span aria-hidden>←</span> {props.initialClassroomId ? "Back to sessions" : "Back to classrooms"}
+      </Link>
+
       <WebSectionCard
         title="Start QR + GPS attendance"
         description="Choose the classroom, set time and distance, confirm browser location, and open the live teacher controls."
@@ -325,43 +342,77 @@ export function TeacherSessionStartWorkspace(props: {
             />
           </div>
 
-          <div style={workflowStyles.rowCard}>
-            <strong style={{ display: "block", marginBottom: 8 }}>Teacher location</strong>
+          <div
+            style={{
+              ...workflowStyles.rowCard,
+              borderColor: draft.anchorLatitude && draft.anchorLongitude
+                ? webTheme.colors.successBorder
+                : webTheme.colors.warningBorder,
+              background: draft.anchorLatitude && draft.anchorLongitude
+                ? webTheme.colors.successSoft
+                : webTheme.colors.warningSoft,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <span
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  background: draft.anchorLatitude && draft.anchorLongitude
+                    ? webTheme.colors.success
+                    : webTheme.colors.warning,
+                  flexShrink: 0,
+                }}
+              />
+              <strong style={{ color: webTheme.colors.text }}>Teacher location</strong>
+            </div>
             <p style={{ margin: 0, color: webTheme.colors.textMuted, lineHeight: 1.6 }}>
-              Use the current browser location before you start the session. Students will be
-              checked against this location and the allowed distance above.
-            </p>
-            <p style={{ margin: "12px 0 0", color: webTheme.colors.text, lineHeight: 1.6 }}>
               {draft.anchorLatitude && draft.anchorLongitude
                 ? `Locked at ${draft.anchorLatitude}, ${draft.anchorLongitude}`
-                : "Location not captured yet."}
+                : "Capture your browser location before starting. Students will be validated against this anchor point."}
             </p>
             {locationMessage ? (
-              <p style={{ margin: "10px 0 0", color: webTheme.colors.accent, lineHeight: 1.6 }}>
+              <p style={{ margin: "8px 0 0", color: webTheme.colors.success, fontWeight: 500, lineHeight: 1.6 }}>
                 {locationMessage}
               </p>
             ) : null}
-          </div>
-
-          <div style={workflowStyles.buttonRow}>
             <button
               type="button"
               onClick={() => void useBrowserLocationAnchor()}
               disabled={isResolvingBrowserLocation}
-              style={workflowStyles.secondaryButton}
+              className="ui-secondary-btn"
+              style={{
+                ...workflowStyles.secondaryButton,
+                marginTop: 12,
+              }}
             >
-              {isResolvingBrowserLocation ? "Capturing location..." : "Use browser location"}
+              {isResolvingBrowserLocation
+                ? "Capturing location..."
+                : draft.anchorLatitude && draft.anchorLongitude
+                  ? "Recapture location"
+                  : "Use browser location"}
             </button>
+          </div>
+
+          <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
             <button
               type="button"
               onClick={() => createQrSession.mutate()}
               disabled={createQrSession.isPending || !readiness.canStart}
-              style={workflowStyles.primaryButton}
+              className="ui-primary-btn"
+              style={{
+                ...workflowStyles.primaryButton,
+                background: readiness.canStart ? webTheme.gradients.accentButton : undefined,
+                color: readiness.canStart ? "#fff" : undefined,
+                boxShadow: readiness.canStart ? webTheme.shadow.glow : undefined,
+              }}
             >
               {createQrSession.isPending ? "Starting session..." : "Start QR session"}
             </button>
             <Link
               href={teacherWorkflowRoutes.sessionHistory}
+              className="ui-secondary-btn"
               style={workflowStyles.secondaryButton}
             >
               Open session history

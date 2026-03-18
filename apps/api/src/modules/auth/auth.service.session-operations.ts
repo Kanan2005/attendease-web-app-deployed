@@ -166,6 +166,7 @@ export async function getAuthenticatedUser(context: AuthServiceContext, auth: Au
     },
     include: {
       roles: true,
+      studentProfile: { select: { rollNumber: true, degree: true, branch: true } },
     },
   })
 
@@ -197,6 +198,9 @@ export async function getAuthenticatedUser(context: AuthServiceContext, auth: Au
       user,
       availableRoles,
       activeRole: auth.activeRole,
+      rollNumber: user.studentProfile?.rollNumber ?? null,
+      degree: user.studentProfile?.degree ?? null,
+      branch: user.studentProfile?.branch ?? null,
     }),
     assignments,
     enrollments,
@@ -207,11 +211,20 @@ export async function validateAccessTokenContext(
   context: AuthServiceContext,
   token: string,
 ): Promise<AuthRequestContext> {
-  const payload = await verifyAccessToken(token, {
-    secret: context.env.AUTH_ACCESS_TOKEN_SECRET,
-    issuer: context.env.AUTH_ISSUER,
-    audience: context.env.AUTH_AUDIENCE,
-  })
+  let payload: Awaited<ReturnType<typeof verifyAccessToken>>
+
+  try {
+    payload = await verifyAccessToken(token, {
+      secret: context.env.AUTH_ACCESS_TOKEN_SECRET,
+      issuer: context.env.AUTH_ISSUER,
+      audience: context.env.AUTH_AUDIENCE,
+    })
+  } catch (err) {
+    if (err instanceof Error && err.name === "JWTExpired") {
+      throw new UnauthorizedException("Access token has expired. Sign in again.")
+    }
+    throw err
+  }
 
   const session = await context.database.prisma.authSession.findUnique({
     where: {

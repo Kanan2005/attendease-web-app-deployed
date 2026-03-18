@@ -22,3 +22,7 @@ apps/api/dist
 apps/worker/dist
 minio-data
 mailpit-data
+
+# Local Netlify folder
+.netlify
+.vercel

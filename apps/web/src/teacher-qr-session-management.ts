@@ -19,6 +19,7 @@ export interface TeacherWebQrSessionClassroomOption {
 
 export interface TeacherWebQrSessionStartDraft {
   classroomId: string
+  lectureId: string
   sessionDurationMinutes: string
   gpsRadiusMeters: string
   anchorLatitude: string
@@ -60,9 +61,8 @@ export function buildTeacherWebQrSessionClassroomOptions(
   return classrooms
     .filter(
       (classroom) =>
-        classroom.status === "ACTIVE" &&
-        classroom.archivedAt === null &&
-        classroom.defaultAttendanceMode === "QR_GPS",
+        (classroom.status === "ACTIVE" || classroom.status === "DRAFT") &&
+        classroom.archivedAt === null,
     )
     .map((classroom) => ({
       classroomId: classroom.id,
@@ -87,6 +87,7 @@ export function buildTeacherWebQrSessionClassroomOptions(
 export function createTeacherWebQrSessionStartDraft(
   classrooms: TeacherWebQrSessionClassroomOption[],
   preferredClassroomId?: string,
+  initialLectureId?: string,
 ): TeacherWebQrSessionStartDraft | null {
   const classroom =
     classrooms.find((entry) => entry.classroomId === preferredClassroomId) ?? classrooms[0] ?? null
@@ -97,6 +98,7 @@ export function createTeacherWebQrSessionStartDraft(
 
   return {
     classroomId: classroom.classroomId,
+    lectureId: initialLectureId ?? "",
     sessionDurationMinutes: String(classroom.defaultSessionDurationMinutes),
     gpsRadiusMeters: String(classroom.defaultGpsRadiusMeters),
     anchorLatitude: "",
@@ -117,6 +119,7 @@ export function applyTeacherWebQrSessionClassroomSelection(
 
   return {
     classroomId: classroom.classroomId,
+    lectureId: "",
     sessionDurationMinutes: String(classroom.defaultSessionDurationMinutes),
     gpsRadiusMeters: String(classroom.defaultGpsRadiusMeters),
     anchorLatitude: "",
@@ -177,6 +180,7 @@ export function buildTeacherWebQrSessionStartRequest(
 ): CreateQrSessionRequest {
   return {
     classroomId: draft.classroomId,
+    ...(draft.lectureId.trim() ? { lectureId: draft.lectureId.trim() } : {}),
     sessionDurationMinutes: Number(draft.sessionDurationMinutes),
     gpsRadiusMeters: Number(draft.gpsRadiusMeters),
     anchorType: "TEACHER_SELECTED",

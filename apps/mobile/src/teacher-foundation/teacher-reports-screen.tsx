@@ -18,18 +18,21 @@ export function TeacherReportsScreen() {
     hasSession: Boolean(session),
     isLoading:
       reports.classroomsQuery.isLoading ||
+      reports.sessionsQuery.isLoading ||
       reports.daywiseQuery.isLoading ||
       reports.subjectwiseQuery.isLoading ||
       reports.studentPercentagesQuery.isLoading ||
       reports.subjectOptionsQuery.isLoading,
     errorMessage:
       reports.classroomsQuery.error ||
+      reports.sessionsQuery.error ||
       reports.daywiseQuery.error ||
       reports.subjectwiseQuery.error ||
       reports.studentPercentagesQuery.error ||
       reports.subjectOptionsQuery.error
         ? mapTeacherApiErrorToMessage(
             reports.classroomsQuery.error ??
+              reports.sessionsQuery.error ??
               reports.daywiseQuery.error ??
               reports.subjectwiseQuery.error ??
               reports.studentPercentagesQuery.error ??

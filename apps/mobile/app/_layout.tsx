@@ -2,7 +2,9 @@ import { getColors, setMobileColorScheme } from "@attendease/ui-mobile"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { Stack } from "expo-router"
 import { StatusBar, useColorScheme } from "react-native"
+import { SafeAreaProvider } from "react-native-safe-area-context"
 
+import { AdminSessionProvider } from "../src/admin-session"
 import { mobileQueryClient } from "../src/query-client"
 import { StudentSessionProvider } from "../src/student-session"
 import { TeacherSessionProvider } from "../src/teacher-session"
@@ -14,22 +16,27 @@ export default function RootLayout() {
   const c = getColors()
 
   return (
-    <QueryClientProvider client={mobileQueryClient}>
-      <StatusBar
-        barStyle={scheme === "dark" ? "light-content" : "dark-content"}
-        backgroundColor={c.surface}
-      />
-      <TeacherSessionProvider>
-        <StudentSessionProvider>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: c.surface },
-              animation: "fade",
-            }}
-          />
-        </StudentSessionProvider>
-      </TeacherSessionProvider>
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={mobileQueryClient}>
+        <StatusBar
+          barStyle={scheme === "dark" ? "light-content" : "dark-content"}
+          backgroundColor={c.surface}
+        />
+        <AdminSessionProvider>
+          <TeacherSessionProvider>
+            <StudentSessionProvider>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: c.surface },
+                  animation: "fade_from_bottom",
+                  animationDuration: 200,
+                }}
+              />
+            </StudentSessionProvider>
+          </TeacherSessionProvider>
+        </AdminSessionProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
   )
 }

@@ -132,6 +132,24 @@ export function useStudentJoinClassroomMutation() {
   })
 }
 
+export function useStudentUpdateProfileMutation() {
+  const { session } = useStudentSession()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: { displayName: string; rollNumber?: string | null; degree?: string | null; branch?: string | null }) =>
+      authClient.updateProfile(requireStudentAccessToken(session), {
+        displayName: payload.displayName.trim(),
+        ...(payload.rollNumber !== undefined ? { rollNumber: payload.rollNumber } : {}),
+        ...(payload.degree !== undefined ? { degree: payload.degree } : {}),
+        ...(payload.branch !== undefined ? { branch: payload.branch } : {}),
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: studentQueryKeys.me() })
+    },
+  })
+}
+
 export function useStudentClassroomDetailData(classroomId: string) {
   const { session } = useStudentSession()
   const meQuery = useStudentMeQuery()
@@ -147,6 +165,13 @@ export function useStudentClassroomDetailData(classroomId: string) {
   const announcementsQuery = useStudentClassroomAnnouncementsQuery(classroomId, 6)
   const lecturesQuery = useStudentClassroomLecturesQuery(classroomId)
   const scheduleQuery = useStudentClassroomScheduleQuery(classroomId)
+  const historyQuery = useQuery({
+    queryKey: [...studentQueryKeys.history(), "classroom", classroomId],
+    enabled: Boolean(session && classroomId),
+    queryFn: async () =>
+      authClient.listStudentAttendanceHistory(requireStudentAccessToken(session)),
+    select: (data) => data.filter((item) => item.classroomId === classroomId),
+  })
 
   return {
     meQuery,
@@ -159,6 +184,7 @@ export function useStudentClassroomDetailData(classroomId: string) {
     announcementsQuery,
     lecturesQuery,
     scheduleQuery,
+    historyQuery,
   }
 }
 
@@ -170,6 +196,31 @@ export function useStudentAttendanceReadyQuery() {
     enabled: Boolean(session && draft.installId),
     queryFn: async () =>
       deviceTrustBootstrap.getAttendanceReady(requireStudentAccessToken(session), draft.installId),
+  })
+}
+
+export function useStudentDeviceRegistrationMutation() {
+  const { session, draft } = useStudentSession()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      const payload = deviceTrustBootstrap.buildRegistrationPayload({
+        installId: draft.installId,
+        platform: draft.devicePlatform,
+        publicKey: draft.publicKey,
+      })
+      return deviceTrustBootstrap.registerCurrentDevice(
+        requireStudentAccessToken(session),
+        payload,
+      )
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: studentQueryKeys.me() })
+      void queryClient.invalidateQueries({
+        queryKey: studentQueryKeys.attendanceReady(draft.installId),
+      })
+    },
   })
 }
 

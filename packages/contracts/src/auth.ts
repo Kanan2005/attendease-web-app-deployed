@@ -84,6 +84,9 @@ export const authenticatedUserSchema = z.object({
   id: z.string().min(1),
   email: z.string().email(),
   displayName: z.string().min(1),
+  rollNumber: z.string().nullable().optional(),
+  degree: z.string().nullable().optional(),
+  branch: z.string().nullable().optional(),
   status: userStatusSchema,
   availableRoles: z.array(appRoleSchema).min(1),
   activeRole: appRoleSchema,
@@ -127,9 +130,19 @@ const authRegistrationBaseSchema = z.object({
   displayName: z.string().trim().min(2).max(120),
 })
 
+export const studentDegreeValues = ["B.Tech", "M.Tech"] as const
+export const studentDegreeSchema = z.enum(studentDegreeValues)
+export type StudentDegree = z.infer<typeof studentDegreeSchema>
+
+export const studentBranchValues = ["CSE", "ECE", "EE", "ME", "CHE", "Civil", "Meta"] as const
+export const studentBranchSchema = z.enum(studentBranchValues)
+export type StudentBranch = z.infer<typeof studentBranchSchema>
+
 export const studentRegistrationRequestSchema = authRegistrationBaseSchema.extend({
   platform: z.literal("MOBILE"),
   device: authDeviceRegistrationSchema,
+  degree: studentDegreeSchema.optional(),
+  branch: studentBranchSchema.optional(),
 })
 export type StudentRegistrationRequest = z.infer<typeof studentRegistrationRequestSchema>
 

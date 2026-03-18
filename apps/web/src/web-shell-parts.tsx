@@ -89,7 +89,14 @@ export function WebChartCard(props: {
           alignContent: "space-between",
         }}
       >
-        <div style={surfaceCardStyles}>{"Chart visualization will render here."}</div>
+        <div style={{ ...surfaceCardStyles, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center" as const }}>
+          <div>
+            <p style={{ margin: 0, fontSize: 32, opacity: 0.3 }}>📊</p>
+            <p style={{ margin: "8px 0 0", fontSize: 13, color: webTheme.colors.textSubtle }}>
+              Chart data will appear once attendance sessions are recorded.
+            </p>
+          </div>
+        </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {props.seriesLabels.map((label) => (
             <span

@@ -25,7 +25,6 @@ export function TeacherClassroomRosterHeaderCard({
   return (
     <TeacherCard
       title={classroomTitle}
-      subtitle="Open course context, see current student counts, and keep the most common roster actions close."
     >
       <Text style={styles.listMeta}>{classroomSummaryText}</Text>
       <View style={styles.cardGrid}>
@@ -47,9 +46,9 @@ export function TeacherClassroomRosterHeaderCard({
         </View>
       </View>
       <View style={styles.actionGrid}>
-        <TeacherNavAction href={routeLinks.detail} label="Back To Course" />
-        <TeacherNavAction href={routeLinks.schedule} label="Schedule" />
-        <TeacherNavAction href={routeLinks.announcements} label="Updates" />
+        <TeacherNavAction href={routeLinks.detail} label="Back To Course" icon="arrow-back-outline" />
+        <TeacherNavAction href={routeLinks.schedule} label="Schedule" icon="calendar-outline" />
+        <TeacherNavAction href={routeLinks.announcements} label="Updates" icon="megaphone-outline" />
       </View>
     </TeacherCard>
   )

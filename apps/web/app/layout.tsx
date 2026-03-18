@@ -5,9 +5,14 @@ import { WebAppProviders } from "../src/providers"
 import "./globals.css"
 
 export const metadata = {
-  title: "AttendEase",
-  description: "Teacher and admin portal scaffold for AttendEase",
+  title: {
+    default: "AttendEase",
+    template: "%s · AttendEase",
+  },
+  description: "Smart attendance management for teachers and administrators",
 }
+
+const themeInitScript = `(function(){try{var t=localStorage.getItem('attendease-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();`
 
 export default function RootLayout({
   children,
@@ -15,7 +20,10 @@ export default function RootLayout({
   children: ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body>
         <WebAppProviders>{children}</WebAppProviders>
       </body>

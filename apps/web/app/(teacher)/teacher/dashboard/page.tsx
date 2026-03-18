@@ -1,8 +1,5 @@
-import { TeacherClassroomListWorkspace } from "../../../../src/teacher-workflows-client"
-import { getWebPortalSession } from "../../../../src/web-session"
+import { redirect } from "next/navigation"
 
-export default async function TeacherDashboardPage() {
-  const session = await getWebPortalSession()
-
-  return <TeacherClassroomListWorkspace accessToken={session?.accessToken ?? null} />
+export default function TeacherDashboardPage() {
+  redirect("/teacher/classrooms")
 }

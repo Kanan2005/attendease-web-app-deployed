@@ -66,6 +66,10 @@ export function ensureDeviceTrustAllowsAuthentication(
         throw new ForbiddenException(
           "Student authentication requires device registration on the attendance phone.",
         )
+      case "BLOCKED":
+        throw new ForbiddenException(
+          "This device is already bound to another student and could not be verified for your account.",
+        )
       default:
         throw new ForbiddenException("Student authentication requires a trusted registered device.")
     }

@@ -1,7 +1,9 @@
 import { createAuthApiClient } from "@attendease/auth"
 import { loadMobileEnv } from "@attendease/config"
 import type { AttendanceMode, TrustedDeviceAttendanceReadyResponse } from "@attendease/contracts"
-import { mobileTheme } from "@attendease/ui-mobile"
+import { getColors, mobileTheme } from "@attendease/ui-mobile"
+import { StatCard } from "@attendease/ui-mobile/animated"
+import { Ionicons } from "@expo/vector-icons"
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link } from "expo-router"
 import { useEffect, useState } from "react"
@@ -128,6 +130,7 @@ import {
 
 export function StudentReportsScreen() {
   const { session } = useStudentSession()
+  const c = getColors()
   const reports = useStudentReportsData()
   const reportStatus = buildStudentReportsStatus({
     hasSession: Boolean(session),
@@ -147,7 +150,7 @@ export function StudentReportsScreen() {
   return (
     <StudentScreen
       title="Reports"
-      subtitle="Understand your attendance quickly across all courses and subjects."
+      subtitle="Attendance breakdown by subject."
     >
       <StudentStatusBanner status={reportStatus} />
       {!session ? (
@@ -160,100 +163,132 @@ export function StudentReportsScreen() {
             reports.overviewQuery.error ?? reports.subjectReportsQuery.error,
           )}
         />
+      ) : !reports.reportOverview && reports.subjectReports.length === 0 ? (
+        <StudentEmptyCard label="No attendance data yet. Reports will appear after your first class session." />
       ) : reports.reportOverview ? (
         <>
           <StudentCard
             title={reportOverviewInsight?.title ?? "Attendance overview"}
             subtitle={reportOverviewInsight?.message ?? "Your overall attendance summary."}
           >
-            <View style={styles.cardGrid}>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Overall Attendance</Text>
-                <Text
-                  style={[
-                    styles.metricValue,
-                    toneColorStyle(reportOverviewInsight?.tone ?? "primary"),
-                  ]}
-                >
+            {/* Progress Bar */}
+            <View style={{ gap: 6 }}>
+              <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" }}>
+                <Text style={{ fontSize: 32, fontWeight: "800", color: toneColorStyle(reportOverviewInsight?.tone ?? "primary").color }}>
                   {reports.reportOverview.attendancePercentage}%
                 </Text>
-              </View>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Tracked Classrooms</Text>
-                <Text style={[styles.metricValue, styles.primaryTone]}>
-                  {reports.reportOverview.trackedClassroomCount}
+                <Text style={{ fontSize: 13, color: c.textMuted }}>
+                  {reports.reportOverview.totalSessions} session{reports.reportOverview.totalSessions === 1 ? "" : "s"}
                 </Text>
               </View>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Present Sessions</Text>
-                <Text style={[styles.metricValue, styles.successTone]}>
-                  {reports.reportOverview.presentSessions}
-                </Text>
-              </View>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Absent Sessions</Text>
-                <Text style={[styles.metricValue, styles.dangerTone]}>
-                  {reports.reportOverview.absentSessions}
-                </Text>
+              <View style={{ height: 10, borderRadius: 5, backgroundColor: c.surfaceMuted, overflow: "hidden" }}>
+                <View
+                  style={{
+                    height: 10,
+                    borderRadius: 5,
+                    width: `${Math.min(100, reports.reportOverview.attendancePercentage)}%`,
+                    backgroundColor: toneColorStyle(reportOverviewInsight?.tone ?? "primary").color,
+                  }}
+                />
               </View>
             </View>
-            <Text style={styles.listMeta}>
-              Total sessions: {reports.reportOverview.totalSessions}
-            </Text>
-            <Text style={styles.listMeta}>
-              Last recorded session:{" "}
-              {reports.reportOverview.lastSessionAt
-                ? formatDateTime(reports.reportOverview.lastSessionAt)
-                : "No attendance sessions yet"}
-            </Text>
+
+            <View style={styles.cardGrid}>
+              <StatCard
+                label="Classrooms"
+                value={reports.reportOverview.trackedClassroomCount}
+                tone="primary"
+                index={0}
+              />
+              <StatCard
+                label="Present"
+                value={reports.reportOverview.presentSessions}
+                tone="success"
+                index={1}
+              />
+              <StatCard
+                label="Absent"
+                value={reports.reportOverview.absentSessions}
+                tone="danger"
+                index={2}
+              />
+            </View>
+            {reports.reportOverview.lastSessionAt ? (
+              <Text style={styles.listMeta}>
+                Last recorded: {formatDateTime(reports.reportOverview.lastSessionAt)}
+              </Text>
+            ) : null}
           </StudentCard>
 
           {reports.subjectReports.length ? (
-            reports.subjectReports.map((subjectReport) => (
-              <Link
-                key={subjectReport.subjectId}
-                href={studentRoutes.subjectReport(subjectReport.subjectId)}
-                asChild
-              >
-                <Pressable style={styles.card}>
-                  <Text style={styles.cardTitle}>{subjectReport.subjectTitle}</Text>
-                  <Text style={styles.cardSubtitle}>
-                    {subjectReport.subjectCode} · {subjectReport.classroomCount} classroom
-                    {subjectReport.classroomCount === 1 ? "" : "s"}
-                  </Text>
-                  <View style={styles.cardBody}>
-                    {(() => {
-                      const insight = buildStudentAttendanceInsightModel({
-                        attendancePercentage: subjectReport.attendancePercentage,
-                        totalSessions: subjectReport.totalSessions,
-                        presentSessions: subjectReport.presentSessions,
-                        absentSessions: subjectReport.absentSessions,
-                      })
-
-                      return (
-                        <>
-                          <Text style={[styles.bodyText, toneColorStyle(insight.tone)]}>
-                            {subjectReport.attendancePercentage}% attendance
+            <>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }}>
+                  Subjects ({reports.subjectReports.length})
+                </Text>
+              </View>
+              {reports.subjectReports.map((subjectReport) => {
+                const insight = buildStudentAttendanceInsightModel({
+                  attendancePercentage: subjectReport.attendancePercentage,
+                  totalSessions: subjectReport.totalSessions,
+                  presentSessions: subjectReport.presentSessions,
+                  absentSessions: subjectReport.absentSessions,
+                })
+                const barColor = toneColorStyle(insight.tone).color
+                return (
+                  <Link
+                    key={subjectReport.subjectId}
+                    href={studentRoutes.subjectReport(subjectReport.subjectId)}
+                    asChild
+                  >
+                    <Pressable style={styles.card}>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                        <View
+                          style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: 12,
+                            backgroundColor: c.primarySoft,
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Ionicons name="book-outline" size={22} color={c.primary} />
+                        </View>
+                        <View style={{ flex: 1, gap: 2 }}>
+                          <Text style={styles.cardTitle}>{subjectReport.subjectTitle}</Text>
+                          <Text style={styles.cardSubtitle}>
+                            {subjectReport.subjectCode} · {subjectReport.classroomCount} classroom
+                            {subjectReport.classroomCount === 1 ? "" : "s"}
                           </Text>
-                          <Text style={styles.listMeta}>{insight.message}</Text>
-                        </>
-                      )
-                    })()}
-                    <Text style={styles.listMeta}>
-                      Last session:{" "}
-                      {subjectReport.lastSessionAt
-                        ? formatDateTime(subjectReport.lastSessionAt)
-                        : "No attendance sessions yet"}
-                    </Text>
-                    <Text style={styles.listMeta}>
-                      Open this subject to compare attendance across classrooms.
-                    </Text>
-                  </View>
-                </Pressable>
-              </Link>
-            ))
+                        </View>
+                        <View style={{ alignItems: "flex-end", gap: 2 }}>
+                          <Text style={{ fontSize: 18, fontWeight: "800", color: barColor }}>
+                            {subjectReport.attendancePercentage}%
+                          </Text>
+                          <Text style={{ fontSize: 11, color: c.textMuted }}>
+                            {subjectReport.presentSessions}/{subjectReport.totalSessions}
+                          </Text>
+                        </View>
+                      </View>
+                      {/* Mini progress bar */}
+                      <View style={{ height: 6, borderRadius: 3, backgroundColor: c.surfaceMuted, overflow: "hidden" }}>
+                        <View
+                          style={{
+                            height: 6,
+                            borderRadius: 3,
+                            width: `${Math.min(100, subjectReport.attendancePercentage)}%`,
+                            backgroundColor: barColor,
+                          }}
+                        />
+                      </View>
+                    </Pressable>
+                  </Link>
+                )
+              })}
+            </>
           ) : (
-            <StudentEmptyCard label="Join a classroom and attend recorded sessions to unlock subject-wise attendance reports." />
+            <StudentEmptyCard label="No report data yet." />
           )}
         </>
       ) : null}

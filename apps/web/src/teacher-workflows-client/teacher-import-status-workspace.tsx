@@ -209,6 +209,14 @@ export function TeacherImportStatusWorkspace(props: {
 
   return (
     <div style={workflowStyles.grid}>
+      <Link
+        href={teacherWorkflowRoutes.classroomRoster(props.classroomId)}
+        className="ui-back-link"
+        style={{ fontSize: 13, color: webTheme.colors.textMuted, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+      >
+        <span aria-hidden>←</span> Back to students
+      </Link>
+
       <div style={workflowStyles.twoColumn}>
         <WebSectionCard
           title="Create Roster Import"

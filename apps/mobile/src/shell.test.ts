@@ -78,4 +78,20 @@ describe("buildMobileShellSummary", () => {
     expect(findMobileContentIssues(student.subtitle)).toEqual([])
     expect(findMobileContentIssues(teacher.subtitle)).toEqual([])
   })
+
+  it("builds admin sign-in copy with platform governance description", () => {
+    const admin = buildMobileSessionEntryCopy("admin", "sign_in")
+
+    expect(admin).toMatchObject({
+      title: "Admin sign in",
+      submitLabel: "Sign in",
+      submittingLabel: "Signing in...",
+      alternateLabel: "Back to role choice",
+    })
+    expect(admin.subtitle).toContain("manage students")
+    expect(admin.roleSummary).toContain("governance")
+
+    expect(findMobileContentIssues(admin.subtitle)).toEqual([])
+    expect(findMobileContentIssues(admin.roleSummary)).toEqual([])
+  })
 })

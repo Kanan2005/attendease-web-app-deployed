@@ -14,10 +14,16 @@ export const developmentSeedIds = {
     section: "seed_section_a",
     mathSubject: "seed_subject_math",
     physicsSubject: "seed_subject_physics",
+    chemistrySubject: "seed_subject_chemistry",
+    dsSubject: "seed_subject_data_structures",
+    osSubject: "seed_subject_operating_systems",
   },
   teacherAssignments: {
     math: "seed_teacher_assignment_math",
     physics: "seed_teacher_assignment_physics",
+    chemistry: "seed_teacher_assignment_chemistry",
+    ds: "seed_teacher_assignment_ds",
+    os: "seed_teacher_assignment_os",
   },
   courseOfferings: {
     math: "seed_course_offering_math",

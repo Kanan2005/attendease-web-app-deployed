@@ -6,6 +6,7 @@ import {
   type AuthMeResponse,
   type AuthRefreshRequest,
   type AuthSessionResponse,
+  type ProfileResponse,
   type StudentGoogleExchangeRequest,
   type StudentPasswordLoginRequest,
   type StudentRegistrationRequest,
@@ -14,10 +15,12 @@ import {
   type TeacherPasswordLoginRequest,
   type TeacherRegistrationRequest,
   type TeacherRegistrationResponse,
+  type UpdateProfileRequest,
   adminPasswordLoginRequestSchema,
   authMeResponseSchema,
   authOperationSuccessSchema,
   authSessionResponseSchema,
+  profileResponseSchema,
   studentGoogleExchangeRequestSchema,
   studentPasswordLoginRequestSchema,
   studentRegistrationRequestSchema,
@@ -70,6 +73,21 @@ export function buildAuthClientAuthMethods(request: AuthApiRequest) {
       parse: authMeResponseSchema.parse,
     })
 
+  const getProfile = (token: string): Promise<ProfileResponse> =>
+    request("/auth/profile", {
+      method: "GET",
+      token,
+      parse: profileResponseSchema.parse,
+    })
+
+  const updateProfile = (token: string, payload: UpdateProfileRequest): Promise<ProfileResponse> =>
+    request("/auth/profile", {
+      method: "PATCH",
+      token,
+      payload,
+      parse: profileResponseSchema.parse,
+    })
+
   return {
     login,
     loginStudent(payload: StudentPasswordLoginRequest): Promise<AuthSessionResponse> {
@@ -113,5 +131,7 @@ export function buildAuthClientAuthMethods(request: AuthApiRequest) {
     refresh,
     logout,
     me,
+    getProfile,
+    updateProfile,
   }
 }
