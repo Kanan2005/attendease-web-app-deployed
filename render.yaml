@@ -1,0 +1,67 @@
+services:
+  - type: web
+    name: attendease-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_PORT
+        value: "4000"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        value: ""
+      - key: RATE_LIMIT_ENABLED
+        value: "false"
+      - key: RATE_LIMIT_STORE_MODE
+        value: memory
+      - key: AUTH_ISSUER
+        value: attendease-api
+      - key: AUTH_AUDIENCE
+        value: attendease-clients
+      - key: AUTH_ACCESS_TOKEN_SECRET
+        sync: false
+      - key: AUTH_ACCESS_TOKEN_TTL_MINUTES
+        value: "15"
+      - key: AUTH_REFRESH_TOKEN_TTL_DAYS
+        value: "30"
+      - key: FEATURE_BLUETOOTH_ATTENDANCE_ENABLED
+        value: "true"
+      - key: FEATURE_EMAIL_AUTOMATION_ENABLED
+        value: "false"
+      - key: FEATURE_STRICT_DEVICE_BINDING_MODE
+        value: WARN
+      - key: DEVICE_ATTESTATION_ANDROID_MODE
+        value: placeholder
+      - key: DEVICE_ATTESTATION_APPLE_MODE
+        value: placeholder
+      - key: ATTENDANCE_QR_ALLOWED_CLOCK_SKEW_SLICES
+        value: "3"
+      - key: ATTENDANCE_BLUETOOTH_ALLOWED_CLOCK_SKEW_SLICES
+        value: "1"
+      - key: ATTENDANCE_BLUETOOTH_PROTOCOL_VERSION
+        value: "1"
+      - key: ATTENDANCE_BLUETOOTH_SERVICE_UUID
+        value: "12345678-1234-5678-1234-56789abc0001"
+      - key: ATTENDANCE_GPS_MAX_ACCURACY_METERS
+        value: "100"
+      - key: STORAGE_ENDPOINT
+        value: ""
+      - key: STORAGE_PUBLIC_ENDPOINT
+        value: ""
+      - key: STORAGE_REGION
+        value: us-east-1
+      - key: STORAGE_BUCKET
+        value: attendease-local
+      - key: STORAGE_ACCESS_KEY
+        value: ""
+      - key: STORAGE_SECRET_KEY
+        value: ""
+      - key: STORAGE_FORCE_PATH_STYLE
+        value: "true"
+      - key: LOG_LEVEL
+        value: info
