@@ -14,7 +14,7 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: REDIS_URL
-        value: ""
+        value: "redis://placeholder:6379"
       - key: RATE_LIMIT_ENABLED
         value: "false"
       - key: RATE_LIMIT_STORE_MODE
@@ -34,7 +34,7 @@ services:
       - key: FEATURE_EMAIL_AUTOMATION_ENABLED
         value: "false"
       - key: FEATURE_STRICT_DEVICE_BINDING_MODE
-        value: WARN
+        value: DISABLED
       - key: DEVICE_ATTESTATION_ANDROID_MODE
         value: placeholder
       - key: DEVICE_ATTESTATION_APPLE_MODE
@@ -50,17 +50,17 @@ services:
       - key: ATTENDANCE_GPS_MAX_ACCURACY_METERS
         value: "100"
       - key: STORAGE_ENDPOINT
-        value: ""
+        value: "https://placeholder.s3.amazonaws.com"
       - key: STORAGE_PUBLIC_ENDPOINT
-        value: ""
+        value: "https://placeholder.s3.amazonaws.com"
       - key: STORAGE_REGION
         value: us-east-1
       - key: STORAGE_BUCKET
         value: attendease-local
       - key: STORAGE_ACCESS_KEY
-        value: ""
+        value: "placeholder"
       - key: STORAGE_SECRET_KEY
-        value: ""
+        value: "placeholder"
       - key: STORAGE_FORCE_PATH_STYLE
         value: "true"
       - key: LOG_LEVEL
