@@ -63,5 +63,7 @@ services:
         value: "placeholder"
       - key: STORAGE_FORCE_PATH_STYLE
         value: "true"
+      - key: API_CORS_ALLOWED_ORIGINS
+        value: "https://attendease-anurag.netlify.app,http://localhost:3000,http://localhost:3001"
       - key: LOG_LEVEL
         value: info
