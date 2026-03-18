@@ -4,7 +4,7 @@ import { useNavigation, useRouter } from "expo-router"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { Linking, Pressable } from "react-native"
 
-import { loadMobileEnv } from "@attendease/config"
+import { mobileEnv } from "../mobile-env"
 import {
   mapBluetoothAvailabilityToPermissionState,
   usePreferredBluetoothDetection,
@@ -21,7 +21,7 @@ import { useStudentSession } from "../student-session"
 import { useStudentAttendanceController } from "./queries"
 import { StudentBluetoothAttendanceScreenContent } from "./student-bluetooth-attendance-screen-content"
 
-const env = loadMobileEnv(process.env as Record<string, string | undefined>)
+const env = mobileEnv
 
 export function StudentBluetoothAttendanceScreen(props: { classroomId?: string }) {
   const { session } = useStudentSession()

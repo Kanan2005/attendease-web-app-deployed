@@ -1,5 +1,5 @@
 import { createAuthApiClient } from "@attendease/auth"
-import { loadMobileEnv } from "@attendease/config"
+import { mobileEnv } from "./mobile-env"
 import type {
   BluetoothSessionCreateResponse,
   CreateBluetoothSessionRequest,
@@ -33,7 +33,7 @@ import { useStudentSession } from "./student-session"
 import { teacherQueryKeys } from "./teacher-query"
 import { getTeacherAccessToken, useTeacherSession } from "./teacher-session"
 
-const env = loadMobileEnv(process.env as Record<string, string | undefined>)
+const env = mobileEnv
 
 function describeAdvertiseErrorCode(code: number): string {
   switch (code) {

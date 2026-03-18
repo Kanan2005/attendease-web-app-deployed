@@ -26,3 +26,6 @@ mailpit-data
 # Local Netlify folder
 .netlify
 .vercel
+
+# Local deployment artifacts
+deploy-*.zip

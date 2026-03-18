@@ -22,7 +22,7 @@ import {
   webWorkflowQueryKeys,
 } from "./web-workflows"
 
-const bootstrap = createWebAuthBootstrap(process.env as Record<string, string | undefined>)
+const bootstrap = createWebAuthBootstrap()
 
 export function QrActiveSessionShell(props: {
   accessToken: string | null

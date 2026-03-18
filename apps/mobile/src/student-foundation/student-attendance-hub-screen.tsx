@@ -1,5 +1,5 @@
 import { createAuthApiClient } from "@attendease/auth"
-import { loadMobileEnv } from "@attendease/config"
+import { mobileEnv } from "../mobile-env"
 import type { AttendanceMode, TrustedDeviceAttendanceReadyResponse } from "@attendease/contracts"
 import { getColors, mobileTheme } from "@attendease/ui-mobile"
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -129,7 +129,7 @@ import {
   toneColorStyle,
 } from "./shared-ui"
 
-const env = loadMobileEnv(process.env as Record<string, string | undefined>)
+const env = mobileEnv
 
 export function StudentAttendanceHubScreen() {
   const { draft, session } = useStudentSession()

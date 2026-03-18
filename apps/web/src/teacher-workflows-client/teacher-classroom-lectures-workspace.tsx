@@ -14,7 +14,7 @@ import {
 
 import { WorkflowBanner, WorkflowField, WorkflowStateCard, workflowStyles } from "./shared"
 
-const bootstrap = createWebAuthBootstrap(process.env as Record<string, string | undefined>)
+const bootstrap = createWebAuthBootstrap()
 
 function toLocalDateTimeString(date: Date): string {
   const y = date.getFullYear()

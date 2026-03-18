@@ -18,9 +18,7 @@ import { AdminDeviceSupportResultsList } from "./admin-device-support-console/re
 import { AdminDeviceSupportSearchPanel } from "./admin-device-support-console/search-panel"
 import { panelStyle } from "./admin-device-support-console/styles"
 
-const bootstrap = createWebAdminDeviceSupportBootstrap(
-  process.env as Record<string, string | undefined>,
-)
+const bootstrap = createWebAdminDeviceSupportBootstrap()
 
 export function AdminDeviceSupportConsole(props: {
   initialToken?: string | null

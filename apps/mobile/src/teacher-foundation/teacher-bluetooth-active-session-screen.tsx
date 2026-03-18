@@ -1,5 +1,5 @@
 import { createAuthApiClient } from "@attendease/auth"
-import { loadMobileEnv } from "@attendease/config"
+import { mobileEnv } from "../mobile-env"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "expo-router"
 
@@ -25,9 +25,8 @@ import { useTeacherAttendanceSessionStudentsQuery } from "./queries"
 import { clampInteger } from "./shared-ui"
 import { TeacherBluetoothActiveSessionScreenContent } from "./teacher-bluetooth-active-session-screen-content"
 
-const env = loadMobileEnv(process.env as Record<string, string | undefined>)
 const authClient = createAuthApiClient({
-  baseUrl: env.EXPO_PUBLIC_API_URL,
+  baseUrl: mobileEnv.EXPO_PUBLIC_API_URL,
 })
 
 export function TeacherBluetoothActiveSessionScreen(props: {

@@ -1,8 +1,10 @@
 import { buildGoogleExchangeRequest, createAuthApiClient } from "@attendease/auth"
 import { loadWebEnv } from "@attendease/config"
 
+import { webEnvSource } from "./web-env"
+
 export function createWebAuthBootstrap(
-  source: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
+  source: Record<string, string | undefined> = webEnvSource,
 ) {
   const env = loadWebEnv(source)
 

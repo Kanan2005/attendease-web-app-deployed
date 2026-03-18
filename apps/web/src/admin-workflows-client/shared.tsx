@@ -27,7 +27,7 @@ import {
   webWorkflowQueryKeys,
 } from "../web-workflows"
 
-export const bootstrap = createWebAuthBootstrap(process.env as Record<string, string | undefined>)
+export const bootstrap = createWebAuthBootstrap()
 
 export const styles = {
   grid: {

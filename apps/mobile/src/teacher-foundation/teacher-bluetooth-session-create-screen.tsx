@@ -19,11 +19,10 @@ import { useTeacherClassroomDetailQuery } from "./queries-core"
 import { useTeacherAttendanceSessionStudentsQuery } from "./queries-sessions"
 import { TeacherBluetoothSessionCreateScreenContent } from "./teacher-bluetooth-session-create-screen-content"
 import { createAuthApiClient } from "@attendease/auth"
-import { loadMobileEnv } from "@attendease/config"
+import { mobileEnv } from "../mobile-env"
 
-const env = loadMobileEnv(process.env as Record<string, string | undefined>)
 const authClient = createAuthApiClient({
-  baseUrl: env.EXPO_PUBLIC_API_URL,
+  baseUrl: mobileEnv.EXPO_PUBLIC_API_URL,
 })
 
 export function TeacherBluetoothSessionCreateScreen(props: {

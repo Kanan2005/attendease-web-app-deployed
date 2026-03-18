@@ -1,5 +1,7 @@
 import { createAuthApiClient } from "@attendease/auth"
 import { loadWebEnv } from "@attendease/config"
+
+import { webEnvSource } from "./web-env"
 import type {
   AdminDeviceBindingRecord,
   AdminDeviceSupportDetail,
@@ -32,7 +34,7 @@ const adminSupportLabelOverrides: Record<string, string> = {
 }
 
 export function createWebAdminDeviceSupportBootstrap(
-  source: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
+  source: Record<string, string | undefined> = webEnvSource,
 ) {
   const env = loadWebEnv(source)
 

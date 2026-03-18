@@ -2,8 +2,10 @@ import { buildGoogleExchangeRequest, createAuthApiClient } from "@attendease/aut
 import { loadMobileEnv } from "@attendease/config"
 import type { AuthDeviceRegistration } from "@attendease/contracts"
 
+import { mobileEnvSource } from "./mobile-env"
+
 export function createMobileAuthBootstrap(
-  source: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
+  source: Record<string, string | undefined> = mobileEnvSource,
 ) {
   const env = loadMobileEnv(source)
 

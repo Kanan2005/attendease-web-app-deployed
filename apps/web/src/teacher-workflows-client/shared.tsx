@@ -10,7 +10,7 @@ export { getToneStyles, toneForSessionState } from "./shared-tones"
 import { workflowStyles } from "./shared-styles"
 import { getToneStyles } from "./shared-tones"
 
-export const bootstrap = createWebAuthBootstrap(process.env as Record<string, string | undefined>)
+export const bootstrap = createWebAuthBootstrap()
 
 const fieldLabelStyle = {
   fontSize: 12,

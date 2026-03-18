@@ -3,6 +3,7 @@ import {
   trustedDeviceInstallIdHeaderName,
 } from "@attendease/auth"
 import { type MobileEnv, loadMobileEnv } from "@attendease/config"
+import { mobileEnvSource } from "./mobile-env"
 import type {
   DevicePlatform,
   DeviceRegistrationRequest,
@@ -33,7 +34,7 @@ export type StudentAttendanceGateModel = {
 }
 
 export function createMobileDeviceTrustBootstrap(
-  source: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
+  source: Record<string, string | undefined> = mobileEnvSource,
 ) {
   const env = loadMobileEnv(source)
   const authBootstrap = createMobileAuthBootstrap(source)

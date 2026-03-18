@@ -9,9 +9,7 @@ import type {
 import { createWebAuthBootstrap } from "../auth"
 import { teacherAnalyticsStyles as styles } from "./styles"
 
-export const teacherAnalyticsAutomationBootstrap = createWebAuthBootstrap(
-  process.env as Record<string, string | undefined>,
-)
+export const teacherAnalyticsAutomationBootstrap = createWebAuthBootstrap()
 
 export function WorkflowStateCard(props: { message: string }) {
   return <div style={styles.state}>{props.message}</div>

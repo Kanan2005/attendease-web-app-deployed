@@ -16,9 +16,7 @@ import {
   createWebClassroomCommunicationsBootstrap,
 } from "./classroom-communications"
 
-const bootstrap = createWebClassroomCommunicationsBootstrap(
-  process.env as Record<string, string | undefined>,
-)
+const bootstrap = createWebClassroomCommunicationsBootstrap()
 
 const panelStyle = {
   border: "1px solid #dbe4f0",

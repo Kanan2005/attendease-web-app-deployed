@@ -1,8 +1,10 @@
 import { createAuthApiClient } from "@attendease/auth"
 import { loadMobileEnv } from "@attendease/config"
 
+import { mobileEnvSource } from "./mobile-env"
+
 export function createMobileAcademicManagementBootstrap(
-  source: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
+  source: Record<string, string | undefined> = mobileEnvSource,
 ) {
   const env = loadMobileEnv(source)
 

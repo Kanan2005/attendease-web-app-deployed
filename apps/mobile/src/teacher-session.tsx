@@ -8,6 +8,7 @@ import { createContext, useContext, useState } from "react"
 import type { ReactNode } from "react"
 
 import { createMobileAuthBootstrap } from "./auth"
+import { mobileEnvSource } from "./mobile-env"
 
 export interface TeacherSessionDraft {
   displayName: string
@@ -42,7 +43,7 @@ interface TeacherSessionContextValue {
 const teacherSessionContext = createContext<TeacherSessionContextValue | null>(null)
 
 export function buildTeacherSessionBootstrap(
-  source: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
+  source: Record<string, string | undefined> = mobileEnvSource,
 ): TeacherSessionBootstrap {
   const authBootstrap = createMobileAuthBootstrap(source)
   const defaultDraft: TeacherSessionDraft = {

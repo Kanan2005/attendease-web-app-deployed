@@ -5,6 +5,7 @@ import type { ReactNode } from "react"
 
 import { mapAdminApiErrorToMessage } from "./admin-models"
 import { createMobileAuthBootstrap } from "./auth"
+import { mobileEnvSource } from "./mobile-env"
 
 export interface AdminSessionDraft {
   email: string
@@ -37,7 +38,7 @@ interface AdminSessionContextValue {
 const adminSessionContext = createContext<AdminSessionContextValue | null>(null)
 
 export function buildAdminSessionBootstrap(
-  source: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
+  source: Record<string, string | undefined> = mobileEnvSource,
 ): AdminSessionBootstrap {
   const devEmail = source["EXPO_PUBLIC_ADMIN_DEV_EMAIL"] ?? ""
   const devPassword = source["EXPO_PUBLIC_ADMIN_DEV_PASSWORD"] ?? ""

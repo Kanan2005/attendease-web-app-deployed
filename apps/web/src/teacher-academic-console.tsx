@@ -8,9 +8,7 @@ import {
   createWebAcademicManagementBootstrap,
 } from "./academic-management"
 
-const bootstrap = createWebAcademicManagementBootstrap(
-  process.env as Record<string, string | undefined>,
-)
+const bootstrap = createWebAcademicManagementBootstrap()
 
 const panelStyle = {
   border: "1px solid #dbe4f0",

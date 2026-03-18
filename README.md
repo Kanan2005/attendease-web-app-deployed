@@ -43,6 +43,74 @@ Still pending outside reset implementation:
 - admin device recovery and governance
 - shared attendance truth across history, reports, exports, and corrections
 
+## Production Deployment
+
+### Live URLs
+
+| Service | URL | Platform |
+|---------|-----|----------|
+| Web App | https://attendease-anurag.netlify.app | Netlify |
+| API | https://attendease-api-4h45.onrender.com | Render (Docker) |
+| Database | Neon PostgreSQL (ap-southeast-1) | Neon |
+| Mobile APK | `~/Desktop/AttendEase.apk` | Android release build |
+
+### Test Credentials
+
+| Role | Email | Password |
+|------|-------|----------|
+| Teacher | teacher@attendease.dev | TeacherPass123! |
+| Student | student.one@attendease.dev | StudentOnePass123! |
+| Admin | admin@attendease.dev | AdminPass123! |
+
+### Architecture
+
+```
+Browser/Mobile ──► Netlify (Next.js SSR) ──► Render (NestJS API) ──► Neon PostgreSQL
+                   └── Static + Functions      └── Docker container     └── Prisma ORM
+```
+
+### Environment Variable Inlining
+
+Both the web and mobile apps require a centralized env source file to work correctly in production:
+
+- **Web**: `apps/web/src/web-env.ts` — explicit `process.env.NEXT_PUBLIC_*` references for Next.js bundler inlining
+- **Mobile**: `apps/mobile/src/mobile-env.ts` — explicit `process.env.EXPO_PUBLIC_*` references for Expo babel inlining
+
+**Root cause**: Passing `process.env` as a whole object to `loadWebEnv()` / `loadMobileEnv()` prevents the bundler from inlining individual keys. On the client side, unresolved keys fall back to Zod defaults (`http://localhost:4000`).
+
+### Deploy Commands
+
+**Web (Netlify)**:
+```bash
+cd /path/to/Attendease
+rm -rf .turbo apps/web/.turbo apps/web/.next
+pnpm turbo build --filter=@attendease/web --force
+netlify deploy --prod --site=b43ae689-3812-465c-88eb-f8eea18b837b
+# Select @attendease/web when prompted
+```
+
+**API (Render)**:
+Deploys automatically on push to `main` via `render.yaml` blueprint. Manual deploy from Render dashboard if needed.
+
+**Mobile APK**:
+```bash
+cd apps/mobile/android
+./gradlew assembleRelease --no-daemon --no-build-cache
+cp app/build/outputs/apk/release/app-release.apk ~/Desktop/AttendEase.apk
+```
+
+### Key Configuration Files
+
+- `render.yaml` — Render blueprint (API service, env vars, Docker config)
+- `apps/web/netlify.toml` — Netlify build config (build command, publish dir, env vars)
+- `apps/web/.env.local` — Web production env vars (loaded at build + runtime)
+- `apps/mobile/.env` / `.env.local` — Mobile production env vars (baked at build time)
+- `apps/api/Dockerfile` — API Docker build (multi-stage, pnpm, patches)
+
+### Render Free Tier Note
+
+The Render free tier spins down the API after 15 minutes of inactivity. First request after sleep takes 30–60 seconds (cold start). Subsequent requests are fast (~0.5s).
+
 ## Start Here
 
 - Runtime and command reference:

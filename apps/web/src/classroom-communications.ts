@@ -2,8 +2,10 @@ import { createAuthApiClient } from "@attendease/auth"
 import { loadWebEnv } from "@attendease/config"
 import type { AnnouncementVisibility } from "@attendease/contracts"
 
+import { webEnvSource } from "./web-env"
+
 export function createWebClassroomCommunicationsBootstrap(
-  source: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
+  source: Record<string, string | undefined> = webEnvSource,
 ) {
   const env = loadWebEnv(source)
 

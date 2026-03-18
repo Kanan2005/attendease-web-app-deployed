@@ -13,6 +13,7 @@ import {
   type DeviceBindingErrorModel,
   buildDeviceBindingErrorModel,
 } from "./device-identity-models"
+import { mobileEnvSource } from "./mobile-env"
 
 export interface StudentSessionDraft {
   displayName: string
@@ -54,7 +55,7 @@ interface StudentSessionContextValue {
 const studentSessionContext = createContext<StudentSessionContextValue | null>(null)
 
 export function buildStudentSessionBootstrap(
-  source: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
+  source: Record<string, string | undefined> = mobileEnvSource,
 ): StudentSessionBootstrap {
   const authBootstrap = createMobileAuthBootstrap(source)
   const defaultDraft: StudentSessionDraft = {

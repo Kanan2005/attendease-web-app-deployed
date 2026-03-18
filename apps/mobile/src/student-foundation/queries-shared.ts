@@ -1,15 +1,12 @@
 import { createAuthApiClient } from "@attendease/auth"
-import { loadMobileEnv } from "@attendease/config"
 
+import { mobileEnv } from "../mobile-env"
 import { createMobileDeviceTrustBootstrap } from "../device-trust"
 import { buildStudentInvalidationKeys } from "../student-query"
 
-const env = loadMobileEnv(process.env as Record<string, string | undefined>)
 const authClient = createAuthApiClient({
-  baseUrl: env.EXPO_PUBLIC_API_URL,
+  baseUrl: mobileEnv.EXPO_PUBLIC_API_URL,
 })
-const deviceTrustBootstrap = createMobileDeviceTrustBootstrap(
-  process.env as Record<string, string | undefined>,
-)
+const deviceTrustBootstrap = createMobileDeviceTrustBootstrap()
 
 export { authClient, deviceTrustBootstrap, buildStudentInvalidationKeys }
