@@ -3,7 +3,13 @@ import type { AuthenticatedUser } from "@attendease/contracts"
 import type { StudentProfileDraft } from "./student-workflow-models-types"
 
 export function createStudentProfileDraft(
-  user: Pick<AuthenticatedUser, "displayName" | "email"> & { rollNumber?: string | null | undefined; degree?: string | null | undefined; branch?: string | null | undefined } | null,
+  user:
+    | (Pick<AuthenticatedUser, "displayName" | "email"> & {
+        rollNumber?: string | null | undefined
+        degree?: string | null | undefined
+        branch?: string | null | undefined
+      })
+    | null,
 ): StudentProfileDraft {
   const displayName = user?.displayName ?? ""
 

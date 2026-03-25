@@ -108,6 +108,7 @@ import {
 import {
   AnnouncementRow,
   AttendanceCandidateRow,
+  StudentBackButton,
   StudentCard,
   StudentDashboardSpotlightCard,
   StudentEmptyCard,
@@ -115,7 +116,6 @@ import {
   StudentLoadingCard,
   StudentNavAction,
   StudentQuickActions,
-  StudentBackButton,
   StudentScreen,
   StudentSessionSetupCard,
   StudentStatusBanner,
@@ -139,10 +139,7 @@ export function StudentDeviceStatusScreen() {
   })
 
   return (
-    <StudentScreen
-      title="Device Status"
-      subtitle="Check if this phone is ready for attendance."
-    >
+    <StudentScreen title="Device Status" subtitle="Check if this phone is ready for attendance.">
       <StudentBackButton label="Back to Profile" />
       {!session ? (
         <StudentSessionSetupCard />
@@ -169,7 +166,7 @@ export function StudentDeviceStatusScreen() {
                 width: 72,
                 height: 72,
                 borderRadius: 36,
-                backgroundColor: gateModel.canContinue ? c.success + "20" : c.danger + "20",
+                backgroundColor: gateModel.canContinue ? `${c.success}20` : `${c.danger}20`,
                 alignItems: "center",
                 justifyContent: "center",
               }}
@@ -184,7 +181,15 @@ export function StudentDeviceStatusScreen() {
               <Text style={{ fontSize: 20, fontWeight: "800", color: c.text }}>
                 {gateModel.canContinue ? "Device Ready" : "Needs Attention"}
               </Text>
-              <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", lineHeight: 20, paddingHorizontal: 12 }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: c.textMuted,
+                  textAlign: "center",
+                  lineHeight: 20,
+                  paddingHorizontal: 12,
+                }}
+              >
                 {gateModel.message}
               </Text>
             </View>
@@ -196,8 +201,12 @@ export function StudentDeviceStatusScreen() {
               <DeviceInfoRow
                 icon="phone-portrait-outline"
                 label="Phone Status"
-                value={buildStudentDeviceStatusSummaryModel(meQuery.data?.user.deviceTrust ?? null).label}
-                tone={buildStudentDeviceStatusSummaryModel(meQuery.data?.user.deviceTrust ?? null).tone}
+                value={
+                  buildStudentDeviceStatusSummaryModel(meQuery.data?.user.deviceTrust ?? null).label
+                }
+                tone={
+                  buildStudentDeviceStatusSummaryModel(meQuery.data?.user.deviceTrust ?? null).tone
+                }
               />
               <DeviceInfoRow
                 icon="hand-left-outline"
@@ -210,14 +219,22 @@ export function StudentDeviceStatusScreen() {
                   <DeviceInfoRow
                     icon="hardware-chip-outline"
                     label="Platform"
-                    value={attendanceReadyQuery.data.device.platform === "ANDROID" ? "Android" : attendanceReadyQuery.data.device.platform === "IOS" ? "iPhone" : attendanceReadyQuery.data.device.platform}
+                    value={
+                      attendanceReadyQuery.data.device.platform === "ANDROID"
+                        ? "Android"
+                        : attendanceReadyQuery.data.device.platform === "IOS"
+                          ? "iPhone"
+                          : attendanceReadyQuery.data.device.platform
+                    }
                     tone="primary"
                   />
                   <DeviceInfoRow
                     icon="link-outline"
                     label="Binding Status"
                     value={formatEnum(attendanceReadyQuery.data.binding.status)}
-                    tone={attendanceReadyQuery.data.binding.status === "ACTIVE" ? "success" : "warning"}
+                    tone={
+                      attendanceReadyQuery.data.binding.status === "ACTIVE" ? "success" : "warning"
+                    }
                   />
                 </>
               ) : attendanceReadyQuery.isLoading ? (
@@ -236,8 +253,16 @@ export function StudentDeviceStatusScreen() {
           </StudentCard>
 
           <View style={styles.actionGrid}>
-            <StudentNavAction href={studentRoutes.attendance} label="Open Attendance" icon="hand-left-outline" />
-            <StudentNavAction href={studentRoutes.profile} label="Open Profile" icon="person-outline" />
+            <StudentNavAction
+              href={studentRoutes.attendance}
+              label="Open Attendance"
+              icon="hand-left-outline"
+            />
+            <StudentNavAction
+              href={studentRoutes.profile}
+              label="Open Profile"
+              icon="person-outline"
+            />
           </View>
         </>
       )}
@@ -253,15 +278,21 @@ function DeviceInfoRow(props: {
 }) {
   const c = getColors()
   const color =
-    props.tone === "success" ? c.success
-    : props.tone === "danger" ? c.danger
-    : props.tone === "warning" ? c.warning
-    : c.primary
+    props.tone === "success"
+      ? c.success
+      : props.tone === "danger"
+        ? c.danger
+        : props.tone === "warning"
+          ? c.warning
+          : c.primary
   const bg =
-    props.tone === "success" ? c.successSoft
-    : props.tone === "danger" ? c.dangerSoft
-    : props.tone === "warning" ? c.warningSoft
-    : c.primarySoft
+    props.tone === "success"
+      ? c.successSoft
+      : props.tone === "danger"
+        ? c.dangerSoft
+        : props.tone === "warning"
+          ? c.warningSoft
+          : c.primarySoft
 
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
@@ -278,12 +309,18 @@ function DeviceInfoRow(props: {
         <Ionicons name={props.icon as "phone-portrait-outline"} size={18} color={color} />
       </View>
       <View style={{ flex: 1, gap: 1 }}>
-        <Text style={{ fontSize: 12, fontWeight: "600", color: c.textSubtle, textTransform: "uppercase", letterSpacing: 0.5 }}>
+        <Text
+          style={{
+            fontSize: 12,
+            fontWeight: "600",
+            color: c.textSubtle,
+            textTransform: "uppercase",
+            letterSpacing: 0.5,
+          }}
+        >
           {props.label}
         </Text>
-        <Text style={{ fontSize: 15, fontWeight: "700", color }}>
-          {props.value}
-        </Text>
+        <Text style={{ fontSize: 15, fontWeight: "700", color }}>{props.value}</Text>
       </View>
     </View>
   )

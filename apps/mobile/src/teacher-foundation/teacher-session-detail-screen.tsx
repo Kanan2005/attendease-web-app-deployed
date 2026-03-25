@@ -28,7 +28,10 @@ import {
 import { formatEnum, styles } from "./shared-ui"
 import { TeacherSessionStudentSection } from "./teacher-session-student-section"
 
-export function TeacherSessionDetailScreen(props: { sessionId: string; classroomId?: string | undefined }) {
+export function TeacherSessionDetailScreen(props: {
+  sessionId: string
+  classroomId?: string | undefined
+}) {
   const { session } = useTeacherSession()
   const c = getColors()
   const queryClient = useQueryClient()
@@ -61,11 +64,7 @@ export function TeacherSessionDetailScreen(props: { sessionId: string; classroom
     if (resolvedClassroomId) {
       navigation.setOptions({
         headerLeft: () => (
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={12}
-            style={{ marginLeft: 4 }}
-          >
+          <Pressable onPress={() => router.back()} hitSlop={12} style={{ marginLeft: 4 }}>
             <Ionicons name="chevron-back" size={26} color={getColors().primary} />
           </Pressable>
         ),
@@ -80,16 +79,33 @@ export function TeacherSessionDetailScreen(props: { sessionId: string; classroom
 
   if (!session) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 32,
+        }}
+      >
         <Ionicons name="lock-closed-outline" size={40} color={c.textSubtle} />
-        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>Sign in required</Text>
+        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>
+          Sign in required
+        </Text>
       </View>
     )
   }
 
   if (detailQuery.isLoading || studentsQuery.isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center" }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <ActivityIndicator size="large" color={c.primary} />
         <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 12 }}>Loading session…</Text>
       </View>
@@ -98,18 +114,38 @@ export function TeacherSessionDetailScreen(props: { sessionId: string; classroom
 
   if (detailQuery.error || studentsQuery.error) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 32,
+        }}
+      >
         <Ionicons name="alert-circle" size={40} color={c.danger} />
-        <Text style={{ fontSize: 14, color: c.danger, marginTop: 12, textAlign: "center" }}>{mapTeacherApiErrorToMessage(detailQuery.error ?? studentsQuery.error)}</Text>
+        <Text style={{ fontSize: 14, color: c.danger, marginTop: 12, textAlign: "center" }}>
+          {mapTeacherApiErrorToMessage(detailQuery.error ?? studentsQuery.error)}
+        </Text>
       </View>
     )
   }
 
   if (!detailQuery.data) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 32,
+        }}
+      >
         <Ionicons name="help-circle-outline" size={40} color={c.textSubtle} />
-        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>Session not found</Text>
+        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>
+          Session not found
+        </Text>
       </View>
     )
   }
@@ -126,7 +162,9 @@ export function TeacherSessionDetailScreen(props: { sessionId: string; classroom
       {/* ── Overview header ── */}
       <View style={sd.headerSection}>
         <Text style={[sd.sessionTitle, { color: c.text }]} numberOfLines={2}>
-          {sessionData.lectureTitle?.length ? sessionData.lectureTitle : sessionData.classroomDisplayTitle}
+          {sessionData.lectureTitle?.length
+            ? sessionData.lectureTitle
+            : sessionData.classroomDisplayTitle}
         </Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <Text style={{ fontSize: 13, color: c.textMuted }}>
@@ -149,11 +187,19 @@ export function TeacherSessionDetailScreen(props: { sessionId: string; classroom
       {/* ── Stat cards ── */}
       <View style={sd.statsRow}>
         {detailOverview.summaryCards.map((card, i) => (
-          <StatCard key={card.label} label={card.label} value={card.value} tone={card.tone} index={i} />
+          <StatCard
+            key={card.label}
+            label={card.label}
+            value={card.value}
+            tone={card.tone}
+            index={i}
+          />
         ))}
       </View>
       {detailOverview.timingSummary ? (
-        <Text style={{ fontSize: 12, color: c.textMuted, paddingHorizontal: 16, marginBottom: 4 }}>{detailOverview.timingSummary}</Text>
+        <Text style={{ fontSize: 12, color: c.textMuted, paddingHorizontal: 16, marginBottom: 4 }}>
+          {detailOverview.timingSummary}
+        </Text>
       ) : null}
 
       {/* ── Present ── */}
@@ -164,17 +210,23 @@ export function TeacherSessionDetailScreen(props: { sessionId: string; classroom
           </View>
           <Text style={[sd.sectionTitle, { color: c.text }]}>Present</Text>
           <View style={[sd.countBadge, { backgroundColor: c.successSoft }]}>
-            <Text style={{ fontSize: 12, fontWeight: "700", color: c.success }}>{rosterModel.presentRows.length}</Text>
+            <Text style={{ fontSize: 12, fontWeight: "700", color: c.success }}>
+              {rosterModel.presentRows.length}
+            </Text>
           </View>
         </View>
         <TeacherSessionStudentSection
-          title="Present" subtitle=""
+          title="Present"
+          subtitle=""
           rows={rosterModel.presentRows}
           emptyLabel="No students marked present."
           isEditable={isEditable}
           onToggleStatus={(row) => {
-            if (row.actionTargetStatus !== "PRESENT" && row.actionTargetStatus !== "ABSENT") return
-            setDraft((current) => updateAttendanceEditDraft(current, row.attendanceRecordId, row.actionTargetStatus))
+            const target = row.actionTargetStatus
+            if (target !== "PRESENT" && target !== "ABSENT") return
+            setDraft((current) =>
+              updateAttendanceEditDraft(current, row.attendanceRecordId, target),
+            )
           }}
         />
       </View>
@@ -187,17 +239,23 @@ export function TeacherSessionDetailScreen(props: { sessionId: string; classroom
           </View>
           <Text style={[sd.sectionTitle, { color: c.text }]}>Absent</Text>
           <View style={[sd.countBadge, { backgroundColor: c.dangerSoft }]}>
-            <Text style={{ fontSize: 12, fontWeight: "700", color: c.danger }}>{rosterModel.absentRows.length}</Text>
+            <Text style={{ fontSize: 12, fontWeight: "700", color: c.danger }}>
+              {rosterModel.absentRows.length}
+            </Text>
           </View>
         </View>
         <TeacherSessionStudentSection
-          title="Absent" subtitle=""
+          title="Absent"
+          subtitle=""
           rows={rosterModel.absentRows}
           emptyLabel="No students marked absent."
           isEditable={isEditable}
           onToggleStatus={(row) => {
-            if (row.actionTargetStatus !== "PRESENT" && row.actionTargetStatus !== "ABSENT") return
-            setDraft((current) => updateAttendanceEditDraft(current, row.attendanceRecordId, row.actionTargetStatus))
+            const target = row.actionTargetStatus
+            if (target !== "PRESENT" && target !== "ABSENT") return
+            setDraft((current) =>
+              updateAttendanceEditDraft(current, row.attendanceRecordId, target),
+            )
           }}
         />
       </View>
@@ -207,28 +265,57 @@ export function TeacherSessionDetailScreen(props: { sessionId: string; classroom
         <View style={[sd.section, { gap: 10 }]}>
           <Text style={[sd.sectionTitle, { color: c.text }]}>Corrections</Text>
           {detailOverview.correctionSummary ? (
-            <Text style={{ fontSize: 12, color: c.textMuted }}>{detailOverview.correctionSummary}</Text>
+            <Text style={{ fontSize: 12, color: c.textMuted }}>
+              {detailOverview.correctionSummary}
+            </Text>
           ) : null}
           {statusMessage ? (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: c.successSoft, borderRadius: 10, padding: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                backgroundColor: c.successSoft,
+                borderRadius: 10,
+                padding: 10,
+              }}
+            >
               <Ionicons name="checkmark-circle" size={16} color={c.success} />
               <Text style={{ fontSize: 13, color: c.success, flex: 1 }}>{statusMessage}</Text>
             </View>
           ) : null}
           {updateAttendanceMutation.error ? (
-            <Text style={{ fontSize: 13, color: c.danger }}>{mapTeacherApiErrorToMessage(updateAttendanceMutation.error)}</Text>
+            <Text style={{ fontSize: 13, color: c.danger }}>
+              {mapTeacherApiErrorToMessage(updateAttendanceMutation.error)}
+            </Text>
           ) : null}
           <View style={{ flexDirection: "row", gap: 10 }}>
             <Pressable
-              style={[styles.primaryButton, { flex: 1, opacity: updateAttendanceMutation.isPending || pendingChanges.length === 0 ? 0.5 : 1 }]}
+              style={[
+                styles.primaryButton,
+                {
+                  flex: 1,
+                  opacity:
+                    updateAttendanceMutation.isPending || pendingChanges.length === 0 ? 0.5 : 1,
+                },
+              ]}
               disabled={updateAttendanceMutation.isPending || pendingChanges.length === 0}
               onPress={() => {
-                void updateAttendanceMutation.mutateAsync({ changes: pendingChanges })
+                void updateAttendanceMutation
+                  .mutateAsync({ changes: pendingChanges })
                   .then((result) => {
-                    setStatusMessage(buildAttendanceCorrectionSaveMessage(result.appliedChangeCount))
+                    setStatusMessage(
+                      buildAttendanceCorrectionSaveMessage(result.appliedChangeCount),
+                    )
                     setDraft(createAttendanceEditDraft(result.students))
-                    queryClient.setQueryData(teacherQueryKeys.sessionDetail(props.sessionId), result.session)
-                    queryClient.setQueryData(teacherQueryKeys.sessionStudents(props.sessionId), result.students)
+                    queryClient.setQueryData(
+                      teacherQueryKeys.sessionDetail(props.sessionId),
+                      result.session,
+                    )
+                    queryClient.setQueryData(
+                      teacherQueryKeys.sessionStudents(props.sessionId),
+                      result.students,
+                    )
                   })
                   .catch((err) => {
                     setStatusMessage(err instanceof Error ? err.message : "Failed to save.")
@@ -236,13 +323,27 @@ export function TeacherSessionDetailScreen(props: { sessionId: string; classroom
               }}
             >
               <Text style={styles.primaryButtonLabel}>
-                {updateAttendanceMutation.isPending ? "Saving…" : `Save Changes${pendingChanges.length > 0 ? ` (${pendingChanges.length})` : ""}`}
+                {updateAttendanceMutation.isPending
+                  ? "Saving…"
+                  : `Save Changes${pendingChanges.length > 0 ? ` (${pendingChanges.length})` : ""}`}
               </Text>
             </Pressable>
             <Pressable
-              style={{ borderRadius: 10, borderWidth: 1, borderColor: c.border, paddingHorizontal: 16, paddingVertical: 12, alignItems: "center", justifyContent: "center", opacity: pendingChanges.length === 0 ? 0.4 : 1 }}
+              style={{
+                borderRadius: 10,
+                borderWidth: 1,
+                borderColor: c.border,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: pendingChanges.length === 0 ? 0.4 : 1,
+              }}
               disabled={pendingChanges.length === 0}
-              onPress={() => { setDraft(createAttendanceEditDraft(students)); setStatusMessage("Changes discarded.") }}
+              onPress={() => {
+                setDraft(createAttendanceEditDraft(students))
+                setStatusMessage("Changes discarded.")
+              }}
             >
               <Text style={{ fontSize: 14, fontWeight: "600", color: c.text }}>Reset</Text>
             </Pressable>
@@ -256,10 +357,29 @@ export function TeacherSessionDetailScreen(props: { sessionId: string; classroom
 const sd = StyleSheet.create({
   headerSection: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4, gap: 4 },
   sessionTitle: { fontSize: 18, fontWeight: "700" },
-  badge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  statsRow: { flexDirection: "row", flexWrap: "wrap", gap: 10, paddingHorizontal: 16, paddingVertical: 10 },
+  badge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  statsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
   section: { paddingHorizontal: 16, marginTop: 16, gap: 10 },
   sectionTitle: { fontSize: 16, fontWeight: "700" },
-  sectionIcon: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  sectionIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   countBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
 })

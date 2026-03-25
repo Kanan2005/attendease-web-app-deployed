@@ -37,11 +37,15 @@ describe("classifyDeviceBindingError", () => {
     ).toBe("DEVICE_BOUND_TO_ANOTHER")
 
     expect(
-      classifyDeviceBindingError("This device is already bound to another student's attendance profile."),
+      classifyDeviceBindingError(
+        "This device is already bound to another student's attendance profile.",
+      ),
     ).toBe("DEVICE_BOUND_TO_ANOTHER")
 
     expect(
-      classifyDeviceBindingError("This device is already bound to another student and could not be verified for your account."),
+      classifyDeviceBindingError(
+        "This device is already bound to another student and could not be verified for your account.",
+      ),
     ).toBe("DEVICE_BOUND_TO_ANOTHER")
   })
 
@@ -69,9 +73,7 @@ describe("classifyDeviceBindingError", () => {
     ).toBe("DEVICE_UNREGISTERED")
 
     expect(
-      classifyDeviceBindingError(
-        "Student authentication requires a trusted registered device.",
-      ),
+      classifyDeviceBindingError("Student authentication requires a trusted registered device."),
     ).toBe("DEVICE_UNREGISTERED")
   })
 

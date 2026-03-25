@@ -55,11 +55,7 @@ export default function TeacherTabsLayout() {
         options={{
           title: "Reports",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "bar-chart" : "bar-chart-outline"}
-              size={22}
-              color={color}
-            />
+            <Ionicons name={focused ? "bar-chart" : "bar-chart-outline"} size={22} color={color} />
           ),
         }}
       />
@@ -68,11 +64,7 @@ export default function TeacherTabsLayout() {
         options={{
           title: "Exports",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "download" : "download-outline"}
-              size={22}
-              color={color}
-            />
+            <Ionicons name={focused ? "download" : "download-outline"} size={22} color={color} />
           ),
         }}
       />

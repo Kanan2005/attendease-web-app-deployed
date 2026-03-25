@@ -113,7 +113,11 @@ function fmtDate(value: string) {
 }
 
 function fmtEnum(value: string) {
-  return value.toLowerCase().split("_").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" ")
+  return value
+    .toLowerCase()
+    .split("_")
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .join(" ")
 }
 
 export function TeacherClassroomDetailScreenContent(props: Props) {
@@ -123,16 +127,33 @@ export function TeacherClassroomDetailScreenContent(props: Props) {
 
   if (!props.hasSession) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 32,
+        }}
+      >
         <Ionicons name="lock-closed-outline" size={40} color={c.textSubtle} />
-        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>Sign in required</Text>
+        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>
+          Sign in required
+        </Text>
       </View>
     )
   }
 
   if (props.isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center" }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <ActivityIndicator size="large" color={c.primary} />
         <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 12 }}>Loading classroom…</Text>
       </View>
@@ -141,9 +162,19 @@ export function TeacherClassroomDetailScreenContent(props: Props) {
 
   if (props.loadErrorMessage) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 32,
+        }}
+      >
         <Ionicons name="alert-circle" size={40} color={c.danger} />
-        <Text style={{ fontSize: 14, color: c.danger, marginTop: 12, textAlign: "center" }}>{props.loadErrorMessage}</Text>
+        <Text style={{ fontSize: 14, color: c.danger, marginTop: 12, textAlign: "center" }}>
+          {props.loadErrorMessage}
+        </Text>
       </View>
     )
   }
@@ -175,7 +206,9 @@ export function TeacherClassroomDetailScreenContent(props: Props) {
     >
       {/* ── Compact course header ── */}
       <View style={ds.header}>
-        <Text style={[ds.title, { color: c.text }]} numberOfLines={2}>{props.classroomTitle}</Text>
+        <Text style={[ds.title, { color: c.text }]} numberOfLines={2}>
+          {props.classroomTitle}
+        </Text>
         <Text style={{ fontSize: 13, color: c.textMuted }}>{props.classroomSubtitle}</Text>
 
         {/* Join code row */}
@@ -187,35 +220,66 @@ export function TeacherClassroomDetailScreenContent(props: Props) {
           {props.canRotateJoinCode ? (
             <Pressable
               disabled={props.isRotateJoinCodePending}
-              onPress={() => { props.onClearCourseInfoErrorState(); props.onClearJoinCodeMessage(); props.onRotateJoinCode() }}
+              onPress={() => {
+                props.onClearCourseInfoErrorState()
+                props.onClearJoinCodeMessage()
+                props.onRotateJoinCode()
+              }}
               hitSlop={8}
               style={{ marginLeft: "auto" }}
             >
-              <Text style={{ fontSize: 12, fontWeight: "600", color: props.isRotateJoinCodePending ? c.textSubtle : c.primary }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: "600",
+                  color: props.isRotateJoinCodePending ? c.textSubtle : c.primary,
+                }}
+              >
                 {props.isRotateJoinCodePending ? "Rotating…" : "Reset"}
               </Text>
             </Pressable>
           ) : null}
         </View>
         {props.joinCodeMessage ? (
-          <Text style={{ fontSize: 12, color: c.success, marginTop: 2 }}>{props.joinCodeMessage}</Text>
+          <Text style={{ fontSize: 12, color: c.success, marginTop: 2 }}>
+            {props.joinCodeMessage}
+          </Text>
         ) : null}
         {props.rotateJoinCodeError ? (
-          <Text style={{ fontSize: 12, color: c.danger, marginTop: 2 }}>{mapTeacherApiErrorToMessage(props.rotateJoinCodeError)}</Text>
+          <Text style={{ fontSize: 12, color: c.danger, marginTop: 2 }}>
+            {mapTeacherApiErrorToMessage(props.rotateJoinCodeError)}
+          </Text>
         ) : null}
       </View>
 
       {/* ── Quick action tiles ── */}
       <View style={ds.actionsRow}>
-        <QuickTile href={props.routeLinks.roster} icon="people-outline" label="Students" {...(props.rosterCount > 0 ? { badge: `${props.rosterCount}` } : {})} />
-        <QuickTile href={props.routeLinks.lectures} icon="book-outline" label="Lectures" {...(props.lecturesCount > 0 ? { badge: `${props.lecturesCount}` } : {})} />
+        <QuickTile
+          href={props.routeLinks.roster}
+          icon="people-outline"
+          label="Students"
+          {...(props.rosterCount > 0 ? { badge: `${props.rosterCount}` } : {})}
+        />
+        <QuickTile
+          href={props.routeLinks.lectures}
+          icon="book-outline"
+          label="Lectures"
+          {...(props.lecturesCount > 0 ? { badge: `${props.lecturesCount}` } : {})}
+        />
         <QuickTile href={props.routeLinks.schedule} icon="calendar-outline" label="Schedule" />
-        <QuickTile href={props.routeLinks.announcements} icon="megaphone-outline" label="Updates" {...(props.announcementsCount > 0 ? { badge: `${props.announcementsCount}` } : {})} />
+        <QuickTile
+          href={props.routeLinks.announcements}
+          icon="megaphone-outline"
+          label="Updates"
+          {...(props.announcementsCount > 0 ? { badge: `${props.announcementsCount}` } : {})}
+        />
       </View>
 
       {/* ── Recent lectures ── */}
       <View style={ds.section}>
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+        <View
+          style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
+        >
           <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }}>Recent Lectures</Text>
           {allLectures.length > 5 ? (
             <Link href={props.routeLinks.lectures} asChild>
@@ -235,19 +299,66 @@ export function TeacherClassroomDetailScreenContent(props: Props) {
               <Animated.View key={l.id} entering={FadeInDown.duration(200).delay(i * 40)}>
                 <Pressable
                   onPress={() => router.push(props.routeLinks.lectures as never)}
-                  style={[ds.lectureCard, { backgroundColor: c.surfaceRaised, borderColor: isActive ? c.successBorder : c.border }]}
+                  style={[
+                    ds.lectureCard,
+                    {
+                      backgroundColor: c.surfaceRaised,
+                      borderColor: isActive ? c.successBorder : c.border,
+                    },
+                  ]}
                 >
-                  <View style={[ds.lectureNum, { backgroundColor: isCompleted ? c.successSoft : isActive ? c.primarySoft : c.surfaceTint }]}>
-                    <Text style={{ fontSize: 13, fontWeight: "800", color: isCompleted ? c.success : isActive ? c.primary : c.textSubtle }}>{num}</Text>
+                  <View
+                    style={[
+                      ds.lectureNum,
+                      {
+                        backgroundColor: isCompleted
+                          ? c.successSoft
+                          : isActive
+                            ? c.primarySoft
+                            : c.surfaceTint,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: "800",
+                        color: isCompleted ? c.success : isActive ? c.primary : c.textSubtle,
+                      }}
+                    >
+                      {num}
+                    </Text>
                   </View>
                   <View style={{ flex: 1, gap: 1 }}>
-                    <Text style={{ fontSize: 14, fontWeight: "600", color: c.text }} numberOfLines={1}>
+                    <Text
+                      style={{ fontSize: 14, fontWeight: "600", color: c.text }}
+                      numberOfLines={1}
+                    >
                       {l.title || `Lecture ${num}`}
                     </Text>
-                    <Text style={{ fontSize: 12, color: c.textMuted }}>{fmtDate(l.lectureDate)}</Text>
+                    <Text style={{ fontSize: 12, color: c.textMuted }}>
+                      {fmtDate(l.lectureDate)}
+                    </Text>
                   </View>
-                  <View style={[ds.statusBadge, { backgroundColor: isCompleted ? c.successSoft : isActive ? c.primarySoft : c.surfaceTint }]}>
-                    <Text style={{ fontSize: 11, fontWeight: "600", color: isCompleted ? c.success : isActive ? c.primary : c.textSubtle }}>
+                  <View
+                    style={[
+                      ds.statusBadge,
+                      {
+                        backgroundColor: isCompleted
+                          ? c.successSoft
+                          : isActive
+                            ? c.primarySoft
+                            : c.surfaceTint,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        fontWeight: "600",
+                        color: isCompleted ? c.success : isActive ? c.primary : c.textSubtle,
+                      }}
+                    >
                       {fmtEnum(l.status)}
                     </Text>
                   </View>
@@ -286,17 +397,23 @@ function QuickTile(props: {
           <Ionicons name={props.icon} size={20} color={c.primary} />
           {props.badge ? (
             <View style={[ds.badge, { backgroundColor: c.primary }]}>
-              <Text style={{ fontSize: 9, fontWeight: "800", color: c.primaryContrast }}>{props.badge}</Text>
+              <Text style={{ fontSize: 9, fontWeight: "800", color: c.primaryContrast }}>
+                {props.badge}
+              </Text>
             </View>
           ) : null}
         </View>
-        <Text style={{ fontSize: 12, fontWeight: "600", color: c.textMuted, textAlign: "center" }}>{props.label}</Text>
+        <Text style={{ fontSize: 12, fontWeight: "600", color: c.textMuted, textAlign: "center" }}>
+          {props.label}
+        </Text>
       </Pressable>
     </Link>
   )
 }
 
-function CourseSettingsSection(props: Props & { safeDraft: CourseInfoDraft; canSaveCourse: boolean }) {
+function CourseSettingsSection(
+  props: Props & { safeDraft: CourseInfoDraft; canSaveCourse: boolean },
+) {
   const [expanded, setExpanded] = useState(false)
   const c = getColors()
 
@@ -304,11 +421,18 @@ function CourseSettingsSection(props: Props & { safeDraft: CourseInfoDraft; canS
     <>
       <Pressable
         onPress={() => setExpanded((v) => !v)}
-        style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 10 }}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingVertical: 10,
+        }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Ionicons name="settings-outline" size={16} color={c.textSubtle} />
-          <Text style={{ fontSize: 15, fontWeight: "600", color: c.textMuted }}>Course Settings</Text>
+          <Text style={{ fontSize: 15, fontWeight: "600", color: c.textMuted }}>
+            Course Settings
+          </Text>
         </View>
         <Ionicons name={expanded ? "chevron-up" : "chevron-down"} size={18} color={c.textSubtle} />
       </Pressable>
@@ -316,7 +440,9 @@ function CourseSettingsSection(props: Props & { safeDraft: CourseInfoDraft; canS
       {expanded ? (
         <View style={{ gap: 16, marginTop: 8 }}>
           {/* Course info */}
-          <View style={[ds.settingsCard, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}>
+          <View
+            style={[ds.settingsCard, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}
+          >
             <Text style={{ fontSize: 14, fontWeight: "700", color: c.text }}>Course Info</Text>
             <Text style={{ fontSize: 12, color: c.textMuted }}>{props.scopeSummary}</Text>
 
@@ -324,25 +450,53 @@ function CourseSettingsSection(props: Props & { safeDraft: CourseInfoDraft; canS
               !props.isEditingCourseInfo ? (
                 <Pressable
                   style={[styles.secondaryButton, { paddingVertical: 10 }]}
-                  onPress={() => { props.onClearCourseInfoMessage(); props.onStartEditCourseInfo() }}
+                  onPress={() => {
+                    props.onClearCourseInfoMessage()
+                    props.onStartEditCourseInfo()
+                  }}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: "600", color: c.text }}>Edit Course Info</Text>
+                  <Text style={{ fontSize: 13, fontWeight: "600", color: c.text }}>
+                    Edit Course Info
+                  </Text>
                 </Pressable>
               ) : (
                 <>
                   <Text style={{ fontSize: 12, fontWeight: "600", color: c.textMuted }}>Title</Text>
-                  <TextInput value={props.safeDraft.classroomTitle} autoCapitalize="words" placeholder="Applied Mathematics" onChangeText={props.onCourseInfoDraftTitleChange} style={styles.input} />
+                  <TextInput
+                    value={props.safeDraft.classroomTitle}
+                    autoCapitalize="words"
+                    placeholder="Applied Mathematics"
+                    onChangeText={props.onCourseInfoDraftTitleChange}
+                    style={styles.input}
+                  />
                   <Text style={{ fontSize: 12, fontWeight: "600", color: c.textMuted }}>Code</Text>
-                  <TextInput value={props.safeDraft.courseCode} autoCapitalize="characters" placeholder="CSE6-MATH-A" onChangeText={props.onCourseInfoDraftCodeChange} style={styles.input} />
+                  <TextInput
+                    value={props.safeDraft.courseCode}
+                    autoCapitalize="characters"
+                    placeholder="CSE6-MATH-A"
+                    onChangeText={props.onCourseInfoDraftCodeChange}
+                    style={styles.input}
+                  />
                   <View style={{ flexDirection: "row", gap: 8 }}>
                     <Pressable
-                      style={[styles.primaryButton, { flex: 1, paddingVertical: 10, opacity: props.canSaveCourse ? 1 : 0.5 }]}
+                      style={[
+                        styles.primaryButton,
+                        { flex: 1, paddingVertical: 10, opacity: props.canSaveCourse ? 1 : 0.5 },
+                      ]}
                       disabled={!props.canSaveCourse}
-                      onPress={() => { props.onClearCourseInfoMessage(); props.onSaveCourseInfo() }}
+                      onPress={() => {
+                        props.onClearCourseInfoMessage()
+                        props.onSaveCourseInfo()
+                      }}
                     >
-                      <Text style={styles.primaryButtonLabel}>{props.isCourseInfoSaving ? "Saving…" : "Save"}</Text>
+                      <Text style={styles.primaryButtonLabel}>
+                        {props.isCourseInfoSaving ? "Saving…" : "Save"}
+                      </Text>
                     </Pressable>
-                    <Pressable style={[styles.secondaryButton, { flex: 1, paddingVertical: 10 }]} onPress={props.onCancelCourseInfo}>
+                    <Pressable
+                      style={[styles.secondaryButton, { flex: 1, paddingVertical: 10 }]}
+                      onPress={props.onCancelCourseInfo}
+                    >
                       <Text style={styles.secondaryButtonLabel}>Cancel</Text>
                     </Pressable>
                   </View>
@@ -350,29 +504,58 @@ function CourseSettingsSection(props: Props & { safeDraft: CourseInfoDraft; canS
               )
             ) : (
               <>
-                <Text style={{ fontSize: 13, color: c.textMuted }}>Title: {props.classroomTitle}</Text>
+                <Text style={{ fontSize: 13, color: c.textMuted }}>
+                  Title: {props.classroomTitle}
+                </Text>
                 <Text style={{ fontSize: 13, color: c.textMuted }}>Code: {props.courseCode}</Text>
               </>
             )}
-            {props.courseInfoMessage ? <Text style={{ fontSize: 12, color: c.success }}>{props.courseInfoMessage}</Text> : null}
-            {props.courseInfoError ? <Text style={{ fontSize: 12, color: c.danger }}>{mapTeacherApiErrorToMessage(props.courseInfoError)}</Text> : null}
+            {props.courseInfoMessage ? (
+              <Text style={{ fontSize: 12, color: c.success }}>{props.courseInfoMessage}</Text>
+            ) : null}
+            {props.courseInfoError ? (
+              <Text style={{ fontSize: 12, color: c.danger }}>
+                {mapTeacherApiErrorToMessage(props.courseInfoError)}
+              </Text>
+            ) : null}
           </View>
 
           {/* Archive */}
           {props.canArchiveClassroom ? (
-            <View style={[ds.settingsCard, { backgroundColor: c.dangerSoft, borderColor: c.dangerBorder }]}>
-              <Text style={{ fontSize: 14, fontWeight: "700", color: c.danger }}>Archive Classroom</Text>
-              <Text style={{ fontSize: 12, color: c.textMuted }}>Removes from active classrooms. History is preserved.</Text>
+            <View
+              style={[
+                ds.settingsCard,
+                { backgroundColor: c.dangerSoft, borderColor: c.dangerBorder },
+              ]}
+            >
+              <Text style={{ fontSize: 14, fontWeight: "700", color: c.danger }}>
+                Archive Classroom
+              </Text>
+              <Text style={{ fontSize: 12, color: c.textMuted }}>
+                Removes from active classrooms. History is preserved.
+              </Text>
               <Pressable
-                style={[styles.dangerButton, { paddingVertical: 10, opacity: props.isArchivePending ? 0.5 : 1 }]}
+                style={[
+                  styles.dangerButton,
+                  { paddingVertical: 10, opacity: props.isArchivePending ? 0.5 : 1 },
+                ]}
                 disabled={props.isArchivePending}
                 onPress={props.onArchiveClassroom}
               >
-                <Text style={styles.primaryButtonLabel}>{props.isArchivePending ? "Archiving…" : "Archive"}</Text>
+                <Text style={styles.primaryButtonLabel}>
+                  {props.isArchivePending ? "Archiving…" : "Archive"}
+                </Text>
               </Pressable>
-              {props.archiveError ? <Text style={{ fontSize: 12, color: c.danger }}>{mapTeacherApiErrorToMessage(props.archiveError)}</Text> : null}
+              {props.archiveError ? (
+                <Text style={{ fontSize: 12, color: c.danger }}>
+                  {mapTeacherApiErrorToMessage(props.archiveError)}
+                </Text>
+              ) : null}
               {props.isArchived ? (
-                <Pressable style={[styles.secondaryButton, { paddingVertical: 10 }]} onPress={props.onBackToClassrooms}>
+                <Pressable
+                  style={[styles.secondaryButton, { paddingVertical: 10 }]}
+                  onPress={props.onBackToClassrooms}
+                >
                   <Text style={styles.secondaryButtonLabel}>Back To Classrooms</Text>
                 </Pressable>
               ) : null}

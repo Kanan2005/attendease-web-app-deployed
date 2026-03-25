@@ -17,12 +17,7 @@ export interface AdminSessionBootstrap {
   defaultDraft: AdminSessionDraft
 }
 
-export type AdminSessionStatus =
-  | "idle"
-  | "bootstrapping"
-  | "authenticated"
-  | "error"
-  | "signed_out"
+export type AdminSessionStatus = "idle" | "bootstrapping" | "authenticated" | "error" | "signed_out"
 
 interface AdminSessionContextValue {
   session: AuthSessionResponse | null
@@ -40,8 +35,8 @@ const adminSessionContext = createContext<AdminSessionContextValue | null>(null)
 export function buildAdminSessionBootstrap(
   source: Record<string, string | undefined> = mobileEnvSource,
 ): AdminSessionBootstrap {
-  const devEmail = source["EXPO_PUBLIC_ADMIN_DEV_EMAIL"] ?? ""
-  const devPassword = source["EXPO_PUBLIC_ADMIN_DEV_PASSWORD"] ?? ""
+  const devEmail = source.EXPO_PUBLIC_ADMIN_DEV_EMAIL ?? ""
+  const devPassword = source.EXPO_PUBLIC_ADMIN_DEV_PASSWORD ?? ""
 
   return {
     hasDevelopmentCredentials: Boolean(devEmail && devPassword),

@@ -1,12 +1,12 @@
 import { createAuthApiClient } from "@attendease/auth"
 import { loadWebEnv } from "@attendease/config"
 
-import { webEnvSource } from "./web-env"
 import type {
   AdminDeviceBindingRecord,
   AdminDeviceSupportDetail,
   AdminDeviceSupportSummary,
 } from "@attendease/contracts"
+import { webEnvSource } from "./web-env"
 
 export type AdminDeviceWorkspaceView = "support" | "recovery"
 

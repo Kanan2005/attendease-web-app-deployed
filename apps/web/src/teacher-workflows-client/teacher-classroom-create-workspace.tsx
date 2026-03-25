@@ -5,7 +5,7 @@ import { webTheme } from "@attendease/ui-web"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useId, useState } from "react"
 
 import { AuthApiClientError } from "@attendease/auth"
 import { createWebAuthBootstrap } from "../auth"
@@ -33,7 +33,10 @@ export function TeacherClassroomCreateWorkspace(props: {
 }) {
   const router = useRouter()
   const queryClient = useQueryClient()
-  const [statusMessage, setStatusMessage] = useState<{ tone: "info" | "danger"; text: string } | null>(null)
+  const [statusMessage, setStatusMessage] = useState<{
+    tone: "info" | "danger"
+    text: string
+  } | null>(null)
   const [draft, setDraft] = useState(() => createTeacherWebClassroomCreateDraft())
 
   const assignmentsQuery = useQuery({
@@ -130,7 +133,14 @@ export function TeacherClassroomCreateWorkspace(props: {
           <Link
             href={teacherWorkflowRoutes.classrooms}
             className="ui-back-link"
-            style={{ fontSize: 13, color: webTheme.colors.textMuted, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+            style={{
+              fontSize: 13,
+              color: webTheme.colors.textMuted,
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+            }}
           >
             <span aria-hidden>←</span> Back to classrooms
           </Link>
@@ -171,7 +181,15 @@ export function TeacherClassroomCreateWorkspace(props: {
         }}
       >
         <div style={{ padding: "20px 28px", borderBottom: `1px solid ${webTheme.colors.border}` }}>
-          <h2 style={{ margin: "0 0 2px", fontSize: 20, fontWeight: 700, color: webTheme.colors.text, letterSpacing: "-0.02em" }}>
+          <h2
+            style={{
+              margin: "0 0 2px",
+              fontSize: 20,
+              fontWeight: 700,
+              color: webTheme.colors.text,
+              letterSpacing: "-0.02em",
+            }}
+          >
             New classroom
           </h2>
           <p style={{ margin: 0, fontSize: 13, color: webTheme.colors.textMuted }}>
@@ -241,7 +259,9 @@ export function TeacherClassroomCreateWorkspace(props: {
             type="button"
             className="ui-primary-btn"
             onClick={() => createClassroom.mutate()}
-            disabled={createClassroom.isPending || !draft.classroomTitle.trim() || !draft.courseCode.trim()}
+            disabled={
+              createClassroom.isPending || !draft.classroomTitle.trim() || !draft.courseCode.trim()
+            }
             style={workflowStyles.primaryButton}
           >
             {createClassroom.isPending ? "Creating..." : "Create classroom"}
@@ -258,9 +278,11 @@ function DropdownField(props: {
   options: readonly { value: string; label: string }[]
   onChange: (value: string) => void
 }) {
+  const selectId = useId()
   return (
     <div>
       <label
+        htmlFor={selectId}
         style={{
           display: "block",
           fontSize: 13,
@@ -273,6 +295,7 @@ function DropdownField(props: {
       </label>
       <div style={{ position: "relative" }}>
         <select
+          id={selectId}
           value={props.value}
           onChange={(e) => props.onChange(e.target.value)}
           style={{

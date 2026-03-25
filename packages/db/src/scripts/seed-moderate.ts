@@ -20,7 +20,15 @@ function uid(prefix: string): string {
 }
 
 function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]!
+  if (arr.length === 0) {
+    throw new Error("pick: empty array")
+  }
+  const idx = Math.floor(Math.random() * arr.length)
+  const item = arr[idx]
+  if (item === undefined) {
+    throw new Error("pick: unexpected undefined at index")
+  }
+  return item
 }
 
 function randInt(min: number, max: number): number {
@@ -34,7 +42,7 @@ function dateDaysAgo(days: number): Date {
 }
 
 function dateOnly(d: Date): Date {
-  return new Date(d.toISOString().slice(0, 10) + "T00:00:00.000Z")
+  return new Date(`${d.toISOString().slice(0, 10)}T00:00:00.000Z`)
 }
 
 // ─── existing IDs from dev seed ───────────────────────────────────────
@@ -61,7 +69,9 @@ async function main() {
 
   // Clean previous moderate seed data
   console.log("  Cleaning previous moderate data...")
-  await prisma.$executeRawUnsafe(`DELETE FROM analytics_student_course_summary WHERE "courseOfferingId" LIKE 'mod_%' OR "studentId" LIKE 'mod_%'`)
+  await prisma.$executeRawUnsafe(
+    `DELETE FROM analytics_student_course_summary WHERE "courseOfferingId" LIKE 'mod_%' OR "studentId" LIKE 'mod_%'`,
+  )
   await prisma.$executeRawUnsafe(`DELETE FROM attendance_records WHERE id LIKE 'mod_%'`)
   await prisma.$executeRawUnsafe(`DELETE FROM attendance_sessions WHERE id LIKE 'mod_%'`)
   await prisma.$executeRawUnsafe(`DELETE FROM announcement_posts WHERE id LIKE 'mod_%'`)
@@ -96,7 +106,13 @@ async function main() {
   await prisma.user.upsert({
     where: { email: t2.email },
     update: {},
-    create: { id: t2.id, email: t2.email, displayName: t2.displayName, status: "ACTIVE", lastLoginAt: new Date("2026-03-17T08:00:00Z") },
+    create: {
+      id: t2.id,
+      email: t2.email,
+      displayName: t2.displayName,
+      status: "ACTIVE",
+      lastLoginAt: new Date("2026-03-17T08:00:00Z"),
+    },
   })
   await prisma.userRole.upsert({
     where: { userId_role: { userId: t2.id, role: "TEACHER" } },
@@ -111,7 +127,12 @@ async function main() {
   await prisma.teacherProfile.upsert({
     where: { userId: t2.id },
     update: {},
-    create: { userId: t2.id, employeeCode: t2.employeeCode, department: t2.department, designation: t2.designation },
+    create: {
+      userId: t2.id,
+      employeeCode: t2.employeeCode,
+      department: t2.department,
+      designation: t2.designation,
+    },
   })
 
   console.log("  ✓ Created teacher: Prof. Sneha Reddy")
@@ -119,20 +140,24 @@ async function main() {
   // ── 2. 11 new students (15 total with 4 from dev seed) ─────────────
 
   const STUDENTS = [
-    { first: "Rohan",    last: "Gupta",     roll: "CSE2305", gender: "M" },
-    { first: "Priya",    last: "Nair",      roll: "CSE2306", gender: "F" },
-    { first: "Arjun",    last: "Tiwari",    roll: "CSE2307", gender: "M" },
-    { first: "Ananya",   last: "Joshi",     roll: "CSE2308", gender: "F" },
-    { first: "Ishaan",   last: "Mehta",     roll: "CSE2309", gender: "M" },
-    { first: "Kavya",    last: "Reddy",     roll: "CSE2310", gender: "F" },
-    { first: "Dhruv",    last: "Saxena",    roll: "CSE2311", gender: "M" },
-    { first: "Shreya",   last: "Das",       roll: "CSE2312", gender: "F" },
-    { first: "Aditya",   last: "Chauhan",   roll: "CSE2313", gender: "M" },
-    { first: "Tanvi",    last: "Kulkarni",  roll: "CSE2314", gender: "F" },
-    { first: "Siddharth",last: "Rao",       roll: "CSE2315", gender: "M" },
+    { first: "Rohan", last: "Gupta", roll: "CSE2305", gender: "M" },
+    { first: "Priya", last: "Nair", roll: "CSE2306", gender: "F" },
+    { first: "Arjun", last: "Tiwari", roll: "CSE2307", gender: "M" },
+    { first: "Ananya", last: "Joshi", roll: "CSE2308", gender: "F" },
+    { first: "Ishaan", last: "Mehta", roll: "CSE2309", gender: "M" },
+    { first: "Kavya", last: "Reddy", roll: "CSE2310", gender: "F" },
+    { first: "Dhruv", last: "Saxena", roll: "CSE2311", gender: "M" },
+    { first: "Shreya", last: "Das", roll: "CSE2312", gender: "F" },
+    { first: "Aditya", last: "Chauhan", roll: "CSE2313", gender: "M" },
+    { first: "Tanvi", last: "Kulkarni", roll: "CSE2314", gender: "F" },
+    { first: "Siddharth", last: "Rao", roll: "CSE2315", gender: "M" },
   ]
 
-  interface StudentRec { id: string; roll: string; name: string }
+  interface StudentRec {
+    id: string
+    roll: string
+    name: string
+  }
   const newStudents: StudentRec[] = []
 
   for (const s of STUDENTS) {
@@ -143,7 +168,13 @@ async function main() {
     await prisma.user.upsert({
       where: { email },
       update: {},
-      create: { id: sid, email, displayName, status: "ACTIVE", lastLoginAt: dateDaysAgo(randInt(0, 5)) },
+      create: {
+        id: sid,
+        email,
+        displayName,
+        status: "ACTIVE",
+        lastLoginAt: dateDaysAgo(randInt(0, 5)),
+      },
     })
     await prisma.userRole.upsert({
       where: { userId_role: { userId: sid, role: "STUDENT" } },
@@ -186,8 +217,8 @@ async function main() {
   // ── 3. New subjects ─────────────────────────────────────────────────
 
   const subjects = [
-    { id: uid("subj"), code: "CSE301", title: "Algorithms",        shortTitle: "Algo" },
-    { id: uid("subj"), code: "CSE302", title: "Database Systems",  shortTitle: "DBMS" },
+    { id: uid("subj"), code: "CSE301", title: "Algorithms", shortTitle: "Algo" },
+    { id: uid("subj"), code: "CSE302", title: "Database Systems", shortTitle: "DBMS" },
     { id: uid("subj"), code: "ECE301", title: "Digital Electronics", shortTitle: "DE" },
     { id: uid("subj"), code: "ECE302", title: "Signal Processing", shortTitle: "DSP" },
   ]
@@ -196,7 +227,13 @@ async function main() {
     await prisma.subject.upsert({
       where: { code: s.code },
       update: {},
-      create: { id: s.id, code: s.code, title: s.title, shortTitle: s.shortTitle, status: "ACTIVE" },
+      create: {
+        id: s.id,
+        code: s.code,
+        title: s.title,
+        shortTitle: s.shortTitle,
+        status: "ACTIVE",
+      },
     })
   }
 
@@ -208,47 +245,92 @@ async function main() {
   const joinCodeExpiry = new Date("2026-12-31T23:59:59Z")
 
   interface CourseDef {
-    id: string; code: string; displayTitle: string; subjectId: string
-    teacherId: string; taId: string; jcId: string; joinCode: string
-    mode: "QR_GPS" | "BLUETOOTH"; location: string
+    id: string
+    code: string
+    displayTitle: string
+    subjectId: string
+    teacherId: string
+    taId: string
+    jcId: string
+    joinCode: string
+    mode: "QR_GPS" | "BLUETOOTH"
+    location: string
   }
 
   const courses: CourseDef[] = [
     // Prof. Anurag's new courses
     {
-      id: uid("co"), code: "CSE6-ALGO-A", displayTitle: "Algorithms - Semester 6 A",
-      subjectId: subjects[0]!.id, teacherId: EXISTING.teacher1,
-      taId: uid("ta"), jcId: uid("jc"), joinCode: "ALGO6A",
-      mode: "QR_GPS", location: "Room 301",
+      id: uid("co"),
+      code: "CSE6-ALGO-A",
+      displayTitle: "Algorithms - Semester 6 A",
+      subjectId: subjects[0]?.id ?? "",
+      teacherId: EXISTING.teacher1,
+      taId: uid("ta"),
+      jcId: uid("jc"),
+      joinCode: "ALGO6A",
+      mode: "QR_GPS",
+      location: "Room 301",
     },
     {
-      id: uid("co"), code: "CSE6-DBMS-A", displayTitle: "Database Systems - Semester 6 A",
-      subjectId: subjects[1]!.id, teacherId: EXISTING.teacher1,
-      taId: uid("ta"), jcId: uid("jc"), joinCode: "DBMS6A",
-      mode: "BLUETOOTH", location: "Lab 3",
+      id: uid("co"),
+      code: "CSE6-DBMS-A",
+      displayTitle: "Database Systems - Semester 6 A",
+      subjectId: subjects[1]?.id ?? "",
+      teacherId: EXISTING.teacher1,
+      taId: uid("ta"),
+      jcId: uid("jc"),
+      joinCode: "DBMS6A",
+      mode: "BLUETOOTH",
+      location: "Lab 3",
     },
     // Prof. Sneha's courses
     {
-      id: uid("co"), code: "CSE6-DE-A", displayTitle: "Digital Electronics - Semester 6 A",
-      subjectId: subjects[2]!.id, teacherId: teacher2Id,
-      taId: uid("ta"), jcId: uid("jc"), joinCode: "DE6A",
-      mode: "QR_GPS", location: "Room 102",
+      id: uid("co"),
+      code: "CSE6-DE-A",
+      displayTitle: "Digital Electronics - Semester 6 A",
+      subjectId: subjects[2]?.id ?? "",
+      teacherId: teacher2Id,
+      taId: uid("ta"),
+      jcId: uid("jc"),
+      joinCode: "DE6A",
+      mode: "QR_GPS",
+      location: "Room 102",
     },
     {
-      id: uid("co"), code: "CSE6-DSP-A", displayTitle: "Signal Processing - Semester 6 A",
-      subjectId: subjects[3]!.id, teacherId: teacher2Id,
-      taId: uid("ta"), jcId: uid("jc"), joinCode: "DSP6A",
-      mode: "BLUETOOTH", location: "Lab 1",
+      id: uid("co"),
+      code: "CSE6-DSP-A",
+      displayTitle: "Signal Processing - Semester 6 A",
+      subjectId: subjects[3]?.id ?? "",
+      teacherId: teacher2Id,
+      taId: uid("ta"),
+      jcId: uid("jc"),
+      joinCode: "DSP6A",
+      mode: "BLUETOOTH",
+      location: "Lab 1",
     },
   ]
 
   for (const c of courses) {
     await prisma.teacherAssignment.upsert({
-      where: { teacherId_semesterId_classId_sectionId_subjectId: { teacherId: c.teacherId, semesterId: semId, classId: EXISTING.class_cse, sectionId: EXISTING.section_a, subjectId: c.subjectId } },
+      where: {
+        teacherId_semesterId_classId_sectionId_subjectId: {
+          teacherId: c.teacherId,
+          semesterId: semId,
+          classId: EXISTING.class_cse,
+          sectionId: EXISTING.section_a,
+          subjectId: c.subjectId,
+        },
+      },
       update: {},
       create: {
-        id: c.taId, teacherId: c.teacherId, grantedByUserId: EXISTING.admin,
-        semesterId: semId, classId: EXISTING.class_cse, sectionId: EXISTING.section_a, subjectId: c.subjectId, status: "ACTIVE",
+        id: c.taId,
+        teacherId: c.teacherId,
+        grantedByUserId: EXISTING.admin,
+        semesterId: semId,
+        classId: EXISTING.class_cse,
+        sectionId: EXISTING.section_a,
+        subjectId: c.subjectId,
+        status: "ACTIVE",
       },
     })
 
@@ -256,19 +338,37 @@ async function main() {
       where: { code: c.code },
       update: {},
       create: {
-        id: c.id, semesterId: semId, classId: EXISTING.class_cse, sectionId: EXISTING.section_a,
-        subjectId: c.subjectId, primaryTeacherId: c.teacherId, createdByUserId: c.teacherId,
-        code: c.code, displayTitle: c.displayTitle, status: "ACTIVE",
-        defaultAttendanceMode: c.mode, defaultSessionDurationMinutes: 15,
-        qrRotationWindowSeconds: 15, bluetoothRotationWindowSeconds: 10,
-        timezone: "Asia/Kolkata", degree: "B.Tech", semesterLabel: "Semester 6",
+        id: c.id,
+        semesterId: semId,
+        classId: EXISTING.class_cse,
+        sectionId: EXISTING.section_a,
+        subjectId: c.subjectId,
+        primaryTeacherId: c.teacherId,
+        createdByUserId: c.teacherId,
+        code: c.code,
+        displayTitle: c.displayTitle,
+        status: "ACTIVE",
+        defaultAttendanceMode: c.mode,
+        defaultSessionDurationMinutes: 15,
+        qrRotationWindowSeconds: 15,
+        bluetoothRotationWindowSeconds: 10,
+        timezone: "Asia/Kolkata",
+        degree: "B.Tech",
+        semesterLabel: "Semester 6",
       },
     })
 
     await prisma.classroomJoinCode.upsert({
       where: { code: c.joinCode },
       update: {},
-      create: { id: c.jcId, courseOfferingId: c.id, createdByUserId: c.teacherId, code: c.joinCode, status: "ACTIVE", expiresAt: joinCodeExpiry },
+      create: {
+        id: c.jcId,
+        courseOfferingId: c.id,
+        createdByUserId: c.teacherId,
+        code: c.joinCode,
+        status: "ACTIVE",
+        expiresAt: joinCodeExpiry,
+      },
     })
   }
 
@@ -285,9 +385,13 @@ async function main() {
       const startHour = randInt(9, 14)
       await prisma.courseScheduleSlot.create({
         data: {
-          id: uid("slot"), courseOfferingId: c.id, weekday: day,
-          startMinutes: startHour * 60, endMinutes: startHour * 60 + 50,
-          locationLabel: c.location, status: "ACTIVE",
+          id: uid("slot"),
+          courseOfferingId: c.id,
+          weekday: day,
+          startMinutes: startHour * 60,
+          endMinutes: startHour * 60 + 50,
+          locationLabel: c.location,
+          status: "ACTIVE",
         },
       })
       slotCount++
@@ -311,14 +415,23 @@ async function main() {
           where: { studentId_courseOfferingId: { studentId, courseOfferingId: c.id } },
           update: {},
           create: {
-            id: eId, courseOfferingId: c.id, studentId,
-            semesterId: semId, classId: EXISTING.class_cse, sectionId: EXISTING.section_a, subjectId: c.subjectId,
-            status: "ACTIVE", source: "JOIN_CODE", joinedAt: dateDaysAgo(randInt(15, 30)),
+            id: eId,
+            courseOfferingId: c.id,
+            studentId,
+            semesterId: semId,
+            classId: EXISTING.class_cse,
+            sectionId: EXISTING.section_a,
+            subjectId: c.subjectId,
+            status: "ACTIVE",
+            source: "JOIN_CODE",
+            joinedAt: dateDaysAgo(randInt(15, 30)),
           },
         })
         map.set(studentId, eId)
         enrollCount++
-      } catch { /* skip duplicates */ }
+      } catch {
+        /* skip duplicates */
+      }
     }
     enrollmentMap.set(c.id, map)
   }
@@ -332,13 +445,22 @@ async function main() {
           where: { studentId_courseOfferingId: { studentId, courseOfferingId: coId } },
           update: {},
           create: {
-            id: uid("enrl"), courseOfferingId: coId, studentId,
-            semesterId: semId, classId: EXISTING.class_cse, sectionId: EXISTING.section_a, subjectId,
-            status: "ACTIVE", source: "JOIN_CODE", joinedAt: dateDaysAgo(randInt(15, 30)),
+            id: uid("enrl"),
+            courseOfferingId: coId,
+            studentId,
+            semesterId: semId,
+            classId: EXISTING.class_cse,
+            sectionId: EXISTING.section_a,
+            subjectId,
+            status: "ACTIVE",
+            source: "JOIN_CODE",
+            joinedAt: dateDaysAgo(randInt(15, 30)),
           },
         })
         enrollCount++
-      } catch { /* skip duplicates */ }
+      } catch {
+        /* skip duplicates */
+      }
     }
   }
 
@@ -362,8 +484,11 @@ async function main() {
 
       await prisma.lecture.create({
         data: {
-          id: lecId, courseOfferingId: c.id, createdByUserId: c.teacherId,
-          title: `Lecture ${i + 1}`, lectureDate: dateOnly(date),
+          id: lecId,
+          courseOfferingId: c.id,
+          createdByUserId: c.teacherId,
+          title: `Lecture ${i + 1}`,
+          lectureDate: dateOnly(date),
           status: isCompleted ? "COMPLETED" : "PLANNED",
         },
       })
@@ -383,13 +508,25 @@ async function main() {
 
       await prisma.attendanceSession.create({
         data: {
-          id: sessionId, courseOfferingId: c.id, lectureId: lecId,
-          teacherAssignmentId: c.taId, teacherId: c.teacherId, endedByUserId: c.teacherId,
-          semesterId: semId, classId: EXISTING.class_cse, sectionId: EXISTING.section_a, subjectId: c.subjectId,
-          mode: c.mode, status: "ENDED",
-          startedAt: sessionStart, scheduledEndAt: sessionEnd, endedAt: sessionEnd,
-          durationSeconds: 900, rosterSnapshotCount: rosterCount,
-          presentCount, absentCount,
+          id: sessionId,
+          courseOfferingId: c.id,
+          lectureId: lecId,
+          teacherAssignmentId: c.taId,
+          teacherId: c.teacherId,
+          endedByUserId: c.teacherId,
+          semesterId: semId,
+          classId: EXISTING.class_cse,
+          sectionId: EXISTING.section_a,
+          subjectId: c.subjectId,
+          mode: c.mode,
+          status: "ENDED",
+          startedAt: sessionStart,
+          scheduledEndAt: sessionEnd,
+          endedAt: sessionEnd,
+          durationSeconds: 900,
+          rosterSnapshotCount: rosterCount,
+          presentCount,
+          absentCount,
           qrSeed: !isBle ? `qrseed_${sessionId}_pad` : null,
           qrRotationWindowSeconds: !isBle ? 15 : null,
           bleSeed: isBle ? `bleseed_${sessionId}_pad` : null,
@@ -411,10 +548,15 @@ async function main() {
         const isPresent = presentIds.has(studentId)
         await prisma.attendanceRecord.create({
           data: {
-            id: uid("arec"), sessionId, enrollmentId, studentId,
+            id: uid("arec"),
+            sessionId,
+            enrollmentId,
+            studentId,
             status: isPresent ? "PRESENT" : "ABSENT",
             markSource: isPresent ? (isBle ? "BLUETOOTH" : "QR_GPS") : null,
-            markedAt: isPresent ? new Date(sessionStart.getTime() + randInt(1, 12) * 60 * 1000) : null,
+            markedAt: isPresent
+              ? new Date(sessionStart.getTime() + randInt(1, 12) * 60 * 1000)
+              : null,
           },
         })
         recordCount++
@@ -422,7 +564,9 @@ async function main() {
     }
   }
 
-  console.log(`  ✓ Created ${lectureCount} lectures, ${sessionCount} sessions, ${recordCount} records`)
+  console.log(
+    `  ✓ Created ${lectureCount} lectures, ${sessionCount} sessions, ${recordCount} records`,
+  )
 
   // ── 8. Analytics summaries ──────────────────────────────────────────
 
@@ -443,15 +587,35 @@ async function main() {
 
     for (const enrl of enrollments) {
       const presentSessions = await prisma.attendanceRecord.count({
-        where: { studentId: enrl.studentId, session: { courseOfferingId: coId }, status: "PRESENT" },
+        where: {
+          studentId: enrl.studentId,
+          session: { courseOfferingId: coId },
+          status: "PRESENT",
+        },
       })
       const total = sessions.length
       const pct = total > 0 ? (presentSessions / total) * 100 : 0
 
       await prisma.analyticsStudentCourseSummary.upsert({
-        where: { courseOfferingId_studentId: { courseOfferingId: coId, studentId: enrl.studentId } },
-        update: { totalSessions: total, presentSessions, absentSessions: total - presentSessions, attendancePercentage: Math.round(pct * 100) / 100, lastSessionAt: dateDaysAgo(1) },
-        create: { courseOfferingId: coId, studentId: enrl.studentId, totalSessions: total, presentSessions, absentSessions: total - presentSessions, attendancePercentage: Math.round(pct * 100) / 100, lastSessionAt: dateDaysAgo(1) },
+        where: {
+          courseOfferingId_studentId: { courseOfferingId: coId, studentId: enrl.studentId },
+        },
+        update: {
+          totalSessions: total,
+          presentSessions,
+          absentSessions: total - presentSessions,
+          attendancePercentage: Math.round(pct * 100) / 100,
+          lastSessionAt: dateDaysAgo(1),
+        },
+        create: {
+          courseOfferingId: coId,
+          studentId: enrl.studentId,
+          totalSessions: total,
+          presentSessions,
+          absentSessions: total - presentSessions,
+          attendancePercentage: Math.round(pct * 100) / 100,
+          lastSessionAt: dateDaysAgo(1),
+        },
       })
       analyticCount++
     }
@@ -462,22 +626,42 @@ async function main() {
   // ── 9. Announcements ────────────────────────────────────────────────
 
   const templates = [
-    { title: "Welcome to the course!", body: "Welcome everyone. Please review the syllabus and course schedule. Looking forward to a great semester together." },
-    { title: "Assignment 1 posted", body: "The first assignment has been posted. Due date is next Friday. Please submit through the portal." },
-    { title: "Mid-semester exam schedule", body: "Mid-semester exams will be held in Week 8. Detailed schedule will be shared soon. Start preparing!" },
-    { title: "Lab session update", body: "This week's lab session has been moved to Thursday due to a scheduling conflict. Please plan accordingly." },
+    {
+      title: "Welcome to the course!",
+      body: "Welcome everyone. Please review the syllabus and course schedule. Looking forward to a great semester together.",
+    },
+    {
+      title: "Assignment 1 posted",
+      body: "The first assignment has been posted. Due date is next Friday. Please submit through the portal.",
+    },
+    {
+      title: "Mid-semester exam schedule",
+      body: "Mid-semester exams will be held in Week 8. Detailed schedule will be shared soon. Start preparing!",
+    },
+    {
+      title: "Lab session update",
+      body: "This week's lab session has been moved to Thursday due to a scheduling conflict. Please plan accordingly.",
+    },
   ]
 
   let annCount = 0
   for (const c of courses) {
     const num = randInt(2, 3)
     for (let i = 0; i < num; i++) {
-      const t = templates[i % templates.length]!
+      const t = templates[i % templates.length] ?? templates[0]
+      if (t === undefined) {
+        throw new Error("announcement templates must not be empty")
+      }
       await prisma.announcementPost.create({
         data: {
-          id: uid("ann"), courseOfferingId: c.id, authorUserId: c.teacherId,
-          postType: "ANNOUNCEMENT", visibility: "STUDENT_AND_TEACHER",
-          title: t.title, body: t.body, createdAt: dateDaysAgo(randInt(1, 15)),
+          id: uid("ann"),
+          courseOfferingId: c.id,
+          authorUserId: c.teacherId,
+          postType: "ANNOUNCEMENT",
+          visibility: "STUDENT_AND_TEACHER",
+          title: t.title,
+          body: t.body,
+          createdAt: dateDaysAgo(randInt(1, 15)),
         },
       })
       annCount++

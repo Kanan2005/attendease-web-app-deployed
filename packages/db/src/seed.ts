@@ -44,26 +44,30 @@ export async function seedDevelopmentData(prisma: PrismaClient): Promise<SeedSum
   const passwordHashes = await buildPasswordHashes()
   const timing = buildTimingContext()
 
-  return runSerializableTransaction(prisma, async (transaction) => {
-    // eslint-disable-next-line no-console -- seed script
-    console.log("Seeding (timeout: 120s for remote DBs)…")
-    const users = await seedAuthData(transaction, timing, passwordHashes)
-    const academic = await seedAcademicData(transaction, timing, users)
-    const devices = await seedDeviceTrustData(transaction, timing, users, academic)
+  return runSerializableTransaction(
+    prisma,
+    async (transaction) => {
+      // eslint-disable-next-line no-console -- seed script
+      console.log("Seeding (timeout: 120s for remote DBs)…")
+      const users = await seedAuthData(transaction, timing, passwordHashes)
+      const academic = await seedAcademicData(transaction, timing, users)
+      const devices = await seedDeviceTrustData(transaction, timing, users, academic)
 
-    await seedAttendanceData(transaction, timing, users, academic, devices)
-    const automation = await seedAutomationData(transaction, timing, users, academic)
+      await seedAttendanceData(transaction, timing, users, academic, devices)
+      const automation = await seedAutomationData(transaction, timing, users, academic)
 
-    return {
-      userCount: 2 + users.studentUsers.length,
-      classroomCount: 2,
-      activeJoinCodes: [
-        developmentAcademicFixtures.classrooms.math.joinCode,
-        developmentAcademicFixtures.classrooms.physics.joinCode,
-      ],
-      seededSessionId: developmentSeedIds.sessions.mathCompleted,
-      seededEmailRuleId: automation.seededEmailRuleId,
-      pendingOutboxTopics: ["analytics.attendance.refresh"],
-    }
-  }, { maxWait: 30_000, timeout: 120_000 })
+      return {
+        userCount: 2 + users.studentUsers.length,
+        classroomCount: 2,
+        activeJoinCodes: [
+          developmentAcademicFixtures.classrooms.math.joinCode,
+          developmentAcademicFixtures.classrooms.physics.joinCode,
+        ],
+        seededSessionId: developmentSeedIds.sessions.mathCompleted,
+        seededEmailRuleId: automation.seededEmailRuleId,
+        pendingOutboxTopics: ["analytics.attendance.refresh"],
+      }
+    },
+    { maxWait: 30_000, timeout: 120_000 },
+  )
 }

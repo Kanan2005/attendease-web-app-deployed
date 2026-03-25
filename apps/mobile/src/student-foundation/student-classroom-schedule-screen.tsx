@@ -137,10 +137,7 @@ export function StudentClassroomScheduleScreen(props: { classroomId: string }) {
   })
 
   return (
-    <StudentScreen
-      title="Classroom Schedule"
-      subtitle="Your weekly class schedule."
-    >
+    <StudentScreen title="Classroom Schedule" subtitle="Your weekly class schedule.">
       {!session ? (
         <StudentSessionSetupCard />
       ) : classroom.detailQuery.isLoading ||
@@ -159,9 +156,7 @@ export function StudentClassroomScheduleScreen(props: { classroomId: string }) {
         />
       ) : (
         <>
-          <StudentCard
-            title={classroom.detailQuery.data?.displayTitle ?? "Classroom"}
-          >
+          <StudentCard title={classroom.detailQuery.data?.displayTitle ?? "Classroom"}>
             <View style={styles.actionGrid}>
               <StudentNavAction
                 href={studentRoutes.classroomDetail(props.classroomId)}
@@ -176,9 +171,7 @@ export function StudentClassroomScheduleScreen(props: { classroomId: string }) {
             </View>
           </StudentCard>
 
-          <StudentCard
-            title="Weekly Plan"
-          >
+          <StudentCard title="Weekly Plan">
             {scheduleModel.weeklyItems.length ? (
               scheduleModel.weeklyItems.map((item) => (
                 <View key={item.id} style={styles.listRow}>
@@ -194,10 +187,7 @@ export function StudentClassroomScheduleScreen(props: { classroomId: string }) {
             )}
           </StudentCard>
 
-          <StudentCard
-            title="Exceptions"
-            subtitle="Date-specific changes to the regular schedule."
-          >
+          <StudentCard title="Exceptions" subtitle="Date-specific changes to the regular schedule.">
             {scheduleModel.exceptionItems.length ? (
               scheduleModel.exceptionItems.map((item) => (
                 <View key={item.id} style={styles.listRow}>
@@ -214,9 +204,7 @@ export function StudentClassroomScheduleScreen(props: { classroomId: string }) {
             )}
           </StudentCard>
 
-          <StudentCard
-            title="Upcoming Lectures"
-          >
+          <StudentCard title="Upcoming Lectures">
             {scheduleModel.upcomingLectures.length ? (
               scheduleModel.upcomingLectures.map((lecture) => (
                 <View key={lecture.id} style={styles.listRow}>

@@ -6,7 +6,15 @@ import { StyleSheet, Text, View } from "react-native"
 import { adminRoutes } from "../admin-routes"
 import { useAdminSession } from "../admin-session"
 import { useAdminStudentsQuery } from "./queries"
-import { AdminEmptyCard, AdminErrorCard, AdminLoadingCard, AdminNavAction, AdminScreen, AdminSessionSetupCard, styles } from "./shared-ui"
+import {
+  AdminEmptyCard,
+  AdminErrorCard,
+  AdminLoadingCard,
+  AdminNavAction,
+  AdminScreen,
+  AdminSessionSetupCard,
+  styles,
+} from "./shared-ui"
 
 function formatEnum(value: string): string {
   return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
@@ -49,7 +57,9 @@ export function AdminStudentsScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.cardTitle}>Student Management</Text>
-                <Text style={styles.listMeta}>{students.length} registered student{students.length === 1 ? "" : "s"}</Text>
+                <Text style={styles.listMeta}>
+                  {students.length} registered student{students.length === 1 ? "" : "s"}
+                </Text>
               </View>
             </View>
           </AnimatedCard>
@@ -70,7 +80,8 @@ export function AdminStudentsScreen() {
                   alignItems: "center",
                   gap: 12,
                   paddingVertical: 10,
-                  borderBottomWidth: i < Math.min(students.length, 20) - 1 ? StyleSheet.hairlineWidth : 0,
+                  borderBottomWidth:
+                    i < Math.min(students.length, 20) - 1 ? StyleSheet.hairlineWidth : 0,
                   borderBottomColor: c.border,
                 }}
               >
@@ -91,7 +102,8 @@ export function AdminStudentsScreen() {
                 <View style={{ flex: 1, gap: 1 }}>
                   <Text style={styles.listTitle}>{entry.student.displayName}</Text>
                   <Text style={styles.listMeta}>
-                    {entry.student.rollNumber ?? entry.student.email} · {formatEnum(entry.student.status)}
+                    {entry.student.rollNumber ?? entry.student.email} ·{" "}
+                    {formatEnum(entry.student.status)}
                   </Text>
                 </View>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
@@ -100,7 +112,12 @@ export function AdminStudentsScreen() {
                   ) : (
                     <Ionicons name="phone-portrait-outline" size={16} color={c.textSubtle} />
                   )}
-                  <Text style={{ fontSize: 11, color: entry.enrollmentCounts.activeCount > 0 ? c.success : c.textSubtle }}>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: entry.enrollmentCounts.activeCount > 0 ? c.success : c.textSubtle,
+                    }}
+                  >
                     {entry.enrollmentCounts.activeCount} active
                   </Text>
                 </View>
@@ -114,7 +131,11 @@ export function AdminStudentsScreen() {
           </AnimatedCard>
 
           <View style={styles.actionGrid}>
-            <AdminNavAction href={adminRoutes.dashboard} label="Back to Dashboard" icon="arrow-back-outline" />
+            <AdminNavAction
+              href={adminRoutes.dashboard}
+              label="Back to Dashboard"
+              icon="arrow-back-outline"
+            />
           </View>
         </>
       )}

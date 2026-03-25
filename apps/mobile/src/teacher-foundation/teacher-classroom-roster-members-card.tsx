@@ -20,7 +20,9 @@ type Props = {
   ) => void
 }
 
-function actionIcon(action: RosterMemberModel["actions"][number]): React.ComponentProps<typeof Ionicons>["name"] {
+function actionIcon(
+  action: RosterMemberModel["actions"][number],
+): React.ComponentProps<typeof Ionicons>["name"] {
   const lower = action.label.toLowerCase()
   if (lower.includes("remove")) return "trash-outline"
   if (lower.includes("deactivate") || lower.includes("suspend")) return "pause-circle-outline"
@@ -46,7 +48,9 @@ export function TeacherClassroomRosterMembersCard({
           const attendanceActive = member.attendanceDisabled !== "true"
           return (
             <View key={member.id} style={styles.memberCard}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 6 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 6 }}
+              >
                 <View
                   style={{
                     width: 40,

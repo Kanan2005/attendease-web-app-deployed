@@ -135,9 +135,7 @@ export function StudentScreen(props: {
           icon={<Ionicons name="school" size={14} color={c.primary} />}
         />
         {props.headerRight ? (
-          <View style={{ position: "absolute", top: 12, right: 4 }}>
-            {props.headerRight}
-          </View>
+          <View style={{ position: "absolute", top: 12, right: 4 }}>{props.headerRight}</View>
         ) : null}
       </View>
       {props.children}
@@ -182,9 +180,7 @@ export function StudentBackButton(props: { label: string }) {
       }}
     >
       <Ionicons name="arrow-back" size={20} color={c.primary} />
-      <Text style={{ fontSize: 15, fontWeight: "600", color: c.primary }}>
-        {props.label}
-      </Text>
+      <Text style={{ fontSize: 15, fontWeight: "600", color: c.primary }}>{props.label}</Text>
     </Pressable>
   )
 }
@@ -194,12 +190,20 @@ export function StudentQuickActions() {
     <AnimatedCard index={2}>
       <Text style={styles.cardTitle}>Quick actions</Text>
       <View style={styles.quickActionGrid}>
-        <QuickActionTile href={studentRoutes.classrooms} label="Classrooms" icon="library-outline" />
+        <QuickActionTile
+          href={studentRoutes.classrooms}
+          label="Classrooms"
+          icon="library-outline"
+        />
         <QuickActionTile href={studentRoutes.join} label="Join" icon="enter-outline" />
         <QuickActionTile href={studentRoutes.reports} label="Reports" icon="bar-chart-outline" />
         <QuickActionTile href={studentRoutes.history} label="History" icon="time-outline" />
         <QuickActionTile href={studentRoutes.profile} label="Profile" icon="person-outline" />
-        <QuickActionTile href={studentRoutes.deviceStatus} label="Device" icon="phone-portrait-outline" />
+        <QuickActionTile
+          href={studentRoutes.deviceStatus}
+          label="Device"
+          icon="phone-portrait-outline"
+        />
       </View>
     </AnimatedCard>
   )
@@ -225,12 +229,18 @@ function QuickActionTile(props: {
 
 function spotlightActionIcon(kind: string): React.ComponentProps<typeof Ionicons>["name"] {
   switch (kind) {
-    case "ATTENDANCE": return "hand-left-outline"
-    case "DEVICE_STATUS": return "phone-portrait-outline"
-    case "JOIN_CLASSROOM": return "enter-outline"
-    case "REPORTS": return "bar-chart-outline"
-    case "CLASSROOM": return "library-outline"
-    default: return "arrow-forward-outline"
+    case "ATTENDANCE":
+      return "hand-left-outline"
+    case "DEVICE_STATUS":
+      return "phone-portrait-outline"
+    case "JOIN_CLASSROOM":
+      return "enter-outline"
+    case "REPORTS":
+      return "bar-chart-outline"
+    case "CLASSROOM":
+      return "library-outline"
+    default:
+      return "arrow-forward-outline"
   }
 }
 

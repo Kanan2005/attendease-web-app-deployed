@@ -7,13 +7,10 @@ import { Pressable, ScrollView, Text, TextInput, View } from "react-native"
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
-import type { DeviceBindingErrorModel } from "./device-identity-models"
 import { adminRoutes } from "./admin-routes"
 import { useAdminSession } from "./admin-session"
-import {
-  buildMobileAuthFormState,
-  mobileEntryRoutes,
-} from "./mobile-entry-models"
+import type { DeviceBindingErrorModel } from "./device-identity-models"
+import { buildMobileAuthFormState, mobileEntryRoutes } from "./mobile-entry-models"
 import { MobileAuthScreen, mobileEntryScreenStyles } from "./mobile-entry-ui"
 import type { MobileEntryRole } from "./shell"
 import { studentRoutes } from "./student-routes"
@@ -43,7 +40,10 @@ export function MobileEntryLandingScreen() {
       style={{ flex: 1, backgroundColor: c.surface }}
       showsVerticalScrollIndicator={false}
     >
-      <Animated.View entering={FadeInDown.duration(500).delay(100)} style={{ alignItems: "center", gap: 8 }}>
+      <Animated.View
+        entering={FadeInDown.duration(500).delay(100)}
+        style={{ alignItems: "center", gap: 8 }}
+      >
         <View
           style={{
             width: 56,
@@ -60,7 +60,15 @@ export function MobileEntryLandingScreen() {
         <Text style={{ fontSize: 28, fontWeight: "800", color: c.text, letterSpacing: -0.5 }}>
           AttendEase
         </Text>
-        <Text style={{ fontSize: 15, color: c.textMuted, textAlign: "center", lineHeight: 22, maxWidth: 280 }}>
+        <Text
+          style={{
+            fontSize: 15,
+            color: c.textMuted,
+            textAlign: "center",
+            lineHeight: 22,
+            maxWidth: 280,
+          }}
+        >
           Smart attendance for classrooms. Choose how you'd like to continue.
         </Text>
       </Animated.View>
@@ -91,9 +99,14 @@ export function MobileEntryLandingScreen() {
         />
       </Animated.View>
 
-      <Animated.View entering={FadeInUp.duration(300).delay(600)} style={{ alignItems: "center", marginTop: 4 }}>
+      <Animated.View
+        entering={FadeInUp.duration(300).delay(600)}
+        style={{ alignItems: "center", marginTop: 4 }}
+      >
         <Link href={mobileEntryRoutes.adminSignIn} asChild>
-          <Pressable style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 8 }}>
+          <Pressable
+            style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 8 }}
+          >
             <Ionicons name="shield-checkmark-outline" size={14} color={c.textSubtle} />
             <Text style={{ fontSize: 13, color: c.textSubtle, fontWeight: "600" }}>
               Admin sign in
@@ -147,9 +160,7 @@ function RoleCard(props: {
           />
         </View>
         <View style={{ flex: 1, gap: 2 }}>
-          <Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>
-            {props.title}
-          </Text>
+          <Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>{props.title}</Text>
           {props.signedIn && props.displayName ? (
             <Text style={{ fontSize: 13, color: c.success, fontWeight: "600" }}>
               Signed in as {props.displayName}
@@ -189,9 +200,7 @@ function RoleCard(props: {
               onPress={props.onSignOut}
               style={{ alignItems: "center", paddingVertical: 8 }}
             >
-              <Text style={{ color: c.textSubtle, fontSize: 13, fontWeight: "600" }}>
-                Sign out
-              </Text>
+              <Text style={{ color: c.textSubtle, fontSize: 13, fontWeight: "600" }}>Sign out</Text>
             </Pressable>
           </>
         ) : (
@@ -220,8 +229,17 @@ function RoleCard(props: {
 }
 
 export function StudentSignInScreen() {
-  const { draft, updateDraft, signIn, status, errorMessage, deviceBindingError, deviceReady, hasDevelopmentCredentials, session } =
-    useStudentSession()
+  const {
+    draft,
+    updateDraft,
+    signIn,
+    status,
+    errorMessage,
+    deviceBindingError,
+    deviceReady,
+    hasDevelopmentCredentials,
+    session,
+  } = useStudentSession()
 
   if (session) {
     return <Redirect href={studentRoutes.classrooms} />
@@ -300,8 +318,17 @@ const BRANCH_OPTIONS = [
 ]
 
 export function StudentRegisterScreen() {
-  const { draft, updateDraft, register, status, errorMessage, deviceBindingError, deviceReady, hasDevelopmentCredentials, session } =
-    useStudentSession()
+  const {
+    draft,
+    updateDraft,
+    register,
+    status,
+    errorMessage,
+    deviceBindingError,
+    deviceReady,
+    hasDevelopmentCredentials,
+    session,
+  } = useStudentSession()
 
   if (session) {
     return <Redirect href={studentRoutes.classrooms} />
@@ -314,7 +341,8 @@ export function StudentRegisterScreen() {
     hasDevelopmentCredentials,
     errorMessage: deviceBindingError ? null : errorMessage,
   })
-  const canSubmit = deviceReady && Boolean(draft.displayName.trim() && draft.email.trim() && draft.password)
+  const canSubmit =
+    deviceReady && Boolean(draft.displayName.trim() && draft.email.trim() && draft.password)
 
   return (
     <MobileAuthScreen
@@ -362,7 +390,9 @@ export function StudentRegisterScreen() {
       <View style={{ gap: 4, marginTop: 4 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <Ionicons name="school" size={14} color={getColors().primary} />
-          <Text style={{ color: getColors().text, fontSize: 15, fontWeight: "700" }}>Academic Info</Text>
+          <Text style={{ color: getColors().text, fontSize: 15, fontWeight: "700" }}>
+            Academic Info
+          </Text>
         </View>
         <Text style={{ color: getColors().textMuted, fontSize: 12 }}>
           Select your degree program and branch.
@@ -400,11 +430,21 @@ export function StudentRegisterScreen() {
             borderColor: getColors().border,
           }}
         >
-          <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: getColors().primarySoft, alignItems: "center", justifyContent: "center" }}>
+          <View
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              backgroundColor: getColors().primarySoft,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Ionicons name="phone-portrait" size={16} color={getColors().primary} />
           </View>
           <Text style={[mobileEntryScreenStyles.helperNote, { flex: 1, marginTop: 0 }]}>
-            This device will be linked to your account. One device per student — changes require admin approval.
+            This device will be linked to your account. One device per student — changes require
+            admin approval.
           </Text>
         </View>
       )}
@@ -586,7 +626,11 @@ export function AdminSignInScreen() {
   )
 }
 
-function FormField(props: { label: string; icon?: React.ComponentProps<typeof Ionicons>["name"]; children: React.ReactNode }) {
+function FormField(props: {
+  label: string
+  icon?: React.ComponentProps<typeof Ionicons>["name"]
+  children: React.ReactNode
+}) {
   const c = getColors()
   return (
     <View style={{ gap: 6 }}>
@@ -602,10 +646,13 @@ function FormField(props: { label: string; icon?: React.ComponentProps<typeof Io
 function DeviceBindingErrorBanner(props: { error: DeviceBindingErrorModel }) {
   const c = getColors()
   const iconName: React.ComponentProps<typeof Ionicons>["name"] =
-    props.error.kind === "DEVICE_BOUND_TO_ANOTHER" ? "people-outline"
-    : props.error.kind === "REPLACEMENT_PENDING" ? "time-outline"
-    : props.error.kind === "DEVICE_REPLACED" ? "swap-horizontal-outline"
-    : "shield-outline"
+    props.error.kind === "DEVICE_BOUND_TO_ANOTHER"
+      ? "people-outline"
+      : props.error.kind === "REPLACEMENT_PENDING"
+        ? "time-outline"
+        : props.error.kind === "DEVICE_REPLACED"
+          ? "swap-horizontal-outline"
+          : "shield-outline"
 
   return (
     <View
@@ -624,7 +671,7 @@ function DeviceBindingErrorBanner(props: { error: DeviceBindingErrorModel }) {
             width: 36,
             height: 36,
             borderRadius: 10,
-            backgroundColor: c.danger + "20",
+            backgroundColor: `${c.danger}20`,
             alignItems: "center",
             justifyContent: "center",
           }}
@@ -635,9 +682,7 @@ function DeviceBindingErrorBanner(props: { error: DeviceBindingErrorModel }) {
           <Text style={{ fontSize: 15, fontWeight: "700", color: c.danger }}>
             {props.error.title}
           </Text>
-          <Text style={{ fontSize: 13, color: c.text, lineHeight: 18 }}>
-            {props.error.message}
-          </Text>
+          <Text style={{ fontSize: 13, color: c.text, lineHeight: 18 }}>{props.error.message}</Text>
         </View>
       </View>
       <Text style={{ fontSize: 12, color: c.textMuted, lineHeight: 17 }}>
@@ -685,4 +730,3 @@ function PillSelector<T extends string>(props: {
     </View>
   )
 }
-

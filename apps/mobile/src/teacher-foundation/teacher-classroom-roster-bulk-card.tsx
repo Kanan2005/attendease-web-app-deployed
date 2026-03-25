@@ -46,7 +46,12 @@ export function TeacherClassroomRosterBulkCard({
     setFilePickError(null)
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ["text/csv", "text/plain", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"],
+        type: [
+          "text/csv",
+          "text/plain",
+          "application/vnd.ms-excel",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ],
         copyToCacheDirectory: true,
       })
 
@@ -61,7 +66,9 @@ export function TeacherClassroomRosterBulkCard({
         const content = await FileSystem.readAsStringAsync(asset.uri)
         onSetImportRows(content)
       } else {
-        setFilePickError("Excel files (.xlsx) are read as CSV. Please export your spreadsheet as CSV and try again.")
+        setFilePickError(
+          "Excel files (.xlsx) are read as CSV. Please export your spreadsheet as CSV and try again.",
+        )
       }
     } catch {
       setFilePickError("Could not read the selected file.")
@@ -75,7 +82,9 @@ export function TeacherClassroomRosterBulkCard({
     >
       {/* File Upload Button */}
       <Pressable
-        onPress={() => { void handleFilePick() }}
+        onPress={() => {
+          void handleFilePick()
+        }}
         style={{
           flexDirection: "row",
           alignItems: "center",
@@ -119,12 +128,16 @@ export function TeacherClassroomRosterBulkCard({
         <View style={{ flexDirection: "row", gap: 16 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
             <Ionicons name="checkmark-circle" size={14} color={c.success} />
-            <Text style={{ fontSize: 13, color: c.success, fontWeight: "600" }}>{parsedRowsCount} valid</Text>
+            <Text style={{ fontSize: 13, color: c.success, fontWeight: "600" }}>
+              {parsedRowsCount} valid
+            </Text>
           </View>
           {invalidImportRows > 0 ? (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
               <Ionicons name="alert-circle" size={14} color={c.danger} />
-              <Text style={{ fontSize: 13, color: c.danger, fontWeight: "600" }}>{invalidImportRows} invalid</Text>
+              <Text style={{ fontSize: 13, color: c.danger, fontWeight: "600" }}>
+                {invalidImportRows} invalid
+              </Text>
             </View>
           ) : null}
         </View>
@@ -139,7 +152,9 @@ export function TeacherClassroomRosterBulkCard({
         }}
       >
         <Text style={styles.primaryButtonLabel}>
-          {isCreateImportPending ? "Importing…" : `Import ${parsedRowsCount} Student${parsedRowsCount === 1 ? "" : "s"}`}
+          {isCreateImportPending
+            ? "Importing…"
+            : `Import ${parsedRowsCount} Student${parsedRowsCount === 1 ? "" : "s"}`}
         </Text>
       </Pressable>
 

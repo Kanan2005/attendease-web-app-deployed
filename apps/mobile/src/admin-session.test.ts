@@ -1,3 +1,4 @@
+import type { AuthSessionResponse } from "@attendease/contracts"
 import { describe, expect, it } from "vitest"
 
 import {
@@ -67,7 +68,9 @@ describe("admin session", () => {
       },
     }
 
-    expect(() => ensureAdminSessionResponse(validSession as any)).not.toThrow()
+    expect(() =>
+      ensureAdminSessionResponse(validSession as unknown as AuthSessionResponse),
+    ).not.toThrow()
   })
 
   it("rejects session response without ADMIN role", () => {
@@ -86,9 +89,9 @@ describe("admin session", () => {
       },
     }
 
-    expect(() => ensureAdminSessionResponse(invalidSession as any)).toThrow(
-      "Admin mobile requires an authenticated ADMIN role session.",
-    )
+    expect(() =>
+      ensureAdminSessionResponse(invalidSession as unknown as AuthSessionResponse),
+    ).toThrow("Admin mobile requires an authenticated ADMIN role session.")
   })
 
   it("throws when admin session is null", () => {
@@ -113,7 +116,9 @@ describe("admin session", () => {
       },
     }
 
-    expect(getAdminAccessToken(session as any)).toBe("admin-access-token-xyz")
+    expect(getAdminAccessToken(session as unknown as AuthSessionResponse)).toBe(
+      "admin-access-token-xyz",
+    )
   })
 
   it("throws when extracting token from null session", () => {

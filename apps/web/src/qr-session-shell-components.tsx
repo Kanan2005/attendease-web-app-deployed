@@ -96,18 +96,50 @@ export function QrSessionRosterPanel(props: {
       </div>
       <div style={qrShellStyles.rosterSummaryRow}>
         <div style={qrShellStyles.rosterSummaryCard}>
-          <p style={{ margin: 0, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: webTheme.colors.textSubtle }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 11,
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              color: webTheme.colors.textSubtle,
+            }}
+          >
             Present
           </p>
-          <p style={{ margin: "4px 0 0", fontSize: 22, fontWeight: 700, color: webTheme.colors.success }}>
+          <p
+            style={{
+              margin: "4px 0 0",
+              fontSize: 22,
+              fontWeight: 700,
+              color: webTheme.colors.success,
+            }}
+          >
             {props.rosterModel.presentRows.length}
           </p>
         </div>
         <div style={qrShellStyles.rosterSummaryCard}>
-          <p style={{ margin: 0, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: webTheme.colors.textSubtle }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 11,
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              color: webTheme.colors.textSubtle,
+            }}
+          >
             Absent
           </p>
-          <p style={{ margin: "4px 0 0", fontSize: 22, fontWeight: 700, color: webTheme.colors.danger }}>
+          <p
+            style={{
+              margin: "4px 0 0",
+              fontSize: 22,
+              fontWeight: 700,
+              color: webTheme.colors.danger,
+            }}
+          >
             {props.rosterModel.absentRows.length}
           </p>
         </div>
@@ -129,14 +161,24 @@ export function QrSessionRosterPanel(props: {
               }}
             >
               <div style={{ minWidth: 0 }}>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: webTheme.colors.text }}>
+                <p
+                  style={{ margin: 0, fontSize: 13, fontWeight: 600, color: webTheme.colors.text }}
+                >
                   {student.studentDisplayName}
                 </p>
                 <p style={{ margin: "2px 0 0", fontSize: 11, color: webTheme.colors.textMuted }}>
                   {student.secondaryLabel}
                 </p>
               </div>
-              <span style={{ fontSize: 11, color: webTheme.colors.accent, fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  color: webTheme.colors.accent,
+                  fontWeight: 600,
+                  flexShrink: 0,
+                  marginLeft: 8,
+                }}
+              >
                 {student.markedAtLabel}
               </span>
             </div>
@@ -149,16 +191,40 @@ export function QrSessionRosterPanel(props: {
       )}
 
       {props.rosterModel.absentRows.length > 0 ? (
-        <div style={{ ...qrShellStyles.rosterSummaryCard, background: webTheme.colors.dangerSoft, borderColor: webTheme.colors.dangerBorder }}>
-          <p style={{ margin: 0, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: webTheme.colors.danger }}>
+        <div
+          style={{
+            ...qrShellStyles.rosterSummaryCard,
+            background: webTheme.colors.dangerSoft,
+            borderColor: webTheme.colors.dangerBorder,
+          }}
+        >
+          <p
+            style={{
+              margin: 0,
+              fontSize: 11,
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              color: webTheme.colors.danger,
+            }}
+          >
             Still absent
           </p>
-          <p style={{ margin: "6px 0 0", fontSize: 13, color: webTheme.colors.text, lineHeight: 1.5 }}>
+          <p
+            style={{
+              margin: "6px 0 0",
+              fontSize: 13,
+              color: webTheme.colors.text,
+              lineHeight: 1.5,
+            }}
+          >
             {props.rosterModel.absentRows
               .slice(0, 8)
               .map((s) => s.studentDisplayName)
               .join(", ")}
-            {props.rosterModel.absentRows.length > 8 ? ` +${props.rosterModel.absentRows.length - 8} more` : ""}
+            {props.rosterModel.absentRows.length > 8
+              ? ` +${props.rosterModel.absentRows.length - 8} more`
+              : ""}
           </p>
         </div>
       ) : null}
@@ -178,7 +244,16 @@ export function StatPill(props: StatRow) {
 export function DetailCard(props: { label: string; value: string }) {
   return (
     <div style={qrShellStyles.detailCard}>
-      <p style={{ margin: 0, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: webTheme.colors.textSubtle }}>
+      <p
+        style={{
+          margin: 0,
+          fontSize: 11,
+          fontWeight: 600,
+          textTransform: "uppercase",
+          letterSpacing: "0.06em",
+          color: webTheme.colors.textSubtle,
+        }}
+      >
         {props.label}
       </p>
       <p style={{ margin: "6px 0 0", color: webTheme.colors.text, fontSize: 14, lineHeight: 1.4 }}>
@@ -191,8 +266,12 @@ export function DetailCard(props: { label: string; value: string }) {
 export function EmptyQrState(props: { message: string }) {
   return (
     <div style={{ textAlign: "center", padding: 24 }}>
-      <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: webTheme.colors.textMuted }}>QR not available</p>
-      <p style={{ margin: "4px 0 0", fontSize: 12, color: webTheme.colors.textSubtle }}>{props.message}</p>
+      <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: webTheme.colors.textMuted }}>
+        QR not available
+      </p>
+      <p style={{ margin: "4px 0 0", fontSize: 12, color: webTheme.colors.textSubtle }}>
+        {props.message}
+      </p>
     </div>
   )
 }

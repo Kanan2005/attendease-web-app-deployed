@@ -100,7 +100,10 @@ export function TeacherClassroomRecentSessionsCard(props: {
   error: unknown
 }) {
   return (
-    <WebSectionCard title="Recent lectures" description="Latest lecture sessions for this classroom.">
+    <WebSectionCard
+      title="Recent lectures"
+      description="Latest lecture sessions for this classroom."
+    >
       {props.loading ? (
         <WorkflowStateCard message="Loading class sessions..." />
       ) : props.error ? (

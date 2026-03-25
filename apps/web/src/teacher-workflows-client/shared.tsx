@@ -78,8 +78,22 @@ export function WorkflowSummaryGrid(props: {
             background: getToneStyles(card.tone).background,
           }}
         >
-          <div style={{ color: webTheme.colors.textSubtle, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>{card.label}</div>
-          <strong style={{ display: "block", fontSize: 22, marginTop: 6, letterSpacing: "-0.02em" }}>{card.value}</strong>
+          <div
+            style={{
+              color: webTheme.colors.textSubtle,
+              fontSize: 11,
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+            }}
+          >
+            {card.label}
+          </div>
+          <strong
+            style={{ display: "block", fontSize: 22, marginTop: 6, letterSpacing: "-0.02em" }}
+          >
+            {card.value}
+          </strong>
         </div>
       ))}
     </div>

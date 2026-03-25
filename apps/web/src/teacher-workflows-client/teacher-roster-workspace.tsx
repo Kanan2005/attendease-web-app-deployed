@@ -12,7 +12,13 @@ import {
 } from "../teacher-roster-management"
 import { webWorkflowQueryKeys } from "../web-workflows"
 
-import { WorkflowBanner, WorkflowField, WorkflowStateCard, bootstrap, workflowStyles } from "./shared"
+import {
+  WorkflowBanner,
+  WorkflowField,
+  WorkflowStateCard,
+  bootstrap,
+  workflowStyles,
+} from "./shared"
 import { TeacherRosterStudentsCard } from "./teacher-roster-workspace/students-card"
 
 interface BulkUploadResult {
@@ -33,7 +39,10 @@ export function TeacherRosterWorkspace(props: {
 }) {
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [statusMessage, setStatusMessage] = useState<{ tone: "info" | "danger"; text: string } | null>(null)
+  const [statusMessage, setStatusMessage] = useState<{
+    tone: "info" | "danger"
+    text: string
+  } | null>(null)
   const [search, setSearch] = useState("")
   const [studentEmail, setStudentEmail] = useState("")
   const [bulkUploading, setBulkUploading] = useState(false)
@@ -69,7 +78,10 @@ export function TeacherRosterWorkspace(props: {
       )
     },
     onSuccess: async (member) => {
-      setStatusMessage({ tone: "info", text: `Added ${member.studentName ?? member.studentDisplayName}.` })
+      setStatusMessage({
+        tone: "info",
+        text: `Added ${member.studentName ?? member.studentDisplayName}.`,
+      })
       setStudentEmail("")
       await queryClient.invalidateQueries({
         queryKey: webWorkflowQueryKeys.classroomRoster(props.classroomId),
@@ -126,7 +138,10 @@ export function TeacherRosterWorkspace(props: {
       const emails = parseEmailsFromText(text)
 
       if (emails.length === 0) {
-        setStatusMessage({ tone: "danger", text: "No valid email addresses found in the uploaded file." })
+        setStatusMessage({
+          tone: "danger",
+          text: "No valid email addresses found in the uploaded file.",
+        })
         setBulkUploading(false)
         return
       }
@@ -290,7 +305,10 @@ export function TeacherRosterWorkspace(props: {
           style={{
             borderRadius: 10,
             border: `1px solid ${bulkResult.skipped.length > 0 ? webTheme.colors.warningBorder : webTheme.colors.successBorder}`,
-            background: bulkResult.skipped.length > 0 ? webTheme.colors.warningSoft : webTheme.colors.successSoft,
+            background:
+              bulkResult.skipped.length > 0
+                ? webTheme.colors.warningSoft
+                : webTheme.colors.successSoft,
             padding: "14px 18px",
             fontSize: 14,
           }}
@@ -300,10 +318,25 @@ export function TeacherRosterWorkspace(props: {
           </p>
           {bulkResult.skipped.length > 0 ? (
             <div style={{ marginTop: 8 }}>
-              <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, color: webTheme.colors.warning }}>
+              <p
+                style={{
+                  margin: "0 0 6px",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: webTheme.colors.warning,
+                }}
+              >
                 Skipped ({bulkResult.skipped.length}):
               </p>
-              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: webTheme.colors.textMuted, lineHeight: 1.7 }}>
+              <ul
+                style={{
+                  margin: 0,
+                  paddingLeft: 18,
+                  fontSize: 13,
+                  color: webTheme.colors.textMuted,
+                  lineHeight: 1.7,
+                }}
+              >
                 {bulkResult.skipped.map((s) => (
                   <li key={s}>{s}</li>
                 ))}

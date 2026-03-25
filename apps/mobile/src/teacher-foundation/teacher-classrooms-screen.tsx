@@ -44,7 +44,11 @@ const AVATAR_COLORS = [
 ]
 
 function fmtEnum(s: string) {
-  return s.toLowerCase().split("_").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+  return s
+    .toLowerCase()
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ")
 }
 
 export function TeacherClassroomsScreen() {
@@ -86,9 +90,19 @@ export function TeacherClassroomsScreen() {
 
   if (!session) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 32,
+        }}
+      >
         <Ionicons name="lock-closed-outline" size={40} color={c.textSubtle} />
-        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>Sign in required</Text>
+        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>
+          Sign in required
+        </Text>
       </View>
     )
   }
@@ -106,13 +120,20 @@ export function TeacherClassroomsScreen() {
         {/* ── Header ── */}
         <View style={[cs.header, { paddingTop: insets.top + 8 }]}>
           <Text style={[cs.heading, { color: c.text }]}>My Classrooms</Text>
-          <Text style={{ fontSize: 13, color: c.textMuted }}>{allClassrooms.length} course{allClassrooms.length === 1 ? "" : "s"}</Text>
+          <Text style={{ fontSize: 13, color: c.textMuted }}>
+            {allClassrooms.length} course{allClassrooms.length === 1 ? "" : "s"}
+          </Text>
         </View>
 
         {/* ── Search bar ── */}
         {allClassrooms.length > 3 ? (
           <View style={cs.searchSection}>
-            <View style={[cs.searchBar, { backgroundColor: c.surfaceMuted, borderColor: c.borderStrong }]}>
+            <View
+              style={[
+                cs.searchBar,
+                { backgroundColor: c.surfaceMuted, borderColor: c.borderStrong },
+              ]}
+            >
               <Ionicons name="search-outline" size={16} color={c.textSubtle} />
               <TextInput
                 value={search}
@@ -136,30 +157,47 @@ export function TeacherClassroomsScreen() {
           {isLoading ? (
             <View style={{ alignItems: "center", paddingVertical: 40 }}>
               <ActivityIndicator size="large" color={c.primary} />
-              <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 12 }}>Loading classrooms…</Text>
+              <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 12 }}>
+                Loading classrooms…
+              </Text>
             </View>
           ) : classroomsError ? (
             <View style={{ alignItems: "center", paddingVertical: 32, gap: 8 }}>
               <Ionicons name="alert-circle" size={36} color={c.danger} />
-              <Text style={{ fontSize: 14, color: c.danger, textAlign: "center" }}>{mapTeacherApiErrorToMessage(classroomsError)}</Text>
+              <Text style={{ fontSize: 14, color: c.danger, textAlign: "center" }}>
+                {mapTeacherApiErrorToMessage(classroomsError)}
+              </Text>
             </View>
           ) : classrooms.length === 0 && !search ? (
             <View style={{ alignItems: "center", paddingVertical: 40, gap: 10 }}>
               <Ionicons name="library-outline" size={44} color={c.textSubtle} />
-              <Text style={{ fontSize: 17, fontWeight: "600", color: c.text }}>No classrooms yet</Text>
-              <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", lineHeight: 21, paddingHorizontal: 32 }}>
+              <Text style={{ fontSize: 17, fontWeight: "600", color: c.text }}>
+                No classrooms yet
+              </Text>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: c.textMuted,
+                  textAlign: "center",
+                  lineHeight: 21,
+                  paddingHorizontal: 32,
+                }}
+              >
                 Tap the + button to create your first classroom.
               </Text>
             </View>
           ) : classrooms.length === 0 && search ? (
             <View style={{ alignItems: "center", paddingVertical: 32, gap: 6 }}>
               <Ionicons name="search-outline" size={32} color={c.textSubtle} />
-              <Text style={{ fontSize: 14, color: c.textMuted }}>No classrooms match "{search}"</Text>
+              <Text style={{ fontSize: 14, color: c.textMuted }}>
+                No classrooms match "{search}"
+              </Text>
             </View>
           ) : (
             classrooms.map((classroom, i) => {
               const colorIdx = i % AVATAR_COLORS.length
-              const avatarColor = AVATAR_COLORS[colorIdx]!
+              const avatarColor = AVATAR_COLORS[colorIdx] ??
+                AVATAR_COLORS[0] ?? { bg: "#e2e8f0", fg: "#475569" }
               const title = classroom.classroomTitle ?? classroom.displayTitle ?? "Classroom"
               const code = (classroom.courseCode ?? classroom.code ?? "").toUpperCase()
               const subject = classroom.subjectTitle ?? classroom.subjectCode ?? ""
@@ -177,16 +215,31 @@ export function TeacherClassroomsScreen() {
                       </Text>
                     </View>
                     <View style={{ flex: 1, gap: 3 }}>
-                      <Text style={{ fontSize: 15, fontWeight: "700", color: c.text }} numberOfLines={2}>
+                      <Text
+                        style={{ fontSize: 15, fontWeight: "700", color: c.text }}
+                        numberOfLines={2}
+                      >
                         {title}
                       </Text>
                       <Text style={{ fontSize: 12, color: c.textMuted }} numberOfLines={1}>
-                        {code}{subject ? ` · ${subject}` : ""}
+                        {code}
+                        {subject ? ` · ${subject}` : ""}
                       </Text>
                     </View>
                     <View style={{ alignItems: "flex-end", gap: 4 }}>
-                      <View style={[cs.statusBadge, { backgroundColor: isActive ? c.successSoft : c.surfaceTint }]}>
-                        <Text style={{ fontSize: 10, fontWeight: "700", color: isActive ? c.success : c.textSubtle }}>
+                      <View
+                        style={[
+                          cs.statusBadge,
+                          { backgroundColor: isActive ? c.successSoft : c.surfaceTint },
+                        ]}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 10,
+                            fontWeight: "700",
+                            color: isActive ? c.success : c.textSubtle,
+                          }}
+                        >
                           {fmtEnum(classroom.status)}
                         </Text>
                       </View>
@@ -302,7 +355,11 @@ function CreateClassroomSheet(props: {
   scopeOptions: ReturnType<typeof buildTeacherClassroomScopeOptions>
   draft: TeacherClassroomCreateDraft
   setDraft: React.Dispatch<React.SetStateAction<TeacherClassroomCreateDraft>>
-  mutation: { isPending: boolean; error: unknown; mutate: (v: CreateClassroomRequest, o?: { onSuccess?: (c: ClassroomSummary) => void }) => void }
+  mutation: {
+    isPending: boolean
+    error: unknown
+    mutate: (v: CreateClassroomRequest, o?: { onSuccess?: (c: ClassroomSummary) => void }) => void
+  }
   onClose: () => void
   onCreated: (classroom: ClassroomSummary) => void
 }) {
@@ -396,8 +453,18 @@ function CreateClassroomSheet(props: {
           marginTop: 8,
         }}
       >
-        <Ionicons name="add-circle-outline" size={20} color={canSubmit ? c.primaryContrast : c.textSubtle} />
-        <Text style={{ fontSize: 16, fontWeight: "700", color: canSubmit ? c.primaryContrast : c.textSubtle }}>
+        <Ionicons
+          name="add-circle-outline"
+          size={20}
+          color={canSubmit ? c.primaryContrast : c.textSubtle}
+        />
+        <Text
+          style={{
+            fontSize: 16,
+            fontWeight: "700",
+            color: canSubmit ? c.primaryContrast : c.textSubtle,
+          }}
+        >
           {props.mutation.isPending ? "Creating…" : "Create Classroom"}
         </Text>
       </Pressable>

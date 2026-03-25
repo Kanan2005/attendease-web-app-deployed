@@ -43,9 +43,7 @@ export function TeacherRosterStudentsCard(props: {
     return (
       <WorkflowBanner
         tone="danger"
-        message={
-          props.error instanceof Error ? props.error.message : "Failed to load students."
-        }
+        message={props.error instanceof Error ? props.error.message : "Failed to load students."}
       />
     )
   }
@@ -68,11 +66,15 @@ export function TeacherRosterStudentsCard(props: {
         >
           {isFiltered ? "🔍" : "👥"}
         </div>
-        <p style={{ fontSize: 16, fontWeight: 600, color: webTheme.colors.text, margin: "0 0 4px" }}>
+        <p
+          style={{ fontSize: 16, fontWeight: 600, color: webTheme.colors.text, margin: "0 0 4px" }}
+        >
           {isFiltered ? "No students match your search" : "No students enrolled"}
         </p>
         <p style={{ margin: 0, fontSize: 14 }}>
-          {isFiltered ? "Try a different search term." : "Add students using their email address above."}
+          {isFiltered
+            ? "Try a different search term."
+            : "Add students using their email address above."}
         </p>
       </div>
     )

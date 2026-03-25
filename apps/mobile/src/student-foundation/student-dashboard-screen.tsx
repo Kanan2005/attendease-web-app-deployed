@@ -119,8 +119,8 @@ import {
   StudentErrorCard,
   StudentLoadingCard,
   StudentNavAction,
-  StudentQuickActions,
   StudentProfileButton,
+  StudentQuickActions,
   StudentScreen,
   StudentSessionSetupCard,
   StudentStatusBanner,
@@ -146,8 +146,13 @@ export function StudentDashboardScreen() {
     if (session && deviceReady && !deviceRegistration.isPending && !deviceRegistration.isSuccess) {
       deviceRegistration.mutate()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, deviceReady])
+  }, [
+    session,
+    deviceReady,
+    deviceRegistration.isPending,
+    deviceRegistration.isSuccess,
+    deviceRegistration.mutate,
+  ])
   const dashboardModel = buildStudentDashboardModel({
     me: dashboard.meQuery.data ?? null,
     classrooms: dashboard.classroomsQuery.data ?? [],
@@ -202,7 +207,16 @@ export function StudentDashboardScreen() {
               alignItems: "center",
             }}
           >
-            <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: c.warning + "20", alignItems: "center", justifyContent: "center" }}>
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                backgroundColor: `${c.warning}20`,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <Ionicons name="shield-outline" size={20} color={c.warning} />
             </View>
             <View style={{ flex: 1, gap: 2 }}>
@@ -214,7 +228,16 @@ export function StudentDashboardScreen() {
               </Text>
             </View>
             <Link href={studentRoutes.deviceStatus} asChild>
-              <Pressable style={{ paddingHorizontal: 12, paddingVertical: 7, backgroundColor: c.warning + "20", borderRadius: 10, borderWidth: 1, borderColor: c.warning + "40" }}>
+              <Pressable
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 7,
+                  backgroundColor: `${c.warning}20`,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: `${c.warning}40`,
+                }}
+              >
                 <Text style={{ fontSize: 12, fontWeight: "700", color: c.warning }}>Fix</Text>
               </Pressable>
             </Link>
@@ -243,31 +266,40 @@ export function StudentDashboardScreen() {
 
           {attendance.gateModel.canContinue && openAttendanceCandidates.length > 0 ? (
             <Animated.View entering={FadeInDown.duration(400).delay(100)}>
-              <View style={{
-                borderRadius: 16,
-                backgroundColor: c.dangerSoft,
-                borderWidth: 1.5,
-                borderColor: c.dangerBorder,
-                padding: 16,
-                gap: 12,
-              }}>
+              <View
+                style={{
+                  borderRadius: 16,
+                  backgroundColor: c.dangerSoft,
+                  borderWidth: 1.5,
+                  borderColor: c.dangerBorder,
+                  padding: 16,
+                  gap: 12,
+                }}
+              >
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.danger }} />
-                  <Text style={{ fontSize: 16, fontWeight: "800", color: c.text }}>
-                    Live now
-                  </Text>
+                  <View
+                    style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.danger }}
+                  />
+                  <Text style={{ fontSize: 16, fontWeight: "800", color: c.text }}>Live now</Text>
                   <Text style={{ fontSize: 13, color: c.textMuted }}>
-                    {openAttendanceCandidates.length} session{openAttendanceCandidates.length === 1 ? '' : 's'}
+                    {openAttendanceCandidates.length} session
+                    {openAttendanceCandidates.length === 1 ? "" : "s"}
                   </Text>
                 </View>
                 {openAttendanceCandidates.slice(0, 3).map((candidate, i) => {
                   const isQr = candidate.mode === "QR_GPS"
                   return (
-                    <Animated.View key={`${candidate.mode}:${candidate.sessionId}`} entering={FadeInDown.duration(300).delay(150 + i * 80)}>
+                    <Animated.View
+                      key={`${candidate.mode}:${candidate.sessionId}`}
+                      entering={FadeInDown.duration(300).delay(150 + i * 80)}
+                    >
                       <Link
-                        href={isQr
-                          ? studentRoutes.qrAttendanceFromClassroom(candidate.classroomId ?? "")
-                          : studentRoutes.bluetoothAttendanceFromClassroom(candidate.classroomId ?? "")
+                        href={
+                          isQr
+                            ? studentRoutes.qrAttendanceFromClassroom(candidate.classroomId ?? "")
+                            : studentRoutes.bluetoothAttendanceFromClassroom(
+                                candidate.classroomId ?? "",
+                              )
                         }
                         asChild
                       >
@@ -293,14 +325,22 @@ export function StudentDashboardScreen() {
                               justifyContent: "center",
                             }}
                           >
-                            <Ionicons name={isQr ? "qr-code-outline" : "bluetooth-outline"} size={20} color={isQr ? c.primary : c.accent} />
+                            <Ionicons
+                              name={isQr ? "qr-code-outline" : "bluetooth-outline"}
+                              size={20}
+                              color={isQr ? c.primary : c.accent}
+                            />
                           </View>
                           <View style={{ flex: 1, gap: 2 }}>
-                            <Text style={{ fontSize: 15, fontWeight: "700", color: c.text }} numberOfLines={1}>
+                            <Text
+                              style={{ fontSize: 15, fontWeight: "700", color: c.text }}
+                              numberOfLines={1}
+                            >
                               {candidate.classroomTitle}
                             </Text>
                             <Text style={{ fontSize: 12, color: c.textMuted }} numberOfLines={1}>
-                              {formatAttendanceMode(candidate.mode)} · {formatDateTime(candidate.timestamp)}
+                              {formatAttendanceMode(candidate.mode)} ·{" "}
+                              {formatDateTime(candidate.timestamp)}
                             </Text>
                           </View>
                           <View
@@ -314,7 +354,9 @@ export function StudentDashboardScreen() {
                               paddingVertical: 7,
                             }}
                           >
-                            <Text style={{ fontSize: 12, fontWeight: "700", color: "#fff" }}>Mark</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "700", color: "#fff" }}>
+                              Mark
+                            </Text>
                             <Ionicons name="arrow-forward" size={12} color="#fff" />
                           </View>
                         </Pressable>
@@ -328,9 +370,7 @@ export function StudentDashboardScreen() {
 
           <StudentQuickActions />
 
-          <StudentCard
-            title={`Your classrooms (${dashboardModel.classroomHighlights.length})`}
-          >
+          <StudentCard title={`Your classrooms (${dashboardModel.classroomHighlights.length})`}>
             {dashboardModel.classroomHighlights.length > 0 ? (
               dashboardModel.classroomHighlights.slice(0, 4).map((classroom, i) => {
                 const initial = classroom.title.charAt(0).toUpperCase()
@@ -355,7 +395,8 @@ export function StudentDashboardScreen() {
                           width: 42,
                           height: 42,
                           borderRadius: 12,
-                          backgroundColor: classroom.tone === "success" ? c.successSoft : c.primarySoft,
+                          backgroundColor:
+                            classroom.tone === "success" ? c.successSoft : c.primarySoft,
                           alignItems: "center",
                           justifyContent: "center",
                         }}
@@ -371,7 +412,10 @@ export function StudentDashboardScreen() {
                         </Text>
                       </View>
                       <View style={{ flex: 1, gap: 2 }}>
-                        <Text style={{ fontSize: 15, fontWeight: "600", color: c.text }} numberOfLines={1}>
+                        <Text
+                          style={{ fontSize: 15, fontWeight: "600", color: c.text }}
+                          numberOfLines={1}
+                        >
                           {classroom.title}
                         </Text>
                         <Text style={{ fontSize: 12, color: c.textMuted }} numberOfLines={1}>
@@ -388,7 +432,11 @@ export function StudentDashboardScreen() {
             )}
             {dashboardModel.classroomHighlights.length > 0 ? (
               <View style={[styles.actionGrid, { marginTop: 4 }]}>
-                <StudentNavAction href={studentRoutes.classrooms} label="All classrooms" icon="library-outline" />
+                <StudentNavAction
+                  href={studentRoutes.classrooms}
+                  label="All classrooms"
+                  icon="library-outline"
+                />
                 <StudentNavAction href={studentRoutes.join} label="Join new" icon="enter-outline" />
               </View>
             ) : null}
@@ -397,19 +445,26 @@ export function StudentDashboardScreen() {
           <StudentCard title="Today at a glance">
             <View style={styles.cardGrid}>
               {dashboardModel.summaryCards.map((card) => {
-                const iconName: React.ComponentProps<typeof Ionicons>["name"] =
-                  card.label.toLowerCase().includes("class") ? "library-outline"
-                  : card.label.toLowerCase().includes("present") ? "checkmark-circle-outline"
-                  : card.label.toLowerCase().includes("absent") ? "close-circle-outline"
-                  : card.label.toLowerCase().includes("session") ? "time-outline"
-                  : "stats-chart-outline"
+                const iconName: React.ComponentProps<typeof Ionicons>["name"] = card.label
+                  .toLowerCase()
+                  .includes("class")
+                  ? "library-outline"
+                  : card.label.toLowerCase().includes("present")
+                    ? "checkmark-circle-outline"
+                    : card.label.toLowerCase().includes("absent")
+                      ? "close-circle-outline"
+                      : card.label.toLowerCase().includes("session")
+                        ? "time-outline"
+                        : "stats-chart-outline"
                 return (
                   <View key={card.label} style={styles.metricCard}>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                       <Ionicons name={iconName} size={13} color={c.textSubtle} />
                       <Text style={styles.metricLabel}>{card.label}</Text>
                     </View>
-                    <Text style={[styles.metricValue, toneColorStyle(card.tone)]}>{card.value}</Text>
+                    <Text style={[styles.metricValue, toneColorStyle(card.tone)]}>
+                      {card.value}
+                    </Text>
                   </View>
                 )
               })}
@@ -423,9 +478,17 @@ export function StudentDashboardScreen() {
               dashboardModel.recentTimeline.map((item) => {
                 const isCompleted = item.status === "COMPLETED"
                 const isCancelled = item.status === "CANCELLED"
-                const iconName: React.ComponentProps<typeof Ionicons>["name"] = isCompleted ? "checkmark-circle" : isCancelled ? "close-circle" : "time-outline"
+                const iconName: React.ComponentProps<typeof Ionicons>["name"] = isCompleted
+                  ? "checkmark-circle"
+                  : isCancelled
+                    ? "close-circle"
+                    : "time-outline"
                 const iconColor = isCompleted ? c.success : isCancelled ? c.danger : c.primary
-                const iconBg = isCompleted ? c.successSoft : isCancelled ? c.dangerSoft : c.primarySoft
+                const iconBg = isCompleted
+                  ? c.successSoft
+                  : isCancelled
+                    ? c.dangerSoft
+                    : c.primarySoft
                 return (
                   <View key={item.id} style={styles.timelineRow}>
                     <View style={[styles.timelineIcon, { backgroundColor: iconBg }]}>

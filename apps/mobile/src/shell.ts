@@ -69,8 +69,7 @@ export function buildMobileSessionEntryCopy(
   if (role === "admin") {
     return {
       title: "Admin sign in",
-      subtitle:
-        "Sign in to manage students, classrooms, devices, and platform settings.",
+      subtitle: "Sign in to manage students, classrooms, devices, and platform settings.",
       submitLabel: "Sign in",
       submittingLabel: "Signing in...",
       prefilledHint: "Your account details are already filled in. Review them before signing in.",

@@ -137,7 +137,12 @@ export function useStudentUpdateProfileMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (payload: { displayName: string; rollNumber?: string | null; degree?: string | null; branch?: string | null }) =>
+    mutationFn: async (payload: {
+      displayName: string
+      rollNumber?: string | null
+      degree?: string | null
+      branch?: string | null
+    }) =>
       authClient.updateProfile(requireStudentAccessToken(session), {
         displayName: payload.displayName.trim(),
         ...(payload.rollNumber !== undefined ? { rollNumber: payload.rollNumber } : {}),
@@ -210,10 +215,7 @@ export function useStudentDeviceRegistrationMutation() {
         platform: draft.devicePlatform,
         publicKey: draft.publicKey,
       })
-      return deviceTrustBootstrap.registerCurrentDevice(
-        requireStudentAccessToken(session),
-        payload,
-      )
+      return deviceTrustBootstrap.registerCurrentDevice(requireStudentAccessToken(session), payload)
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: studentQueryKeys.me() })

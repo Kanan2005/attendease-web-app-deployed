@@ -7,8 +7,8 @@ import { AnimatePresence, motion } from "framer-motion"
 import { useCallback, useRef, useState } from "react"
 
 import { webWorkflowQueryKeys } from "../web-workflows-routes"
-import { workflowStyles } from "./shared-styles"
 import { bootstrap } from "./shared"
+import { workflowStyles } from "./shared-styles"
 
 export function TeacherProfileWorkspace(props: { accessToken: string | null }) {
   const queryClient = useQueryClient()
@@ -92,12 +92,13 @@ export function TeacherProfileWorkspace(props: { accessToken: string | null }) {
   }
 
   const profile = profileQuery.data
-  const initials = profile?.displayName
-    ?.split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase() ?? "?"
+  const initials =
+    profile?.displayName
+      ?.split(" ")
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() ?? "?"
 
   const memberSince = profile?.createdAt
     ? new Intl.DateTimeFormat("en-US", {
@@ -108,7 +109,14 @@ export function TeacherProfileWorkspace(props: { accessToken: string | null }) {
 
   if (profileQuery.isLoading) {
     return (
-      <div style={{ display: "grid", placeItems: "center", minHeight: 300, color: webTheme.colors.textMuted }}>
+      <div
+        style={{
+          display: "grid",
+          placeItems: "center",
+          minHeight: 300,
+          color: webTheme.colors.textMuted,
+        }}
+      >
         Loading profile...
       </div>
     )
@@ -154,7 +162,15 @@ export function TeacherProfileWorkspace(props: { accessToken: string | null }) {
           ←
         </a>
         <div>
-          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: webTheme.colors.text, letterSpacing: "-0.02em" }}>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: 22,
+              fontWeight: 700,
+              color: webTheme.colors.text,
+              letterSpacing: "-0.02em",
+            }}
+          >
             My Profile
           </h2>
           <p style={{ margin: "2px 0 0", fontSize: 13, color: webTheme.colors.textSubtle }}>
@@ -216,7 +232,15 @@ export function TeacherProfileWorkspace(props: { accessToken: string | null }) {
           <p style={{ margin: "4px 0 0", fontSize: 14, color: webTheme.colors.textMuted }}>
             {profile.email}
           </p>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              marginTop: 10,
+              flexWrap: "wrap",
+            }}
+          >
             <span style={pillStyle}>Teacher</span>
             {profile.department ? <span style={pillStyle}>{profile.department}</span> : null}
             {memberSince ? (
@@ -351,7 +375,13 @@ export function TeacherProfileWorkspace(props: { accessToken: string | null }) {
         style={workflowStyles.rowCard}
       >
         <h3 style={sectionTitle}>Professional Information</h3>
-        <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+        <div
+          style={{
+            display: "grid",
+            gap: 16,
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          }}
+        >
           <label style={fieldWrap}>
             <span style={fieldLabel}>Department</span>
             <input

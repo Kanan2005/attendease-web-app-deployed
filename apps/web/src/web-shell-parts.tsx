@@ -89,7 +89,15 @@ export function WebChartCard(props: {
           alignContent: "space-between",
         }}
       >
-        <div style={{ ...surfaceCardStyles, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center" as const }}>
+        <div
+          style={{
+            ...surfaceCardStyles,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center" as const,
+          }}
+        >
           <div>
             <p style={{ margin: 0, fontSize: 32, opacity: 0.3 }}>📊</p>
             <p style={{ margin: "8px 0 0", fontSize: 13, color: webTheme.colors.textSubtle }}>

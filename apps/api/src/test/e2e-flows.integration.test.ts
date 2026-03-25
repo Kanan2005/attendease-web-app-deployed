@@ -16,6 +16,14 @@ import { Test } from "@nestjs/testing"
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
 
 import { AppModule } from "../app.module.js"
+import { GoogleOidcService } from "../modules/auth/google-oidc.service.js"
+import {
+  type E2ESeedResult,
+  type SeedClassroom,
+  type SeedStudent,
+  type SeedTeacher,
+  seedE2EData,
+} from "./e2e-seed.js"
 import {
   type TemporaryDatabase,
   authIntegrationFixtures,
@@ -23,8 +31,6 @@ import {
   destroyTemporaryDatabase,
   seedAuthIntegrationData,
 } from "./integration-helpers.js"
-import { type E2ESeedResult, seedE2EData } from "./e2e-seed.js"
-import { GoogleOidcService } from "../modules/auth/google-oidc.service.js"
 
 describe("E2E flows (20 teachers, 800 students)", () => {
   const originalEnv = {
@@ -41,6 +47,13 @@ describe("E2E flows (20 teachers, 800 students)", () => {
   let prisma: ReturnType<typeof createPrismaClient> | null = null
   let app: NestFastifyApplication | null = null
   let seed: E2ESeedResult | null = null
+
+  function getSeed(): E2ESeedResult {
+    if (seed === null) {
+      throw new Error("E2E seed not initialized")
+    }
+    return seed
+  }
 
   const googleOidcService = { verifyExchange: vi.fn() }
 
@@ -84,9 +97,10 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       await app.init()
       await app.getHttpAdapter().getInstance().ready()
 
-      inject = app.getHttpAdapter().getInstance().inject.bind(
-        app.getHttpAdapter().getInstance(),
-      ) as InjectFn
+      inject = app
+        .getHttpAdapter()
+        .getInstance()
+        .inject.bind(app.getHttpAdapter().getInstance()) as InjectFn
 
       seed = await seedE2EData(inject)
     },
@@ -140,44 +154,44 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Data integrity after seed", () => {
     it("creates 20 teachers", () => {
-      expect(seed!.teachers).toHaveLength(20)
+      expect(getSeed().teachers).toHaveLength(20)
     })
 
     it("creates 800 students", () => {
-      expect(seed!.students).toHaveLength(800)
+      expect(getSeed().students).toHaveLength(800)
     })
 
     it("creates 6-8 classrooms per teacher (120-160 total)", () => {
-      expect(seed!.classrooms.length).toBeGreaterThanOrEqual(120)
-      expect(seed!.classrooms.length).toBeLessThanOrEqual(160)
-      for (const teacher of seed!.teachers) {
+      expect(getSeed().classrooms.length).toBeGreaterThanOrEqual(120)
+      expect(getSeed().classrooms.length).toBeLessThanOrEqual(160)
+      for (const teacher of getSeed().teachers) {
         expect(teacher.classrooms.length).toBeGreaterThanOrEqual(6)
         expect(teacher.classrooms.length).toBeLessThanOrEqual(8)
       }
     })
 
     it("enrolls students in each classroom", () => {
-      for (const classroom of seed!.classrooms) {
+      for (const classroom of getSeed().classrooms) {
         expect(classroom.enrolledStudentCount).toBeGreaterThan(0)
       }
     })
 
     it("creates attendance sessions for classrooms", () => {
-      expect(seed!.totalSessions).toBeGreaterThan(0)
-      for (const classroom of seed!.classrooms) {
+      expect(getSeed().totalSessions).toBeGreaterThan(0)
+      for (const classroom of getSeed().classrooms) {
         expect(classroom.sessionIds.length).toBeGreaterThanOrEqual(1)
       }
     })
 
     it("assigns degree and branch to every student", () => {
-      for (const student of seed!.students) {
+      for (const student of getSeed().students) {
         expect(["B.Tech", "M.Tech"]).toContain(student.degree)
         expect(["CSE", "ECE", "EE", "ME", "CHE", "Civil", "Meta"]).toContain(student.branch)
       }
     })
 
     it("generates roll numbers for all students", () => {
-      const rollNumbers = seed!.students.map((s) => s.rollNumber)
+      const rollNumbers = getSeed().students.map((s) => s.rollNumber)
       const unique = new Set(rollNumbers)
       expect(unique.size).toBe(800)
     })
@@ -219,7 +233,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("rejects duplicate email registration", async () => {
-      const existingStudent = seed!.students[0]!
+      const existingStudent = getSeed().students[0] as SeedStudent
       const fixture = buildDevelopmentStudentRegistrationFixture("e2e-dup-student")
       const res = await post("/auth/register/student", {
         email: existingStudent.email,
@@ -250,7 +264,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Auth: Login & Session", () => {
     it("logs in a seeded teacher and returns an access token", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await post("/auth/login", {
         email: teacher.email,
         password: teacher.password,
@@ -261,7 +275,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("logs in a seeded student and returns an access token", async () => {
-      const student = seed!.students[0]!
+      const student = getSeed().students[0] as SeedStudent
       const res = await post("/auth/login", {
         email: student.email,
         password: student.password,
@@ -271,7 +285,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("rejects login with wrong password", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await post("/auth/login", {
         email: teacher.email,
         password: "wrong-password-absolutely",
@@ -288,7 +302,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("returns current user via /auth/me", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const me = await get("/auth/me", teacher.token)
       expect(me.statusCode).toBe(200)
       expect(me.body.email).toBe(teacher.email)
@@ -296,7 +310,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("returns student user data via /auth/me", async () => {
-      const student = seed!.students[0]!
+      const student = getSeed().students[0] as SeedStudent
       const me = await get("/auth/me", student.token)
       expect(me.statusCode).toBe(200)
       expect(me.body.email).toBe(student.email)
@@ -337,14 +351,14 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Auth: Profile", () => {
     it("fetches full profile for a student", async () => {
-      const student = seed!.students[0]!
+      const student = getSeed().students[0] as SeedStudent
       const profile = await get("/auth/profile", student.token)
       expect(profile.statusCode).toBe(200)
       expect(profile.body.email).toBe(student.email)
     })
 
     it("updates student display name", async () => {
-      const student = seed!.students[1]!
+      const student = getSeed().students[1] as SeedStudent
       const updated = await patch(
         "/auth/profile",
         { displayName: "Updated E2E Student One" },
@@ -354,7 +368,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("updates student roll number", async () => {
-      const student = seed!.students[2]!
+      const student = getSeed().students[2] as SeedStudent
       const updated = await patch(
         "/auth/profile",
         { displayName: student.displayName, rollNumber: "CSE-2024-0099" },
@@ -364,7 +378,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("updates student degree and branch", async () => {
-      const student = seed!.students[3]!
+      const student = getSeed().students[3] as SeedStudent
       const updated = await patch(
         "/auth/profile",
         { displayName: student.displayName, degree: "M.Tech", branch: "ECE" },
@@ -374,7 +388,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("updates teacher profile", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const updated = await patch(
         "/auth/profile",
         { displayName: "Prof. Updated Name" },
@@ -392,7 +406,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     let testClassroomId: string
 
     it("teacher creates a new classroom", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await post(
         "/classrooms",
         {
@@ -416,14 +430,14 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("teacher retrieves the created classroom", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await get(`/classrooms/${testClassroomId}`, teacher.token)
       expect(res.statusCode).toBe(200)
       expect(res.body.id).toBe(testClassroomId)
     })
 
     it("teacher lists classrooms and finds it", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await get("/classrooms", teacher.token)
       expect(res.statusCode).toBe(200)
       expect(Array.isArray(res.body)).toBe(true)
@@ -431,7 +445,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("teacher updates classroom title", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await patch(
         `/classrooms/${testClassroomId}`,
         { classroomTitle: "Updated Lifecycle Title" },
@@ -441,23 +455,15 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("teacher resets join code", async () => {
-      const teacher = seed!.teachers[0]!
-      const res = await post(
-        `/classrooms/${testClassroomId}/join-code/reset`,
-        {},
-        teacher.token,
-      )
+      const teacher = getSeed().teachers[0] as SeedTeacher
+      const res = await post(`/classrooms/${testClassroomId}/join-code/reset`, {}, teacher.token)
       expect(res.statusCode).toBeLessThan(300)
       expect(res.body.code).toBeTruthy()
     })
 
     it("teacher archives the classroom", async () => {
-      const teacher = seed!.teachers[0]!
-      const res = await post(
-        `/classrooms/${testClassroomId}/archive`,
-        {},
-        teacher.token,
-      )
+      const teacher = getSeed().teachers[0] as SeedTeacher
+      const res = await post(`/classrooms/${testClassroomId}/archive`, {}, teacher.token)
       expect(res.statusCode).toBeLessThan(300)
     })
   })
@@ -468,8 +474,8 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Student: Enrollment", () => {
     it("student joins a classroom via join code", async () => {
-      const teacher = seed!.teachers[5]!
-      const student = seed!.students[799]!
+      const teacher = getSeed().teachers[5] as SeedTeacher
+      const student = getSeed().students[799] as SeedStudent
 
       const classroom = await post(
         "/classrooms",
@@ -495,16 +501,12 @@ describe("E2E flows (20 teachers, 800 students)", () => {
         teacher.token,
       )
 
-      const joined = await post(
-        "/classrooms/join",
-        { code: joinCode.body.code },
-        student.token,
-      )
+      const joined = await post("/classrooms/join", { code: joinCode.body.code }, student.token)
       expect(joined.statusCode).toBeLessThan(300)
     })
 
     it("student lists their joined classrooms", async () => {
-      const student = seed!.students[0]!
+      const student = getSeed().students[0] as SeedStudent
       const res = await get("/students/me/classrooms", student.token)
       expect(res.statusCode).toBe(200)
       expect(Array.isArray(res.body)).toBe(true)
@@ -512,12 +514,8 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("rejects joining with an invalid code", async () => {
-      const student = seed!.students[100]!
-      const res = await post(
-        "/classrooms/join",
-        { code: "INVALIDCODE999" },
-        student.token,
-      )
+      const student = getSeed().students[100] as SeedStudent
+      const res = await post("/classrooms/join", { code: "INVALIDCODE999" }, student.token)
       expect(res.statusCode).toBeGreaterThanOrEqual(400)
     })
   })
@@ -528,17 +526,17 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Roster: Management", () => {
     it("teacher views the student roster for a classroom", async () => {
-      const teacher = seed!.teachers[0]!
-      const classroom = teacher.classrooms[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
+      const classroom = teacher.classrooms[0] as SeedClassroom
       const res = await get(`/classrooms/${classroom.id}/students`, teacher.token)
       expect(res.statusCode).toBe(200)
       expect(Array.isArray(res.body)).toBe(true)
     })
 
     it("teacher adds a specific student to roster", async () => {
-      const teacher = seed!.teachers[1]!
-      const classroom = teacher.classrooms[0]!
-      const targetStudent = seed!.students[700]!
+      const teacher = getSeed().teachers[1] as SeedTeacher
+      const classroom = teacher.classrooms[0] as SeedClassroom
+      const targetStudent = getSeed().students[700] as SeedStudent
 
       const res = await post(
         `/classrooms/${classroom.id}/students`,
@@ -558,8 +556,8 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Lecture: Management", () => {
     it("teacher lists lectures for a seeded classroom", async () => {
-      const teacher = seed!.teachers[0]!
-      const classroom = teacher.classrooms[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
+      const classroom = teacher.classrooms[0] as SeedClassroom
       const res = await get(`/classrooms/${classroom.id}/lectures`, teacher.token)
       expect(res.statusCode).toBe(200)
       expect(Array.isArray(res.body)).toBe(true)
@@ -572,8 +570,8 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Announcements & Stream", () => {
     it("teacher posts an announcement", async () => {
-      const teacher = seed!.teachers[2]!
-      const classroom = teacher.classrooms[0]!
+      const teacher = getSeed().teachers[2] as SeedTeacher
+      const classroom = teacher.classrooms[0] as SeedClassroom
       const res = await post(
         `/classrooms/${classroom.id}/announcements`,
         {
@@ -586,11 +584,9 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("student reads the classroom stream", async () => {
-      const teacher = seed!.teachers[2]!
-      const classroom = teacher.classrooms[0]!
-      const enrolledStudent = seed!.students.find((s) =>
-        s.classroomIds.includes(classroom.id),
-      )
+      const teacher = getSeed().teachers[2] as SeedTeacher
+      const classroom = teacher.classrooms[0] as SeedClassroom
+      const enrolledStudent = getSeed().students.find((s) => s.classroomIds.includes(classroom.id))
 
       if (enrolledStudent) {
         const res = await get(`/classrooms/${classroom.id}/stream`, enrolledStudent.token)
@@ -605,8 +601,8 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Schedule: Management", () => {
     it("teacher creates a weekly slot", async () => {
-      const teacher = seed!.teachers[4]!
-      const classroom = teacher.classrooms[0]!
+      const teacher = getSeed().teachers[4] as SeedTeacher
+      const classroom = teacher.classrooms[0] as SeedClassroom
 
       const res = await post(
         `/classrooms/${classroom.id}/schedule/weekly-slots`,
@@ -622,8 +618,8 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("teacher fetches the schedule", async () => {
-      const teacher = seed!.teachers[4]!
-      const classroom = teacher.classrooms[0]!
+      const teacher = getSeed().teachers[4] as SeedTeacher
+      const classroom = teacher.classrooms[0] as SeedClassroom
 
       const res = await get(`/classrooms/${classroom.id}/schedule`, teacher.token)
       expect(res.statusCode).toBe(200)
@@ -638,8 +634,8 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     let sessionId: string
 
     it("teacher creates a QR session", async () => {
-      const teacher = seed!.teachers[3]!
-      const classroom = teacher.classrooms[0]!
+      const teacher = getSeed().teachers[3] as SeedTeacher
+      const classroom = teacher.classrooms[0] as SeedClassroom
 
       const res = await post(
         "/sessions/qr",
@@ -659,26 +655,26 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("teacher views live sessions", async () => {
-      const teacher = seed!.teachers[3]!
+      const teacher = getSeed().teachers[3] as SeedTeacher
       const res = await get("/sessions/live", teacher.token)
       expect(res.statusCode).toBe(200)
     })
 
     it("teacher ends the QR session", async () => {
-      const teacher = seed!.teachers[3]!
+      const teacher = getSeed().teachers[3] as SeedTeacher
       const res = await post(`/sessions/${sessionId}/end`, {}, teacher.token)
       expect(res.statusCode).toBeLessThan(300)
     })
 
     it("teacher fetches session detail after ending", async () => {
-      const teacher = seed!.teachers[3]!
+      const teacher = getSeed().teachers[3] as SeedTeacher
       const res = await get(`/sessions/${sessionId}`, teacher.token)
       expect(res.statusCode).toBe(200)
       expect(res.body.id).toBe(sessionId)
     })
 
     it("teacher views session students list", async () => {
-      const teacher = seed!.teachers[3]!
+      const teacher = getSeed().teachers[3] as SeedTeacher
       const res = await get(`/sessions/${sessionId}/students`, teacher.token)
       expect(res.statusCode).toBe(200)
     })
@@ -690,14 +686,10 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Attendance: Bluetooth Session", () => {
     it("teacher creates a Bluetooth session", async () => {
-      const teacher = seed!.teachers[6]!
-      const classroom = teacher.classrooms[0]!
+      const teacher = getSeed().teachers[6] as SeedTeacher
+      const classroom = teacher.classrooms[0] as SeedClassroom
 
-      const res = await post(
-        "/sessions/bluetooth",
-        { classroomId: classroom.id },
-        teacher.token,
-      )
+      const res = await post("/sessions/bluetooth", { classroomId: classroom.id }, teacher.token)
       // May succeed or fail depending on feature flags
       expect(res.statusCode).toBeLessThan(500)
     })
@@ -709,14 +701,14 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Attendance: History", () => {
     it("teacher lists all sessions across classrooms", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await get("/sessions", teacher.token)
       expect(res.statusCode).toBe(200)
     })
 
     it("teacher views detail of a previously created session", async () => {
-      const teacher = seed!.teachers[0]!
-      const classroom = teacher.classrooms[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
+      const classroom = teacher.classrooms[0] as SeedClassroom
 
       if (classroom.sessionIds.length > 0) {
         const res = await get(`/sessions/${classroom.sessionIds[0]}`, teacher.token)
@@ -726,7 +718,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("student views their own attendance history", async () => {
-      const student = seed!.students[0]!
+      const student = getSeed().students[0] as SeedStudent
       const res = await get("/students/me/history", student.token)
       expect(res.statusCode).toBe(200)
     })
@@ -738,19 +730,19 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Reports: Teacher", () => {
     it("teacher fetches daywise attendance report", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await get("/reports/daywise", teacher.token)
       expect(res.statusCode).toBe(200)
     })
 
     it("teacher fetches subjectwise attendance report", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await get("/reports/subjectwise", teacher.token)
       expect(res.statusCode).toBe(200)
     })
 
     it("teacher fetches student percentage report", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await get("/reports/students/percentages", teacher.token)
       expect(res.statusCode).toBe(200)
     })
@@ -762,13 +754,13 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Reports: Student", () => {
     it("student fetches their report overview", async () => {
-      const student = seed!.students[0]!
+      const student = getSeed().students[0] as SeedStudent
       const res = await get("/students/me/reports/overview", student.token)
       expect(res.statusCode).toBe(200)
     })
 
     it("student fetches subjects report list", async () => {
-      const student = seed!.students[0]!
+      const student = getSeed().students[0] as SeedStudent
       const res = await get("/students/me/reports/subjects", student.token)
       expect(res.statusCode).toBe(200)
     })
@@ -780,8 +772,8 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Exports", () => {
     it("teacher creates an export job", async () => {
-      const teacher = seed!.teachers[0]!
-      const classroom = teacher.classrooms[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
+      const classroom = teacher.classrooms[0] as SeedClassroom
 
       const res = await post(
         "/exports",
@@ -795,7 +787,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("teacher lists export jobs", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await get("/exports", teacher.token)
       expect(res.statusCode).toBe(200)
     })
@@ -885,25 +877,25 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Analytics", () => {
     it("teacher fetches attendance trends", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await get("/analytics/trends", teacher.token)
       expect(res.statusCode).toBe(200)
     })
 
     it("teacher fetches attendance distribution", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await get("/analytics/distribution", teacher.token)
       expect(res.statusCode).toBe(200)
     })
 
     it("teacher fetches comparison analytics", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await get("/analytics/comparisons", teacher.token)
       expect(res.statusCode).toBe(200)
     })
 
     it("teacher fetches mode usage analytics", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await get("/analytics/modes", teacher.token)
       expect(res.statusCode).toBe(200)
     })
@@ -915,7 +907,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Authorization: Role Boundaries", () => {
     it("student cannot create a classroom", async () => {
-      const student = seed!.students[0]!
+      const student = getSeed().students[0] as SeedStudent
       const res = await post(
         "/classrooms",
         {
@@ -937,13 +929,13 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("student cannot access admin endpoints", async () => {
-      const student = seed!.students[0]!
+      const student = getSeed().students[0] as SeedStudent
       const res = await get("/admin/students", student.token)
       expect(res.statusCode).toBeGreaterThanOrEqual(400)
     })
 
     it("teacher cannot access admin endpoints", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await get("/admin/students", teacher.token)
       expect(res.statusCode).toBeGreaterThanOrEqual(400)
     })
@@ -957,9 +949,9 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("teacher cannot access another teacher's classroom", async () => {
-      const teacher0 = seed!.teachers[0]!
-      const teacher1 = seed!.teachers[1]!
-      const classroom = teacher1.classrooms[0]!
+      const teacher0 = getSeed().teachers[0] as SeedTeacher
+      const teacher1 = getSeed().teachers[1] as SeedTeacher
+      const classroom = teacher1.classrooms[0] as SeedClassroom
 
       const res = await get(`/classrooms/${classroom.id}`, teacher0.token)
       // Either 403/404 depending on implementation
@@ -973,25 +965,27 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Concurrent: Multi-Teacher Operations", () => {
     it("multiple teachers can create classrooms simultaneously", async () => {
-      const promises = seed!.teachers.slice(0, 5).map((teacher, idx) =>
-        post(
-          "/classrooms",
-          {
-            semesterId: `concurrent-sem-${idx}`,
-            classId: `concurrent-cls-${idx}`,
-            sectionId: `concurrent-sec-${idx}`,
-            subjectId: `concurrent-sub-${idx}`,
-            courseCode: `CONC-${idx}A`,
-            classroomTitle: `Concurrent ${idx}`,
-            defaultAttendanceMode: "QR_GPS",
-            defaultGpsRadiusMeters: 100,
-            defaultSessionDurationMinutes: 30,
-            qrRotationWindowSeconds: 15,
-            requiresTrustedDevice: false,
-          },
-          teacher.token,
-        ),
-      )
+      const promises = getSeed()
+        .teachers.slice(0, 5)
+        .map((teacher, idx) =>
+          post(
+            "/classrooms",
+            {
+              semesterId: `concurrent-sem-${idx}`,
+              classId: `concurrent-cls-${idx}`,
+              sectionId: `concurrent-sec-${idx}`,
+              subjectId: `concurrent-sub-${idx}`,
+              courseCode: `CONC-${idx}A`,
+              classroomTitle: `Concurrent ${idx}`,
+              defaultAttendanceMode: "QR_GPS",
+              defaultGpsRadiusMeters: 100,
+              defaultSessionDurationMinutes: 30,
+              qrRotationWindowSeconds: 15,
+              requiresTrustedDevice: false,
+            },
+            teacher.token,
+          ),
+        )
 
       const results = await Promise.all(promises)
       for (const res of results) {
@@ -1000,7 +994,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("multiple students can join classrooms concurrently", async () => {
-      const teacher = seed!.teachers[10]!
+      const teacher = getSeed().teachers[10] as SeedTeacher
       const classroom = await post(
         "/classrooms",
         {
@@ -1024,7 +1018,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
         teacher.token,
       )
 
-      const studentBatch = seed!.students.slice(500, 520)
+      const studentBatch = getSeed().students.slice(500, 520)
       const promises = studentBatch.map((student) =>
         post("/classrooms/join", { code: joinCode.body.code }, student.token),
       )
@@ -1041,19 +1035,19 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Student: Enrollment data & course cards", () => {
     it("every student is enrolled in at least one classroom", () => {
-      const enrolledStudents = seed!.students.filter((s) => s.classroomIds.length > 0)
+      const enrolledStudents = getSeed().students.filter((s) => s.classroomIds.length > 0)
       expect(enrolledStudents.length).toBeGreaterThan(0)
     })
 
     it("student can retrieve details of an enrolled classroom", async () => {
-      const student = seed!.students.find((s) => s.classroomIds.length > 0)!
-      const classroomId = student.classroomIds[0]!
+      const student = getSeed().students.find((s) => s.classroomIds.length > 0) as SeedStudent
+      const classroomId = student.classroomIds[0] as string
       const res = await get(`/classrooms/${classroomId}`, student.token)
       expect(res.statusCode).toBe(200)
     })
 
     it("student gets enrollment data via academic endpoints", async () => {
-      const student = seed!.students[0]!
+      const student = getSeed().students[0] as SeedStudent
       const res = await get("/academic/enrollments/me", student.token)
       expect(res.statusCode).toBe(200)
     })
@@ -1065,7 +1059,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Teacher: Assignments", () => {
     it("teacher views their assignments", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await get("/academic/assignments/me", teacher.token)
       expect(res.statusCode).toBe(200)
     })
@@ -1077,7 +1071,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Device: Trust & Registration", () => {
     it("student checks attendance-ready device status", async () => {
-      const student = seed!.students[0]!
+      const student = getSeed().students[0] as SeedStudent
       const res = await get("/devices/trust/attendance-ready", student.token)
       expect(res.statusCode).toBe(200)
     })
@@ -1105,20 +1099,20 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Edge Cases & Error Handling", () => {
     it("returns 404 for non-existent classroom", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await get("/classrooms/non-existent-id-12345", teacher.token)
       expect(res.statusCode).toBeGreaterThanOrEqual(400)
     })
 
     it("returns 404 for non-existent session", async () => {
-      const teacher = seed!.teachers[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
       const res = await get("/sessions/non-existent-session-id", teacher.token)
       expect(res.statusCode).toBeGreaterThanOrEqual(400)
     })
 
     it("rejects creating a classroom with duplicate course code for same teacher", async () => {
-      const teacher = seed!.teachers[0]!
-      const existingClassroom = teacher.classrooms[0]!
+      const teacher = getSeed().teachers[0] as SeedTeacher
+      const existingClassroom = teacher.classrooms[0] as SeedClassroom
 
       const res = await post(
         "/classrooms",
@@ -1142,7 +1136,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("rejects marking attendance without an active session token", async () => {
-      const student = seed!.students[0]!
+      const student = getSeed().students[0] as SeedStudent
       const res = await post(
         "/attendance/qr/mark",
         {
@@ -1157,10 +1151,8 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     })
 
     it("handles large concurrent read requests", async () => {
-      const teacher = seed!.teachers[0]!
-      const promises = Array.from({ length: 20 }, () =>
-        get("/classrooms", teacher.token),
-      )
+      const teacher = getSeed().teachers[0] as SeedTeacher
+      const promises = Array.from({ length: 20 }, () => get("/classrooms", teacher.token))
       const results = await Promise.all(promises)
       for (const res of results) {
         expect(res.statusCode).toBe(200)
@@ -1174,20 +1166,18 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Data Isolation", () => {
     it("teacher only sees their own classrooms in list", async () => {
-      const teacher = seed!.teachers[15]!
+      const teacher = getSeed().teachers[15] as SeedTeacher
       const res = await get("/classrooms", teacher.token)
       expect(res.statusCode).toBe(200)
 
       for (const classroom of res.body) {
-        const found = teacher.classrooms.some(
-          (c) => c.id === classroom.id,
-        )
+        const found = teacher.classrooms.some((c) => c.id === classroom.id)
         expect(found).toBe(true)
       }
     })
 
     it("student only sees classrooms they are enrolled in", async () => {
-      const student = seed!.students.find(
+      const student = getSeed().students.find(
         (s) => s.classroomIds.length > 0 && s.classroomIds.length < 50,
       )
 
@@ -1232,7 +1222,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       expect(me.statusCode).toBe(200)
       expect(me.body.email).toBe(fixture.email)
 
-      const teacher = seed!.teachers[18]!
+      const teacher = getSeed().teachers[18] as SeedTeacher
       const freshClassroom = await post(
         "/classrooms",
         {
@@ -1256,11 +1246,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
         teacher.token,
       )
 
-      const joined = await post(
-        "/classrooms/join",
-        { code: joinCodeRes.body.code },
-        token,
-      )
+      const joined = await post("/classrooms/join", { code: joinCodeRes.body.code }, token)
       expect(joined.statusCode).toBeLessThan(300)
 
       const classrooms = await get("/students/me/classrooms", token)
@@ -1325,11 +1311,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       )
       expect(classroom.statusCode).toBe(201)
 
-      const joinCode = await post(
-        `/classrooms/${classroom.body.id}/join-code/reset`,
-        {},
-        token,
-      )
+      const joinCode = await post(`/classrooms/${classroom.body.id}/join-code/reset`, {}, token)
       expect(joinCode.body.code).toBeTruthy()
 
       const session = await post(
@@ -1358,11 +1340,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       const daywise = await get("/reports/daywise", token)
       expect(daywise.statusCode).toBe(200)
 
-      const profile = await patch(
-        "/auth/profile",
-        { displayName: "Prof. Journey Updated" },
-        token,
-      )
+      const profile = await patch("/auth/profile", { displayName: "Prof. Journey Updated" }, token)
       expect(profile.statusCode).toBeLessThan(300)
     })
   })

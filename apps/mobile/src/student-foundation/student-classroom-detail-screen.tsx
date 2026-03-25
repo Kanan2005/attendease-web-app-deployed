@@ -1,14 +1,12 @@
 import { getColors, mobileTheme } from "@attendease/ui-mobile"
 import { Ionicons } from "@expo/vector-icons"
-import { useState } from "react"
 import { Link } from "expo-router"
+import { useState } from "react"
 import { Pressable, StyleSheet, Text, View } from "react-native"
 import Animated, { FadeInDown } from "react-native-reanimated"
 
 import { buildStudentAttendanceGateModel } from "../device-trust"
-import {
-  mapStudentApiErrorToMessage,
-} from "../student-models"
+import { mapStudentApiErrorToMessage } from "../student-models"
 import { studentRoutes } from "../student-routes"
 import { useStudentSession } from "../student-session"
 import {
@@ -16,9 +14,7 @@ import {
   buildStudentClassroomDetailSummaryModel,
 } from "../student-workflow-models"
 
-import {
-  useStudentClassroomDetailData,
-} from "./queries"
+import { useStudentClassroomDetailData } from "./queries"
 import {
   AnnouncementRow,
   StudentCard,
@@ -36,7 +32,9 @@ import {
 export function StudentClassroomDetailScreen(props: { classroomId: string }) {
   const { session } = useStudentSession()
   const c = getColors()
-  const [activeTab, setActiveTab] = useState<"overview" | "announcements" | "attendance">("overview")
+  const [activeTab, setActiveTab] = useState<"overview" | "announcements" | "attendance">(
+    "overview",
+  )
   const classroom = useStudentClassroomDetailData(props.classroomId)
 
   const attendanceGateModel = classroom.attendanceReadyQuery.error
@@ -117,9 +115,14 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
   const absentCount = historyItems.filter((h) => h.attendanceStatus === "ABSENT").length
   const totalRecords = historyItems.length
   const attendancePct = totalRecords > 0 ? Math.round((presentCount / totalRecords) * 100) : 0
-  const lastPresentRecord = historyItems
-    .filter((h) => h.attendanceStatus === "PRESENT")
-    .sort((a, b) => new Date(b.markedAt ?? b.lectureDate ?? 0).getTime() - new Date(a.markedAt ?? a.lectureDate ?? 0).getTime())[0] ?? null
+  const lastPresentRecord =
+    historyItems
+      .filter((h) => h.attendanceStatus === "PRESENT")
+      .sort(
+        (a, b) =>
+          new Date(b.markedAt ?? b.lectureDate ?? 0).getTime() -
+          new Date(a.markedAt ?? a.lectureDate ?? 0).getTime(),
+      )[0] ?? null
 
   return (
     <StudentScreen
@@ -145,7 +148,13 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
               borderColor: attendanceCandidates.length > 0 ? c.dangerBorder : c.border,
             }}
           >
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <View
                   style={{
@@ -160,7 +169,17 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                   </Text>
                 </View>
                 {attendanceCandidates.length > 0 ? (
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: c.danger, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                      backgroundColor: c.danger,
+                      borderRadius: 8,
+                      paddingHorizontal: 8,
+                      paddingVertical: 4,
+                    }}
+                  >
                     <Ionicons name="radio-outline" size={12} color="#fff" />
                     <Text style={{ fontSize: 11, fontWeight: "700", color: "#fff" }}>
                       {attendanceCandidates.length} Live
@@ -169,19 +188,34 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                 ) : null}
               </View>
               {totalRecords > 0 ? (
-                <Text style={{ fontSize: 18, fontWeight: "800", color: attendancePct >= 75 ? c.success : attendancePct >= 50 ? c.warning : c.danger }}>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: "800",
+                    color:
+                      attendancePct >= 75 ? c.success : attendancePct >= 50 ? c.warning : c.danger,
+                  }}
+                >
                   {attendancePct}%
                 </Text>
               ) : null}
             </View>
             {totalRecords > 0 ? (
-              <View style={{ height: 6, borderRadius: 3, backgroundColor: c.surfaceMuted, overflow: "hidden" }}>
+              <View
+                style={{
+                  height: 6,
+                  borderRadius: 3,
+                  backgroundColor: c.surfaceMuted,
+                  overflow: "hidden",
+                }}
+              >
                 <View
                   style={{
                     height: 6,
                     borderRadius: 3,
                     width: `${Math.min(100, attendancePct)}%`,
-                    backgroundColor: attendancePct >= 75 ? c.success : attendancePct >= 50 ? c.warning : c.danger,
+                    backgroundColor:
+                      attendancePct >= 75 ? c.success : attendancePct >= 50 ? c.warning : c.danger,
                   }}
                 />
               </View>
@@ -265,17 +299,23 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                     }}
                   >
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#fff" }} />
+                      <View
+                        style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#fff" }}
+                      />
                       <Text style={{ fontSize: 16, fontWeight: "800", color: "#fff" }}>
-                        {attendanceCandidates.length} Live Session{attendanceCandidates.length === 1 ? "" : "s"}
+                        {attendanceCandidates.length} Live Session
+                        {attendanceCandidates.length === 1 ? "" : "s"}
                       </Text>
                     </View>
                     <Text style={{ fontSize: 13, color: "#fff", opacity: 0.85 }}>
                       Your teacher has started attendance. Mark your presence now.
                     </Text>
                     <View style={{ flexDirection: "row", gap: 8 }}>
-                      {attendanceCandidates.some(cand => cand.mode === "QR_GPS") ? (
-                        <Link href={studentRoutes.qrAttendanceFromClassroom(props.classroomId) as never} asChild>
+                      {attendanceCandidates.some((cand) => cand.mode === "QR_GPS") ? (
+                        <Link
+                          href={studentRoutes.qrAttendanceFromClassroom(props.classroomId) as never}
+                          asChild
+                        >
                           <Pressable
                             style={{
                               flex: 1,
@@ -289,12 +329,21 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                             }}
                           >
                             <Ionicons name="qr-code-outline" size={18} color={c.danger} />
-                            <Text style={{ fontSize: 14, fontWeight: "700", color: c.danger }}>Scan QR</Text>
+                            <Text style={{ fontSize: 14, fontWeight: "700", color: c.danger }}>
+                              Scan QR
+                            </Text>
                           </Pressable>
                         </Link>
                       ) : null}
-                      {attendanceCandidates.some(cand => cand.mode === "BLUETOOTH") ? (
-                        <Link href={studentRoutes.bluetoothAttendanceFromClassroom(props.classroomId) as never} asChild>
+                      {attendanceCandidates.some((cand) => cand.mode === "BLUETOOTH") ? (
+                        <Link
+                          href={
+                            studentRoutes.bluetoothAttendanceFromClassroom(
+                              props.classroomId,
+                            ) as never
+                          }
+                          asChild
+                        >
                           <Pressable
                             style={{
                               flex: 1,
@@ -308,7 +357,9 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                             }}
                           >
                             <Ionicons name="bluetooth-outline" size={18} color={c.danger} />
-                            <Text style={{ fontSize: 14, fontWeight: "700", color: c.danger }}>Bluetooth</Text>
+                            <Text style={{ fontSize: 14, fontWeight: "700", color: c.danger }}>
+                              Bluetooth
+                            </Text>
                           </Pressable>
                         </Link>
                       ) : null}
@@ -323,31 +374,70 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                   {totalRecords > 0 ? (
                     <View style={{ gap: 8 }}>
                       <View style={{ flexDirection: "row", gap: 8 }}>
-                        <StatChip label="Total" value={String(totalRecords)} color={c.primary} bg={c.primarySoft} />
-                        <StatChip label="Present" value={String(presentCount)} color={c.success} bg={c.successSoft} />
-                        <StatChip label="Absent" value={String(absentCount)} color={c.danger} bg={c.dangerSoft} />
+                        <StatChip
+                          label="Total"
+                          value={String(totalRecords)}
+                          color={c.primary}
+                          bg={c.primarySoft}
+                        />
+                        <StatChip
+                          label="Present"
+                          value={String(presentCount)}
+                          color={c.success}
+                          bg={c.successSoft}
+                        />
+                        <StatChip
+                          label="Absent"
+                          value={String(absentCount)}
+                          color={c.danger}
+                          bg={c.dangerSoft}
+                        />
                       </View>
                       <View
                         style={{
                           flexDirection: "row",
                           alignItems: "center",
                           gap: 8,
-                          backgroundColor: attendancePct >= 75 ? c.successSoft : attendancePct >= 50 ? c.warningSoft : c.dangerSoft,
+                          backgroundColor:
+                            attendancePct >= 75
+                              ? c.successSoft
+                              : attendancePct >= 50
+                                ? c.warningSoft
+                                : c.dangerSoft,
                           borderRadius: 10,
                           paddingHorizontal: 12,
                           paddingVertical: 8,
                         }}
                       >
                         <Ionicons
-                          name={attendancePct >= 75 ? "checkmark-circle" : attendancePct >= 50 ? "alert-circle" : "close-circle"}
+                          name={
+                            attendancePct >= 75
+                              ? "checkmark-circle"
+                              : attendancePct >= 50
+                                ? "alert-circle"
+                                : "close-circle"
+                          }
                           size={18}
-                          color={attendancePct >= 75 ? c.success : attendancePct >= 50 ? c.warning : c.danger}
+                          color={
+                            attendancePct >= 75
+                              ? c.success
+                              : attendancePct >= 50
+                                ? c.warning
+                                : c.danger
+                          }
                         />
-                        <Text style={{
-                          fontSize: 15,
-                          fontWeight: "700",
-                          color: attendancePct >= 75 ? c.success : attendancePct >= 50 ? c.warning : c.danger,
-                        }}>
+                        <Text
+                          style={{
+                            fontSize: 15,
+                            fontWeight: "700",
+                            color:
+                              attendancePct >= 75
+                                ? c.success
+                                : attendancePct >= 50
+                                  ? c.warning
+                                  : c.danger,
+                          }}
+                        >
                           {attendancePct}% Attendance
                         </Text>
                       </View>
@@ -361,10 +451,15 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
               {/* Recent Announcements Preview */}
               {announcements.length > 0 ? (
                 <Animated.View entering={FadeInDown.duration(350).delay(150)}>
-                  <StudentCard title={`Latest Post`}>
-                    <AnnouncementRow announcement={announcements[0]!} />
+                  <StudentCard title={"Latest Post"}>
+                    {announcements[0] != null ? (
+                      <AnnouncementRow announcement={announcements[0]} />
+                    ) : null}
                     {announcements.length > 1 ? (
-                      <Pressable onPress={() => setActiveTab("announcements")} style={{ paddingVertical: 6 }}>
+                      <Pressable
+                        onPress={() => setActiveTab("announcements")}
+                        style={{ paddingVertical: 6 }}
+                      >
                         <Text style={{ fontSize: 13, fontWeight: "600", color: c.primary }}>
                           View all {announcements.length} posts →
                         </Text>
@@ -400,17 +495,23 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                     }}
                   >
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#fff" }} />
+                      <View
+                        style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#fff" }}
+                      />
                       <Text style={{ fontSize: 16, fontWeight: "800", color: "#fff" }}>
-                        {attendanceCandidates.length} Live Session{attendanceCandidates.length === 1 ? "" : "s"}
+                        {attendanceCandidates.length} Live Session
+                        {attendanceCandidates.length === 1 ? "" : "s"}
                       </Text>
                     </View>
                     <Text style={{ fontSize: 13, color: "#fff", opacity: 0.85 }}>
                       Your teacher has started attendance. Mark your presence now.
                     </Text>
                     <View style={{ flexDirection: "row", gap: 8 }}>
-                      {attendanceCandidates.some(cand => cand.mode === "QR_GPS") ? (
-                        <Link href={studentRoutes.qrAttendanceFromClassroom(props.classroomId) as never} asChild>
+                      {attendanceCandidates.some((cand) => cand.mode === "QR_GPS") ? (
+                        <Link
+                          href={studentRoutes.qrAttendanceFromClassroom(props.classroomId) as never}
+                          asChild
+                        >
                           <Pressable
                             style={{
                               flex: 1,
@@ -424,12 +525,21 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                             }}
                           >
                             <Ionicons name="qr-code-outline" size={18} color={c.danger} />
-                            <Text style={{ fontSize: 14, fontWeight: "700", color: c.danger }}>Scan QR</Text>
+                            <Text style={{ fontSize: 14, fontWeight: "700", color: c.danger }}>
+                              Scan QR
+                            </Text>
                           </Pressable>
                         </Link>
                       ) : null}
-                      {attendanceCandidates.some(cand => cand.mode === "BLUETOOTH") ? (
-                        <Link href={studentRoutes.bluetoothAttendanceFromClassroom(props.classroomId) as never} asChild>
+                      {attendanceCandidates.some((cand) => cand.mode === "BLUETOOTH") ? (
+                        <Link
+                          href={
+                            studentRoutes.bluetoothAttendanceFromClassroom(
+                              props.classroomId,
+                            ) as never
+                          }
+                          asChild
+                        >
                           <Pressable
                             style={{
                               flex: 1,
@@ -443,7 +553,9 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                             }}
                           >
                             <Ionicons name="bluetooth-outline" size={18} color={c.danger} />
-                            <Text style={{ fontSize: 14, fontWeight: "700", color: c.danger }}>Bluetooth</Text>
+                            <Text style={{ fontSize: 14, fontWeight: "700", color: c.danger }}>
+                              Bluetooth
+                            </Text>
                           </Pressable>
                         </Link>
                       ) : null}
@@ -457,13 +569,32 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                 {totalRecords > 0 ? (
                   <View style={{ gap: 10 }}>
                     <View style={{ flexDirection: "row", gap: 8 }}>
-                      <StatChip label="Total" value={String(totalRecords)} color={c.primary} bg={c.primarySoft} />
-                      <StatChip label="Present" value={String(presentCount)} color={c.success} bg={c.successSoft} />
-                      <StatChip label="Absent" value={String(absentCount)} color={c.danger} bg={c.dangerSoft} />
+                      <StatChip
+                        label="Total"
+                        value={String(totalRecords)}
+                        color={c.primary}
+                        bg={c.primarySoft}
+                      />
+                      <StatChip
+                        label="Present"
+                        value={String(presentCount)}
+                        color={c.success}
+                        bg={c.successSoft}
+                      />
+                      <StatChip
+                        label="Absent"
+                        value={String(absentCount)}
+                        color={c.danger}
+                        bg={c.dangerSoft}
+                      />
                     </View>
                     <View style={{ gap: 0, marginTop: 4 }}>
                       {historyItems
-                        .sort((a, b) => new Date(b.lectureDate ?? b.markedAt ?? 0).getTime() - new Date(a.lectureDate ?? a.markedAt ?? 0).getTime())
+                        .sort(
+                          (a, b) =>
+                            new Date(b.lectureDate ?? b.markedAt ?? 0).getTime() -
+                            new Date(a.lectureDate ?? a.markedAt ?? 0).getTime(),
+                        )
                         .map((record, i, arr) => {
                           const isPresent = record.attendanceStatus === "PRESENT"
                           return (
@@ -474,7 +605,8 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                                 alignItems: "center",
                                 gap: 10,
                                 paddingVertical: 10,
-                                borderBottomWidth: i < arr.length - 1 ? StyleSheet.hairlineWidth : 0,
+                                borderBottomWidth:
+                                  i < arr.length - 1 ? StyleSheet.hairlineWidth : 0,
                                 borderBottomColor: c.border,
                               }}
                             >
@@ -495,11 +627,18 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                                 />
                               </View>
                               <View style={{ flex: 1, gap: 1 }}>
-                                <Text style={{ fontSize: 14, fontWeight: "500", color: c.text }} numberOfLines={1}>
+                                <Text
+                                  style={{ fontSize: 14, fontWeight: "500", color: c.text }}
+                                  numberOfLines={1}
+                                >
                                   {record.lectureTitle ?? `Lecture ${arr.length - i}`}
                                 </Text>
                                 <Text style={{ fontSize: 12, color: c.textMuted }}>
-                                  {formatDateTime(record.lectureDate ?? record.markedAt ?? new Date().toISOString())}
+                                  {formatDateTime(
+                                    record.lectureDate ??
+                                      record.markedAt ??
+                                      new Date().toISOString(),
+                                  )}
                                 </Text>
                               </View>
                               <View
@@ -510,11 +649,13 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                                   backgroundColor: isPresent ? c.successSoft : c.dangerSoft,
                                 }}
                               >
-                                <Text style={{
-                                  fontSize: 11,
-                                  fontWeight: "700",
-                                  color: isPresent ? c.success : c.danger,
-                                }}>
+                                <Text
+                                  style={{
+                                    fontSize: 11,
+                                    fontWeight: "700",
+                                    color: isPresent ? c.success : c.danger,
+                                  }}
+                                >
                                   {isPresent ? "Present" : "Absent"}
                                 </Text>
                               </View>
@@ -536,7 +677,8 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                           alignItems: "center",
                           gap: 10,
                           paddingVertical: 8,
-                          borderBottomWidth: i < Math.min(lectures.length, 8) - 1 ? StyleSheet.hairlineWidth : 0,
+                          borderBottomWidth:
+                            i < Math.min(lectures.length, 8) - 1 ? StyleSheet.hairlineWidth : 0,
                           borderBottomColor: c.border,
                         }}
                       >
@@ -555,11 +697,18 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                           </Text>
                         </View>
                         <View style={{ flex: 1, gap: 1 }}>
-                          <Text style={{ fontSize: 14, fontWeight: "500", color: c.text }} numberOfLines={1}>
+                          <Text
+                            style={{ fontSize: 14, fontWeight: "500", color: c.text }}
+                            numberOfLines={1}
+                          >
                             {lecture.title ?? `Lecture ${lectures.length - i}`}
                           </Text>
                           <Text style={{ fontSize: 12, color: c.textMuted }}>
-                            {formatDateTime(lecture.actualStartAt ?? lecture.plannedStartAt ?? lecture.lectureDate)}
+                            {formatDateTime(
+                              lecture.actualStartAt ??
+                                lecture.plannedStartAt ??
+                                lecture.lectureDate,
+                            )}
                           </Text>
                         </View>
                         <Text style={{ fontSize: 11, fontWeight: "600", color: c.textSubtle }}>
@@ -626,7 +775,7 @@ function QuickNavTile(props: {
           borderRadius: 14,
           backgroundColor: props.bg,
           borderWidth: 1,
-          borderColor: props.color + "30",
+          borderColor: `${props.color}30`,
         }}
       >
         <Ionicons name={props.icon} size={22} color={props.color} />
@@ -678,7 +827,13 @@ function TabButton(props: {
             paddingVertical: 1,
           }}
         >
-          <Text style={{ fontSize: 11, fontWeight: "700", color: props.active ? c.primary : c.textSubtle }}>
+          <Text
+            style={{
+              fontSize: 11,
+              fontWeight: "700",
+              color: props.active ? c.primary : c.textSubtle,
+            }}
+          >
             {props.count}
           </Text>
         </View>

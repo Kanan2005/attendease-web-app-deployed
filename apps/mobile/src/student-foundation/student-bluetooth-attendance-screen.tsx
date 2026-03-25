@@ -4,13 +4,13 @@ import { useNavigation, useRouter } from "expo-router"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { Linking, Pressable } from "react-native"
 
-import { mobileEnv } from "../mobile-env"
 import {
   mapBluetoothAvailabilityToPermissionState,
   usePreferredBluetoothDetection,
   useStudentBluetoothMarkAttendanceMutation,
   useStudentBluetoothScanner,
 } from "../bluetooth-attendance"
+import { mobileEnv } from "../mobile-env"
 import {
   type StudentAttendancePermissionState,
   buildStudentBluetoothMarkRequest,
@@ -32,11 +32,7 @@ export function StudentBluetoothAttendanceScreen(props: { classroomId?: string }
     if (props.classroomId) {
       navigation.setOptions({
         headerLeft: () => (
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={12}
-            style={{ marginLeft: 4 }}
-          >
+          <Pressable onPress={() => router.back()} hitSlop={12} style={{ marginLeft: 4 }}>
             <Ionicons name="chevron-back" size={26} color={getColors().primary} />
           </Pressable>
         ),
@@ -63,7 +59,12 @@ export function StudentBluetoothAttendanceScreen(props: { classroomId?: string }
     if (!scanner.availability) return
     if (bluetoothPermissionState === controller.permissionState) return
     controller.setPermissionState(bluetoothPermissionState)
-  }, [bluetoothPermissionState, controller.permissionState, controller.setPermissionState, scanner.availability])
+  }, [
+    bluetoothPermissionState,
+    controller.permissionState,
+    controller.setPermissionState,
+    scanner.availability,
+  ])
 
   // Auto-mark attendance when a detection is found
   useEffect(() => {
@@ -94,12 +95,21 @@ export function StudentBluetoothAttendanceScreen(props: { classroomId?: string }
         setErrorMsg(err instanceof Error ? err.message : "Failed to mark attendance")
         didAutoMark.current = false
       })
-  }, [suggestedDetection, controller.selectedCandidate, controller.canPrepareSubmission, bluetoothMarkMutation.isPending])
+  }, [
+    suggestedDetection,
+    controller.selectedCandidate,
+    controller.canPrepareSubmission,
+    bluetoothMarkMutation,
+    bluetoothMarkMutation.isPending,
+    controller.prepareSubmission,
+    controller.refreshAfterSuccess,
+  ])
 
   const isLoading = controller.meQuery.isLoading || controller.classroomsQuery.isLoading
   const loadError = controller.meQuery.error ?? controller.classroomsQuery.error
   const isBluetoothOff = Boolean(scanner.availability && !scanner.availability.poweredOn)
-  const isPermissionIssue = !isBluetoothOff && (scanner.state === "PERMISSION_REQUIRED" || scanner.state === "FAILED")
+  const isPermissionIssue =
+    !isBluetoothOff && (scanner.state === "PERMISSION_REQUIRED" || scanner.state === "FAILED")
   const noCandidates = !isLoading && !loadError && controller.candidates.length === 0
 
   return (

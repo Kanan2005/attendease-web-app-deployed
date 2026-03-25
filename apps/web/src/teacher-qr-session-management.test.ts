@@ -76,7 +76,11 @@ describe("teacher QR session management helpers", () => {
       }),
     ])
 
-    expect(options.map((entry) => entry.classroomId)).toEqual(["classroom_3", "classroom_1", "classroom_2"])
+    expect(options.map((entry) => entry.classroomId)).toEqual([
+      "classroom_3",
+      "classroom_1",
+      "classroom_2",
+    ])
     expect(options[0]).toMatchObject({
       classroomTitle: "Bluetooth Lab",
       attendanceModeLabel: "Bluetooth",

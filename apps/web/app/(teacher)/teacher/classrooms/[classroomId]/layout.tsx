@@ -43,7 +43,10 @@ export default function ClassroomDetailLayout(props: {
   params: Promise<{ classroomId: string }>
 }) {
   const pathname = usePathname() ?? ""
-  const basePath = pathname.replace(/\/(lectures|roster|reports|settings|schedule|imports|stream)(\/.*)?$/, "")
+  const basePath = pathname.replace(
+    /\/(lectures|roster|reports|settings|schedule|imports|stream)(\/.*)?$/,
+    "",
+  )
   const resolveTabHref = useTabMemory(basePath, pathname)
 
   const classroomId = useMemo(() => {
@@ -127,7 +130,9 @@ export default function ClassroomDetailLayout(props: {
             >
               {[classroom.semesterTitle, classroom.classTitle, classroom.subjectTitle]
                 .filter(Boolean)
-                .join(" · ") || classroom.semesterLabel || ""}
+                .join(" · ") ||
+                classroom.semesterLabel ||
+                ""}
             </p>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>

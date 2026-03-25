@@ -1,7 +1,7 @@
 import { createAuthApiClient } from "@attendease/auth"
 
-import { mobileEnv } from "../mobile-env"
 import { createMobileDeviceTrustBootstrap } from "../device-trust"
+import { mobileEnv } from "../mobile-env"
 import { buildStudentInvalidationKeys } from "../student-query"
 
 const authClient = createAuthApiClient({

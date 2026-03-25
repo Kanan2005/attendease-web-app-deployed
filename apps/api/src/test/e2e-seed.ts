@@ -81,7 +81,12 @@ function pick<T>(array: T[], count: number): T[] {
   const shuffled = [...array]
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[shuffled[i]!, shuffled[j]!] = [shuffled[j]!, shuffled[i]!]
+    const vi = shuffled[i]
+    const vj = shuffled[j]
+    if (vi !== undefined && vj !== undefined) {
+      shuffled[i] = vj
+      shuffled[j] = vi
+    }
   }
   return shuffled.slice(0, count)
 }
@@ -171,14 +176,17 @@ export async function seedE2EData(
 
   const batchCount = Math.ceil(config.studentCount / config.studentBatchSize)
   for (let batch = 0; batch < batchCount; batch++) {
-    const batchEnd = Math.min(config.studentBatchSize, config.studentCount - batch * config.studentBatchSize)
+    const batchEnd = Math.min(
+      config.studentBatchSize,
+      config.studentCount - batch * config.studentBatchSize,
+    )
     const promises = []
     for (let s = 1; s <= batchEnd; s++) {
       const idx = batch * config.studentBatchSize + s
       const label = `e2e-student-${String(idx).padStart(4, "0")}`
       const fixture = buildDevelopmentStudentRegistrationFixture(label)
-      const degree = DEGREE_POOL[idx % DEGREE_POOL.length]!
-      const branch = BRANCH_POOL[idx % BRANCH_POOL.length]!
+      const degree = DEGREE_POOL[idx % DEGREE_POOL.length] ?? "B.Tech"
+      const branch = BRANCH_POOL[idx % BRANCH_POOL.length] ?? "CSE"
       const rollNumber = `${branch}-${degree === "B.Tech" ? "UG" : "PG"}-${String(idx).padStart(4, "0")}`
 
       promises.push(
@@ -221,12 +229,15 @@ export async function seedE2EData(
   }
 
   for (let t = 0; t < teachers.length; t++) {
-    const teacher = teachers[t]!
+    const teacher = teachers[t]
+    if (teacher === undefined) {
+      throw new Error("E2E seed: teacher index out of range")
+    }
     const classroomCount = randBetween(...config.classroomsPerTeacher)
 
     for (let c = 0; c < classroomCount; c++) {
       const subjectIdx = (t * 8 + c) % SUBJECT_POOL.length
-      const subject = SUBJECT_POOL[subjectIdx]!
+      const subject = SUBJECT_POOL.at(subjectIdx) ?? "Mathematics"
       const courseCode = `${subject.replace(/\s+/g, "").slice(0, 4).toUpperCase()}-${t + 1}${String.fromCharCode(65 + c)}`
       const title = `${subject} (Section ${String.fromCharCode(65 + c)})`
 
@@ -282,12 +293,7 @@ export async function seedE2EData(
 
     for (const student of selected) {
       try {
-        await apiPost(
-          inject,
-          "/classrooms/join",
-          { code: classroom.joinCode },
-          student.token,
-        )
+        await apiPost(inject, "/classrooms/join", { code: classroom.joinCode }, student.token)
         student.classroomIds.push(classroom.id)
         enrolled++
       } catch {
@@ -298,7 +304,10 @@ export async function seedE2EData(
   }
 
   for (const classroom of allClassrooms) {
-    const teacher = teachers[classroom.teacherIndex]!
+    const teacher = teachers[classroom.teacherIndex]
+    if (teacher === undefined) {
+      throw new Error("E2E seed: classroom teacher index out of range")
+    }
     const sessionCount = randBetween(...config.sessionsPerClassroom)
 
     for (let s = 0; s < sessionCount; s++) {
@@ -320,12 +329,7 @@ export async function seedE2EData(
         classroom.sessionIds.push(sessionRes.id)
         totalSessions++
 
-        await apiPost(
-          inject,
-          `/sessions/${sessionRes.id}/end`,
-          {},
-          teacher.token,
-        )
+        await apiPost(inject, `/sessions/${sessionRes.id}/end`, {}, teacher.token)
       } catch {
         // rate-limit or concurrency; continue
       }

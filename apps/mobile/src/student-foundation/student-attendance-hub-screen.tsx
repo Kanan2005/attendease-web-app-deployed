@@ -1,9 +1,8 @@
 import { createAuthApiClient } from "@attendease/auth"
-import { mobileEnv } from "../mobile-env"
 import type { AttendanceMode, TrustedDeviceAttendanceReadyResponse } from "@attendease/contracts"
 import { getColors, mobileTheme } from "@attendease/ui-mobile"
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Ionicons } from "@expo/vector-icons"
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link } from "expo-router"
 import { useEffect, useState } from "react"
 import type { ComponentType, ReactNode } from "react"
@@ -18,6 +17,7 @@ import {
   View,
 } from "react-native"
 import Animated, { FadeInDown } from "react-native-reanimated"
+import { mobileEnv } from "../mobile-env"
 
 import { getMobileAttendanceListPollInterval } from "../attendance-live"
 import {
@@ -186,7 +186,9 @@ export function StudentAttendanceHubScreen() {
                   width: 40,
                   height: 40,
                   borderRadius: 12,
-                  backgroundColor: attendance.gateModel.canContinue ? c.success + "20" : c.danger + "20",
+                  backgroundColor: attendance.gateModel.canContinue
+                    ? `${c.success}20`
+                    : `${c.danger}20`,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
@@ -206,7 +208,17 @@ export function StudentAttendanceHubScreen() {
                 </Text>
               </View>
               {attendance.overview.totalOpenSessions > 0 ? (
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: c.danger, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 4,
+                    backgroundColor: c.danger,
+                    borderRadius: 10,
+                    paddingHorizontal: 10,
+                    paddingVertical: 5,
+                  }}
+                >
                   <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#fff" }} />
                   <Text style={{ fontSize: 12, fontWeight: "700", color: "#fff" }}>
                     {attendance.overview.totalOpenSessions} Live
@@ -216,12 +228,22 @@ export function StudentAttendanceHubScreen() {
             </View>
           </Animated.View>
           {!attendance.gateModel.canContinue ? (
-            <StudentNavAction href={studentRoutes.deviceStatus} label="Fix Device Status" icon="phone-portrait-outline" />
+            <StudentNavAction
+              href={studentRoutes.deviceStatus}
+              label="Fix Device Status"
+              icon="phone-portrait-outline"
+            />
           ) : null}
 
           {/* Mode Selection Cards */}
           <View style={{ gap: 12 }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
               <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }}>Choose mode</Text>
               <Pressable
                 disabled={isRefreshingAttendance}
@@ -235,7 +257,12 @@ export function StudentAttendanceHubScreen() {
                     }
                   })()
                 }
-                style={{ flexDirection: "row", alignItems: "center", gap: 4, opacity: isRefreshingAttendance ? 0.5 : 1 }}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 4,
+                  opacity: isRefreshingAttendance ? 0.5 : 1,
+                }}
               >
                 <Ionicons name="refresh-outline" size={14} color={c.primary} />
                 <Text style={{ fontSize: 13, fontWeight: "600", color: c.primary }}>
@@ -273,10 +300,13 @@ export function StudentAttendanceHubScreen() {
                   </View>
                   <View style={{ flex: 1, gap: 3 }}>
                     <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }}>QR + GPS</Text>
-                    <Text style={{ fontSize: 13, color: c.textMuted }}>Scan QR code and verify location</Text>
+                    <Text style={{ fontSize: 13, color: c.textMuted }}>
+                      Scan QR code and verify location
+                    </Text>
                     {attendance.overview.qrReadyCount > 0 ? (
                       <Text style={{ fontSize: 12, fontWeight: "700", color: c.success }}>
-                        {attendance.overview.qrReadyCount} session{attendance.overview.qrReadyCount === 1 ? "" : "s"} ready
+                        {attendance.overview.qrReadyCount} session
+                        {attendance.overview.qrReadyCount === 1 ? "" : "s"} ready
                       </Text>
                     ) : null}
                   </View>
@@ -296,7 +326,8 @@ export function StudentAttendanceHubScreen() {
                     borderRadius: 14,
                     backgroundColor: c.surfaceRaised,
                     borderWidth: 1,
-                    borderColor: attendance.overview.bluetoothReadyCount > 0 ? c.borderAccent : c.border,
+                    borderColor:
+                      attendance.overview.bluetoothReadyCount > 0 ? c.borderAccent : c.border,
                     ...mobileTheme.shadow.soft,
                   }}
                 >
@@ -313,11 +344,16 @@ export function StudentAttendanceHubScreen() {
                     <Ionicons name="bluetooth-outline" size={26} color={c.accent} />
                   </View>
                   <View style={{ flex: 1, gap: 3 }}>
-                    <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }}>Bluetooth</Text>
-                    <Text style={{ fontSize: 13, color: c.textMuted }}>Auto-detect teacher's beacon nearby</Text>
+                    <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }}>
+                      Bluetooth
+                    </Text>
+                    <Text style={{ fontSize: 13, color: c.textMuted }}>
+                      Auto-detect teacher's beacon nearby
+                    </Text>
                     {attendance.overview.bluetoothReadyCount > 0 ? (
                       <Text style={{ fontSize: 12, fontWeight: "700", color: c.success }}>
-                        {attendance.overview.bluetoothReadyCount} session{attendance.overview.bluetoothReadyCount === 1 ? "" : "s"} ready
+                        {attendance.overview.bluetoothReadyCount} session
+                        {attendance.overview.bluetoothReadyCount === 1 ? "" : "s"} ready
                       </Text>
                     ) : null}
                   </View>
@@ -330,18 +366,25 @@ export function StudentAttendanceHubScreen() {
           {/* Live Sessions */}
           {[...attendance.qrCandidates, ...attendance.bluetoothCandidates].length > 0 ? (
             <Animated.View entering={FadeInDown.duration(350).delay(180)}>
-              <StudentCard
-                title="Live Sessions"
-                subtitle="Active sessions from your classrooms."
-              >
-                {[...attendance.qrCandidates, ...attendance.bluetoothCandidates].map((candidate) => (
-                  <AttendanceCandidateRow key={candidate.sessionId} candidate={candidate} selected />
-                ))}
+              <StudentCard title="Live Sessions" subtitle="Active sessions from your classrooms.">
+                {[...attendance.qrCandidates, ...attendance.bluetoothCandidates].map(
+                  (candidate) => (
+                    <AttendanceCandidateRow
+                      key={candidate.sessionId}
+                      candidate={candidate}
+                      selected
+                    />
+                  ),
+                )}
               </StudentCard>
             </Animated.View>
           ) : null}
 
-          <StudentNavAction href={studentRoutes.history} label="View Attendance History" icon="time-outline" />
+          <StudentNavAction
+            href={studentRoutes.history}
+            label="View Attendance History"
+            icon="time-outline"
+          />
         </>
       )}
     </StudentScreen>

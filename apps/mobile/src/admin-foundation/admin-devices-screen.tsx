@@ -6,7 +6,15 @@ import { StyleSheet, Text, View } from "react-native"
 import { adminRoutes } from "../admin-routes"
 import { useAdminSession } from "../admin-session"
 import { useAdminDeviceSupportQuery } from "./queries"
-import { AdminEmptyCard, AdminErrorCard, AdminLoadingCard, AdminNavAction, AdminScreen, AdminSessionSetupCard, styles } from "./shared-ui"
+import {
+  AdminEmptyCard,
+  AdminErrorCard,
+  AdminLoadingCard,
+  AdminNavAction,
+  AdminScreen,
+  AdminSessionSetupCard,
+  styles,
+} from "./shared-ui"
 
 function formatEnum(value: string): string {
   return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
@@ -50,7 +58,9 @@ export function AdminDevicesScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.cardTitle}>Device Trust</Text>
-                <Text style={styles.listMeta}>{devices.length} student record{devices.length === 1 ? "" : "s"}</Text>
+                <Text style={styles.listMeta}>
+                  {devices.length} student record{devices.length === 1 ? "" : "s"}
+                </Text>
               </View>
             </View>
           </AnimatedCard>
@@ -73,7 +83,8 @@ export function AdminDevicesScreen() {
                   alignItems: "center",
                   gap: 12,
                   paddingVertical: 10,
-                  borderBottomWidth: i < Math.min(devices.length, 20) - 1 ? StyleSheet.hairlineWidth : 0,
+                  borderBottomWidth:
+                    i < Math.min(devices.length, 20) - 1 ? StyleSheet.hairlineWidth : 0,
                   borderBottomColor: c.border,
                 }}
               >
@@ -82,21 +93,38 @@ export function AdminDevicesScreen() {
                     width: 36,
                     height: 36,
                     borderRadius: 18,
-                    backgroundColor: entry.activeBinding ? c.successSoft : entry.pendingBinding ? c.warningSoft : c.surfaceTint,
+                    backgroundColor: entry.activeBinding
+                      ? c.successSoft
+                      : entry.pendingBinding
+                        ? c.warningSoft
+                        : c.surfaceTint,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
                   <Ionicons
-                    name={entry.activeBinding ? "checkmark-circle" : entry.pendingBinding ? "time" : "close-circle-outline"}
+                    name={
+                      entry.activeBinding
+                        ? "checkmark-circle"
+                        : entry.pendingBinding
+                          ? "time"
+                          : "close-circle-outline"
+                    }
                     size={18}
-                    color={entry.activeBinding ? c.success : entry.pendingBinding ? c.warning : c.textSubtle}
+                    color={
+                      entry.activeBinding
+                        ? c.success
+                        : entry.pendingBinding
+                          ? c.warning
+                          : c.textSubtle
+                    }
                   />
                 </View>
                 <View style={{ flex: 1, gap: 1 }}>
                   <Text style={styles.listTitle}>{entry.student.displayName}</Text>
                   <Text style={styles.listMeta}>
-                    {formatEnum(entry.attendanceDeviceState)} · {entry.activeBindingCount} binding{entry.activeBindingCount === 1 ? "" : "s"}
+                    {formatEnum(entry.attendanceDeviceState)} · {entry.activeBindingCount} binding
+                    {entry.activeBindingCount === 1 ? "" : "s"}
                   </Text>
                 </View>
                 {entry.latestSecurityEvent ? (
@@ -112,7 +140,11 @@ export function AdminDevicesScreen() {
           </AnimatedCard>
 
           <View style={styles.actionGrid}>
-            <AdminNavAction href={adminRoutes.dashboard} label="Back to Dashboard" icon="arrow-back-outline" />
+            <AdminNavAction
+              href={adminRoutes.dashboard}
+              label="Back to Dashboard"
+              icon="arrow-back-outline"
+            />
           </View>
         </>
       )}

@@ -10,12 +10,7 @@ import { useState } from "react"
 import { buildTeacherWebClassroomListCards } from "../teacher-classroom-management"
 import { teacherWorkflowRoutes, webWorkflowQueryKeys } from "../web-workflows"
 
-import {
-  WorkflowBanner,
-  WorkflowStateCard,
-  bootstrap,
-  workflowStyles,
-} from "./shared"
+import { WorkflowBanner, WorkflowStateCard, bootstrap, workflowStyles } from "./shared"
 
 const cardVariants = {
   hidden: { opacity: 0, y: 16, scale: 0.98 },
@@ -60,9 +55,7 @@ export function TeacherClassroomListWorkspace(props: {
   })
 
   const classroomCards = classroomsQuery.data
-    ? buildTeacherWebClassroomListCards(
-        classroomsQuery.data.filter((c) => c.status !== "ARCHIVED"),
-      )
+    ? buildTeacherWebClassroomListCards(classroomsQuery.data.filter((c) => c.status !== "ARCHIVED"))
     : []
 
   return (
@@ -169,7 +162,14 @@ export function TeacherClassroomListWorkspace(props: {
           >
             📚
           </div>
-          <p style={{ fontSize: 17, fontWeight: 600, color: webTheme.colors.text, margin: "0 0 6px" }}>
+          <p
+            style={{
+              fontSize: 17,
+              fontWeight: 600,
+              color: webTheme.colors.text,
+              margin: "0 0 6px",
+            }}
+          >
             No classrooms yet
           </p>
           <p style={{ margin: 0, fontSize: 14, maxWidth: 320, marginInline: "auto" }}>
@@ -277,7 +277,9 @@ export function TeacherClassroomListWorkspace(props: {
                       borderTop: `1px solid ${webTheme.colors.border}`,
                     }}
                   >
-                    <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                    <div
+                      style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}
+                    >
                       <span style={workflowStyles.pill}>{classroom.statusLabel}</span>
                       <span
                         style={{
@@ -310,7 +312,9 @@ export function TeacherClassroomListWorkspace(props: {
                     <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                       {confirmDeleteId === classroom.classroomId ? (
                         <>
-                          <span style={{ fontSize: 12, color: webTheme.colors.danger }}>Archive?</span>
+                          <span style={{ fontSize: 12, color: webTheme.colors.danger }}>
+                            Archive?
+                          </span>
                           <button
                             type="button"
                             onClick={() => archiveMutation.mutate(classroom.classroomId)}
@@ -370,8 +374,16 @@ export function TeacherClassroomListWorkspace(props: {
                   </div>
 
                   {archiveMutation.isError && confirmDeleteId === classroom.classroomId ? (
-                    <div style={{ padding: "0 24px 12px", fontSize: 12, color: webTheme.colors.danger }}>
-                      {archiveMutation.error instanceof Error ? archiveMutation.error.message : "Failed to delete."}
+                    <div
+                      style={{
+                        padding: "0 24px 12px",
+                        fontSize: 12,
+                        color: webTheme.colors.danger,
+                      }}
+                    >
+                      {archiveMutation.error instanceof Error
+                        ? archiveMutation.error.message
+                        : "Failed to delete."}
                     </div>
                   ) : null}
                 </div>

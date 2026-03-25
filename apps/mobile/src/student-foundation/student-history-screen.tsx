@@ -108,6 +108,7 @@ import {
 import {
   AnnouncementRow,
   AttendanceCandidateRow,
+  StudentBackButton,
   StudentCard,
   StudentDashboardSpotlightCard,
   StudentEmptyCard,
@@ -115,7 +116,6 @@ import {
   StudentLoadingCard,
   StudentNavAction,
   StudentQuickActions,
-  StudentBackButton,
   StudentScreen,
   StudentSessionSetupCard,
   StudentStatusBanner,
@@ -149,10 +149,7 @@ export function StudentHistoryScreen() {
   })
 
   return (
-    <StudentScreen
-      title="Attendance History"
-      subtitle="Your attendance record."
-    >
+    <StudentScreen title="Attendance History" subtitle="Your attendance record.">
       <StudentBackButton label="Back to Attendance" />
       {session ? <StudentStatusBanner status={historyStatus} /> : null}
       {!session ? (
@@ -166,8 +163,20 @@ export function StudentHistoryScreen() {
           <StudentCard title={historyInsight.title} subtitle={historyInsight.message}>
             {/* Attendance Progress Bar */}
             <View style={{ gap: 6 }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
-                <Text style={{ fontSize: 28, fontWeight: "800", color: toneColorStyle(historyInsight.tone).color }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "baseline",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 28,
+                    fontWeight: "800",
+                    color: toneColorStyle(historyInsight.tone).color,
+                  }}
+                >
                   {history.historySummary.attendancePercentage}%
                 </Text>
                 <Pressable
@@ -180,7 +189,12 @@ export function StudentHistoryScreen() {
                       setIsRefreshing(false)
                     }
                   }}
-                  style={{ flexDirection: "row", alignItems: "center", gap: 4, opacity: isRefreshing ? 0.5 : 1 }}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 4,
+                    opacity: isRefreshing ? 0.5 : 1,
+                  }}
                 >
                   <Ionicons name="refresh-outline" size={14} color={c.primary} />
                   <Text style={{ fontSize: 13, fontWeight: "600", color: c.primary }}>
@@ -188,7 +202,14 @@ export function StudentHistoryScreen() {
                   </Text>
                 </Pressable>
               </View>
-              <View style={{ height: 8, borderRadius: 4, backgroundColor: c.surfaceMuted, overflow: "hidden" }}>
+              <View
+                style={{
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: c.surfaceMuted,
+                  overflow: "hidden",
+                }}
+              >
                 <View
                   style={{
                     height: 8,
@@ -226,9 +247,7 @@ export function StudentHistoryScreen() {
               </Text>
             ) : null}
           </StudentCard>
-          <StudentCard
-            title="Recent Records"
-          >
+          <StudentCard title="Recent Records">
             {history.historyRows.map((item) => {
               const isPresent = item.statusTone === "success"
               return (

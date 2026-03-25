@@ -15,8 +15,8 @@ import { useEffect, useState } from "react"
 
 import { AuthApiClientError } from "@attendease/auth"
 import {
-  buildTeacherWebQrSessionStartRequest,
   buildTeacherWebQrSessionClassroomOptions,
+  buildTeacherWebQrSessionStartRequest,
   createTeacherWebQrSessionStartDraft,
   evaluateTeacherWebQrSessionStartReadiness,
 } from "../teacher-qr-session-management"
@@ -46,7 +46,10 @@ export function TeacherLectureSessionDetailWorkspace(props: {
 }) {
   const router = useRouter()
   const queryClient = useQueryClient()
-  const [statusMessage, setStatusMessage] = useState<{ tone: "info" | "danger"; text: string } | null>(null)
+  const [statusMessage, setStatusMessage] = useState<{
+    tone: "info" | "danger"
+    text: string
+  } | null>(null)
   const [locationMessage, setLocationMessage] = useState<string | null>(null)
   const [isResolvingBrowserLocation, setIsResolvingBrowserLocation] = useState(false)
   const [draft, setDraft] = useState<ReturnType<typeof createTeacherWebQrSessionStartDraft>>(null)
@@ -57,25 +60,20 @@ export function TeacherLectureSessionDetailWorkspace(props: {
   const classroomQuery = useQuery({
     queryKey: webWorkflowQueryKeys.classroomDetail(props.classroomId),
     enabled: Boolean(props.accessToken && props.classroomId),
-    queryFn: () =>
-      bootstrap.authClient.getClassroom(props.accessToken ?? "", props.classroomId),
+    queryFn: () => bootstrap.authClient.getClassroom(props.accessToken ?? "", props.classroomId),
   })
 
   const classroomsQuery = useQuery({
     queryKey: webWorkflowQueryKeys.classrooms({}),
     enabled: Boolean(props.accessToken),
-    queryFn: () =>
-      bootstrap.authClient.listClassrooms(props.accessToken ?? "", {}),
+    queryFn: () => bootstrap.authClient.listClassrooms(props.accessToken ?? "", {}),
   })
 
   const lecturesQuery = useQuery({
     queryKey: webWorkflowQueryKeys.classroomLectures(props.classroomId),
     enabled: Boolean(props.accessToken && props.classroomId),
     queryFn: () =>
-      bootstrap.authClient.listClassroomLectures(
-        props.accessToken ?? "",
-        props.classroomId,
-      ),
+      bootstrap.authClient.listClassroomLectures(props.accessToken ?? "", props.classroomId),
   })
 
   const sessionsQuery = useQuery({
@@ -118,7 +116,7 @@ export function TeacherLectureSessionDetailWorkspace(props: {
   }, [sessionForLecture?.id, sessionForLecture?.status, router])
 
   const selectedClassroom = draft
-    ? classroomOptions.find((c) => c.classroomId === draft.classroomId) ?? null
+    ? (classroomOptions.find((c) => c.classroomId === draft.classroomId) ?? null)
     : null
   const readiness = evaluateTeacherWebQrSessionStartReadiness(draft, classroomOptions)
 
@@ -270,7 +268,15 @@ export function TeacherLectureSessionDetailWorkspace(props: {
       </div>
 
       <div>
-        <h2 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 700, color: webTheme.colors.text, letterSpacing: "-0.02em" }}>
+        <h2
+          style={{
+            margin: "0 0 4px",
+            fontSize: 22,
+            fontWeight: 700,
+            color: webTheme.colors.text,
+            letterSpacing: "-0.02em",
+          }}
+        >
           {lecture.title ?? "Lecture"}
         </h2>
         <p style={{ margin: 0, fontSize: 13, color: webTheme.colors.textMuted }}>
@@ -287,26 +293,44 @@ export function TeacherLectureSessionDetailWorkspace(props: {
             overflow: "hidden",
           }}
         >
-          <div style={{ padding: "18px 24px", borderBottom: `1px solid ${webTheme.colors.border}`, display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              background: webTheme.colors.accentSoft,
-              border: `1px solid ${webTheme.colors.accentBorder}`,
-              display: "grid",
-              placeItems: "center",
-              fontSize: 16,
-              flexShrink: 0,
-            }}>
+          <div
+            style={{
+              padding: "18px 24px",
+              borderBottom: `1px solid ${webTheme.colors.border}`,
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                background: webTheme.colors.accentSoft,
+                border: `1px solid ${webTheme.colors.accentBorder}`,
+                display: "grid",
+                placeItems: "center",
+                fontSize: 16,
+                flexShrink: 0,
+              }}
+            >
               📡
             </div>
             <div>
-              <h3 style={{ margin: "0 0 2px", fontSize: 15, fontWeight: 600, color: webTheme.colors.text }}>
+              <h3
+                style={{
+                  margin: "0 0 2px",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: webTheme.colors.text,
+                }}
+              >
                 Start attendance session
               </h3>
               <p style={{ margin: 0, fontSize: 13, color: webTheme.colors.textMuted }}>
-                Set the GPS radius and capture your location. Students must be within range to mark attendance.
+                Set the GPS radius and capture your location. Students must be within range to mark
+                attendance.
               </p>
             </div>
           </div>
@@ -318,7 +342,9 @@ export function TeacherLectureSessionDetailWorkspace(props: {
                   label="GPS radius (meters)"
                   value={draft.gpsRadiusMeters}
                   onChange={(value) =>
-                    setDraft((current) => (current ? { ...current, gpsRadiusMeters: value } : current))
+                    setDraft((current) =>
+                      current ? { ...current, gpsRadiusMeters: value } : current,
+                    )
                   }
                   type="number"
                 />
@@ -345,7 +371,9 @@ export function TeacherLectureSessionDetailWorkspace(props: {
                 gap: 12,
                 padding: "12px 16px",
                 borderRadius: 10,
-                background: hasLocation ? webTheme.colors.successSoft : webTheme.colors.surfaceMuted,
+                background: hasLocation
+                  ? webTheme.colors.successSoft
+                  : webTheme.colors.surfaceMuted,
                 border: `1px solid ${hasLocation ? webTheme.colors.successBorder : webTheme.colors.border}`,
                 transition: "all 0.2s ease",
               }}
@@ -390,7 +418,11 @@ export function TeacherLectureSessionDetailWorkspace(props: {
                   flexShrink: 0,
                 }}
               >
-                {isResolvingBrowserLocation ? "Capturing..." : hasLocation ? "Re-capture" : "Capture location"}
+                {isResolvingBrowserLocation
+                  ? "Capturing..."
+                  : hasLocation
+                    ? "Re-capture"
+                    : "Capture location"}
               </button>
             </div>
 
@@ -455,22 +487,15 @@ function LectureSessionEndedView(props: {
     queryKey: webWorkflowQueryKeys.attendanceSession(props.sessionId),
     enabled: Boolean(props.accessToken && props.sessionId),
     queryFn: () =>
-      bootstrap.authClient.getAttendanceSessionDetail(
-        props.accessToken ?? "",
-        props.sessionId,
-      ),
-    refetchInterval: (query) =>
-      getAttendanceCorrectionReviewPollInterval(query.state.data ?? null),
+      bootstrap.authClient.getAttendanceSessionDetail(props.accessToken ?? "", props.sessionId),
+    refetchInterval: (query) => getAttendanceCorrectionReviewPollInterval(query.state.data ?? null),
   })
 
   const studentsQuery = useQuery({
     queryKey: webWorkflowQueryKeys.attendanceSessionStudents(props.sessionId),
     enabled: Boolean(props.accessToken && props.sessionId),
     queryFn: () =>
-      bootstrap.authClient.listAttendanceSessionStudents(
-        props.accessToken ?? "",
-        props.sessionId,
-      ),
+      bootstrap.authClient.listAttendanceSessionStudents(props.accessToken ?? "", props.sessionId),
     refetchInterval: getAttendanceCorrectionReviewPollInterval(detailQuery.data ?? null),
   })
 
@@ -478,7 +503,7 @@ function LectureSessionEndedView(props: {
     if (studentsQuery.data) {
       props.setCorrectionDraft(createAttendanceEditDraft(studentsQuery.data))
     }
-  }, [studentsQuery.data])
+  }, [studentsQuery.data, props.setCorrectionDraft])
 
   const saveManualEdits = useMutation({
     mutationFn: async () => {
@@ -556,7 +581,15 @@ function LectureSessionEndedView(props: {
         </Link>
       </div>
       <div>
-        <h2 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 700, color: webTheme.colors.text, letterSpacing: "-0.02em" }}>
+        <h2
+          style={{
+            margin: "0 0 4px",
+            fontSize: 22,
+            fontWeight: 700,
+            color: webTheme.colors.text,
+            letterSpacing: "-0.02em",
+          }}
+        >
           {props.lectureTitle}
         </h2>
         <p style={{ margin: 0, fontSize: 13, color: webTheme.colors.textMuted }}>

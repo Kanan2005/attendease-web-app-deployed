@@ -31,9 +31,9 @@ function generateInstallId(): string {
 
   // Fallback: timestamp + random hex
   const timestamp = Date.now().toString(36)
-  const random = Array.from({ length: 16 }, () =>
-    Math.floor(Math.random() * 16).toString(16),
-  ).join("")
+  const random = Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join(
+    "",
+  )
   return `install-${timestamp}-${random}`
 }
 
@@ -84,7 +84,12 @@ export async function resolveDeviceIdentity(): Promise<DeviceIdentity> {
     installId,
     publicKey: derivePublicKey(installId),
     platform,
-    deviceModel: Platform.OS === "web" ? null : ((Platform.constants as Record<string, unknown> | undefined)?.Model ?? null) as string | null,
+    deviceModel:
+      Platform.OS === "web"
+        ? null
+        : (((Platform.constants as Record<string, unknown> | undefined)?.Model ?? null) as
+            | string
+            | null),
     osVersion: String(Platform.Version ?? "unknown"),
     appVersion: "0.1.0",
     resolved: true,

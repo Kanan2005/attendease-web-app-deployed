@@ -25,10 +25,16 @@ export function MobileAuthScreen(props: {
   children: ReactNode
 }) {
   const c = getColors()
-  const eyebrowLabel = props.entryRole === "admin" ? "Admin" : props.entryRole === "student" ? "Student" : "Teacher"
+  const eyebrowLabel =
+    props.entryRole === "admin" ? "Admin" : props.entryRole === "student" ? "Student" : "Teacher"
 
   return (
-    <ScrollView contentContainerStyle={styles.screenContent} style={styles.screen} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+    <ScrollView
+      contentContainerStyle={styles.screenContent}
+      style={styles.screen}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
       <GradientHeader
         eyebrow={eyebrowLabel}
         title={props.formState.title}
@@ -40,7 +46,19 @@ export function MobileAuthScreen(props: {
         {props.children}
 
         {props.formState.errorMessage ? (
-          <Animated.View entering={FadeInDown.duration(300)} style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, backgroundColor: c.dangerSoft, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: c.dangerBorder }}>
+          <Animated.View
+            entering={FadeInDown.duration(300)}
+            style={{
+              flexDirection: "row",
+              alignItems: "flex-start",
+              gap: 8,
+              backgroundColor: c.dangerSoft,
+              borderRadius: 10,
+              padding: 12,
+              borderWidth: 1,
+              borderColor: c.dangerBorder,
+            }}
+          >
             <Ionicons name="alert-circle" size={18} color={c.danger} style={{ marginTop: 1 }} />
             <Text style={[styles.errorText, { flex: 1 }]}>{props.formState.errorMessage}</Text>
           </Animated.View>

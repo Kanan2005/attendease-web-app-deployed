@@ -83,7 +83,10 @@ export class AuthService {
   async getProfile(auth: AuthRequestContext): Promise<ProfileResponse> {
     const user = await this.database.prisma.user.findUniqueOrThrow({
       where: { id: auth.userId },
-      include: { teacherProfile: true, studentProfile: { select: { rollNumber: true, degree: true, branch: true } } },
+      include: {
+        teacherProfile: true,
+        studentProfile: { select: { rollNumber: true, degree: true, branch: true } },
+      },
     })
     return {
       id: user.id,
@@ -100,8 +103,20 @@ export class AuthService {
     }
   }
 
-  async updateProfile(auth: AuthRequestContext, request: UpdateProfileRequest): Promise<ProfileResponse> {
-    const { displayName, avatarUrl, department, designation, employeeCode, rollNumber, degree, branch } = request
+  async updateProfile(
+    auth: AuthRequestContext,
+    request: UpdateProfileRequest,
+  ): Promise<ProfileResponse> {
+    const {
+      displayName,
+      avatarUrl,
+      department,
+      designation,
+      employeeCode,
+      rollNumber,
+      degree,
+      branch,
+    } = request
 
     await this.database.prisma.user.update({
       where: { id: auth.userId },
@@ -111,7 +126,8 @@ export class AuthService {
       },
     })
 
-    const hasTeacherFields = department !== undefined || designation !== undefined || employeeCode !== undefined
+    const hasTeacherFields =
+      department !== undefined || designation !== undefined || employeeCode !== undefined
     if (hasTeacherFields && auth.activeRole === "TEACHER") {
       await this.database.prisma.teacherProfile.upsert({
         where: { userId: auth.userId },
@@ -129,7 +145,8 @@ export class AuthService {
       })
     }
 
-    const hasStudentFields = rollNumber !== undefined || degree !== undefined || branch !== undefined
+    const hasStudentFields =
+      rollNumber !== undefined || degree !== undefined || branch !== undefined
     if (hasStudentFields && auth.activeRole === "STUDENT") {
       await this.database.prisma.studentProfile.upsert({
         where: { userId: auth.userId },

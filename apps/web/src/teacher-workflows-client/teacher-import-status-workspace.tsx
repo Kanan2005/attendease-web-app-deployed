@@ -212,7 +212,14 @@ export function TeacherImportStatusWorkspace(props: {
       <Link
         href={teacherWorkflowRoutes.classroomRoster(props.classroomId)}
         className="ui-back-link"
-        style={{ fontSize: 13, color: webTheme.colors.textMuted, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+        style={{
+          fontSize: 13,
+          color: webTheme.colors.textMuted,
+          textDecoration: "none",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+        }}
       >
         <span aria-hidden>←</span> Back to students
       </Link>

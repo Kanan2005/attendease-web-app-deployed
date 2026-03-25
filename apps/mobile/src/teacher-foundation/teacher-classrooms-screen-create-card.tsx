@@ -52,10 +52,7 @@ export function TeacherClassroomsCreateCard({
 
   return (
     <>
-      <TeacherCard
-        title="Manage Classrooms"
-        subtitle="Create or manage classrooms."
-      >
+      <TeacherCard title="Manage Classrooms" subtitle="Create or manage classrooms.">
         <View style={styles.actionGrid}>
           {canCreateClassroom ? (
             <Pressable

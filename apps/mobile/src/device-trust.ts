@@ -3,7 +3,6 @@ import {
   trustedDeviceInstallIdHeaderName,
 } from "@attendease/auth"
 import { type MobileEnv, loadMobileEnv } from "@attendease/config"
-import { mobileEnvSource } from "./mobile-env"
 import type {
   DevicePlatform,
   DeviceRegistrationRequest,
@@ -11,6 +10,7 @@ import type {
   TrustedDeviceContext,
   TrustedDeviceReason,
 } from "@attendease/contracts"
+import { mobileEnvSource } from "./mobile-env"
 
 import { createMobileAuthBootstrap } from "./auth"
 

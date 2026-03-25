@@ -200,11 +200,31 @@ export function TeacherQuickActions() {
     <AnimatedCard index={2}>
       <Text style={styles.cardTitle}>Quick actions</Text>
       <View style={styles.quickActionGrid}>
-        <TeacherQuickActionTile href={teacherRoutes.classrooms} label="Classrooms" icon="library-outline" />
-        <TeacherQuickActionTile href={teacherRoutes.bluetoothCreate} label="Bluetooth" icon="bluetooth-outline" />
-        <TeacherQuickActionTile href={teacherRoutes.sessionHistory} label="Sessions" icon="timer-outline" />
-        <TeacherQuickActionTile href={teacherRoutes.reports} label="Reports" icon="bar-chart-outline" />
-        <TeacherQuickActionTile href={teacherRoutes.exports} label="Exports" icon="download-outline" />
+        <TeacherQuickActionTile
+          href={teacherRoutes.classrooms}
+          label="Classrooms"
+          icon="library-outline"
+        />
+        <TeacherQuickActionTile
+          href={teacherRoutes.bluetoothCreate}
+          label="Bluetooth"
+          icon="bluetooth-outline"
+        />
+        <TeacherQuickActionTile
+          href={teacherRoutes.sessionHistory}
+          label="Sessions"
+          icon="timer-outline"
+        />
+        <TeacherQuickActionTile
+          href={teacherRoutes.reports}
+          label="Reports"
+          icon="bar-chart-outline"
+        />
+        <TeacherQuickActionTile
+          href={teacherRoutes.exports}
+          label="Exports"
+          icon="download-outline"
+        />
       </View>
     </AnimatedCard>
   )
@@ -270,7 +290,9 @@ export function TeacherNavAction(props: {
             />
           ) : null}
           <Text
-            style={props.variant === "primary" ? styles.primaryNavButtonLabel : styles.navButtonLabel}
+            style={
+              props.variant === "primary" ? styles.primaryNavButtonLabel : styles.navButtonLabel
+            }
           >
             {props.label}
           </Text>

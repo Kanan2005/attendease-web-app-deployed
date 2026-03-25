@@ -23,10 +23,7 @@ export function TeacherClassroomRosterImportStatusCard({
   }
 
   return (
-    <TeacherCard
-      title="Roster Import Status"
-      subtitle="Track import progress."
-    >
+    <TeacherCard title="Roster Import Status" subtitle="Track import progress.">
       {jobs.map((job) => (
         <View key={job.id} style={styles.listRow}>
           <Text style={styles.listTitle}>{job.fileName}</Text>

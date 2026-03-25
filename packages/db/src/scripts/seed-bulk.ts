@@ -22,7 +22,15 @@ function uid(prefix: string): string {
 }
 
 function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]!
+  if (arr.length === 0) {
+    throw new Error("pick: empty array")
+  }
+  const idx = Math.floor(Math.random() * arr.length)
+  const item = arr[idx]
+  if (item === undefined) {
+    throw new Error("pick: unexpected undefined at index")
+  }
+  return item
 }
 
 function randInt(min: number, max: number): number {
@@ -36,47 +44,209 @@ function dateDaysAgo(days: number): Date {
 }
 
 function dateOnly(d: Date): Date {
-  return new Date(d.toISOString().slice(0, 10) + "T00:00:00.000Z")
+  return new Date(`${d.toISOString().slice(0, 10)}T00:00:00.000Z`)
 }
 
 // ─── name pools ───────────────────────────────────────────────────────
 
 const FIRST_NAMES_MALE = [
-  "Aarav","Vivaan","Aditya","Vihaan","Arjun","Sai","Reyansh","Ayaan","Krishna",
-  "Ishaan","Shaurya","Atharv","Advik","Kabir","Arnav","Dhruv","Harsh","Kian",
-  "Ritvik","Pranav","Rohan","Ansh","Darsh","Lakshya","Rudra","Dev","Krish",
-  "Parth","Yash","Tanmay","Neel","Siddharth","Viraj","Om","Raghav","Aakash",
-  "Aryan","Kartik","Mihir","Manav","Gaurav","Sahil","Kunal","Akshay","Nikhil",
-  "Rahul","Varun","Jayesh","Mayank","Chirag","Tarun","Amar","Sagar","Devesh",
-  "Mohit","Sumit","Ankit","Ajay","Naveen","Piyush","Deepak","Rishi","Shreyas",
-  "Tejas","Suraj","Prateek","Tushar","Vishal","Rajat","Vinay","Hemant",
+  "Aarav",
+  "Vivaan",
+  "Aditya",
+  "Vihaan",
+  "Arjun",
+  "Sai",
+  "Reyansh",
+  "Ayaan",
+  "Krishna",
+  "Ishaan",
+  "Shaurya",
+  "Atharv",
+  "Advik",
+  "Kabir",
+  "Arnav",
+  "Dhruv",
+  "Harsh",
+  "Kian",
+  "Ritvik",
+  "Pranav",
+  "Rohan",
+  "Ansh",
+  "Darsh",
+  "Lakshya",
+  "Rudra",
+  "Dev",
+  "Krish",
+  "Parth",
+  "Yash",
+  "Tanmay",
+  "Neel",
+  "Siddharth",
+  "Viraj",
+  "Om",
+  "Raghav",
+  "Aakash",
+  "Aryan",
+  "Kartik",
+  "Mihir",
+  "Manav",
+  "Gaurav",
+  "Sahil",
+  "Kunal",
+  "Akshay",
+  "Nikhil",
+  "Rahul",
+  "Varun",
+  "Jayesh",
+  "Mayank",
+  "Chirag",
+  "Tarun",
+  "Amar",
+  "Sagar",
+  "Devesh",
+  "Mohit",
+  "Sumit",
+  "Ankit",
+  "Ajay",
+  "Naveen",
+  "Piyush",
+  "Deepak",
+  "Rishi",
+  "Shreyas",
+  "Tejas",
+  "Suraj",
+  "Prateek",
+  "Tushar",
+  "Vishal",
+  "Rajat",
+  "Vinay",
+  "Hemant",
 ]
 
 const FIRST_NAMES_FEMALE = [
-  "Saanvi","Aanya","Aadhya","Aaradhya","Ananya","Pari","Myra","Sara","Ira",
-  "Diya","Prisha","Anvi","Riya","Kiara","Navya","Anika","Avni","Nisha",
-  "Kavya","Tara","Meera","Pooja","Shreya","Neha","Sanya","Ishita","Mahi",
-  "Lavanya","Tanvi","Avani","Rhea","Kriti","Aishwarya","Divya","Sneha",
-  "Simran","Sakshi","Bhavna","Ruhi","Jiya","Zara","Pihu","Trisha","Mansi",
-  "Aditi","Khushi","Palak","Suhana","Madhuri","Swati","Rashmi","Komal",
-  "Vaishnavi","Chahat","Prachi","Ankita","Ritu","Payal","Megha","Nandini",
+  "Saanvi",
+  "Aanya",
+  "Aadhya",
+  "Aaradhya",
+  "Ananya",
+  "Pari",
+  "Myra",
+  "Sara",
+  "Ira",
+  "Diya",
+  "Prisha",
+  "Anvi",
+  "Riya",
+  "Kiara",
+  "Navya",
+  "Anika",
+  "Avni",
+  "Nisha",
+  "Kavya",
+  "Tara",
+  "Meera",
+  "Pooja",
+  "Shreya",
+  "Neha",
+  "Sanya",
+  "Ishita",
+  "Mahi",
+  "Lavanya",
+  "Tanvi",
+  "Avani",
+  "Rhea",
+  "Kriti",
+  "Aishwarya",
+  "Divya",
+  "Sneha",
+  "Simran",
+  "Sakshi",
+  "Bhavna",
+  "Ruhi",
+  "Jiya",
+  "Zara",
+  "Pihu",
+  "Trisha",
+  "Mansi",
+  "Aditi",
+  "Khushi",
+  "Palak",
+  "Suhana",
+  "Madhuri",
+  "Swati",
+  "Rashmi",
+  "Komal",
+  "Vaishnavi",
+  "Chahat",
+  "Prachi",
+  "Ankita",
+  "Ritu",
+  "Payal",
+  "Megha",
+  "Nandini",
 ]
 
 const LAST_NAMES = [
-  "Sharma","Verma","Patel","Singh","Kumar","Gupta","Reddy","Joshi","Mehta",
-  "Shah","Nair","Rao","Iyer","Pillai","Mishra","Tiwari","Pandey","Saxena",
-  "Agarwal","Jain","Chopra","Malhotra","Kapoor","Sinha","Banerjee","Mukherjee",
-  "Chatterjee","Das","Ghosh","Sen","Bose","Roy","Dutta","Thakur","Chauhan",
-  "Rathore","Deshmukh","Patil","Kulkarni","Bhatt","Trivedi","Yadav","Rajput",
-  "Negi","Bhat","Hegde","Shetty","Menon","Kaur","Gill",
+  "Sharma",
+  "Verma",
+  "Patel",
+  "Singh",
+  "Kumar",
+  "Gupta",
+  "Reddy",
+  "Joshi",
+  "Mehta",
+  "Shah",
+  "Nair",
+  "Rao",
+  "Iyer",
+  "Pillai",
+  "Mishra",
+  "Tiwari",
+  "Pandey",
+  "Saxena",
+  "Agarwal",
+  "Jain",
+  "Chopra",
+  "Malhotra",
+  "Kapoor",
+  "Sinha",
+  "Banerjee",
+  "Mukherjee",
+  "Chatterjee",
+  "Das",
+  "Ghosh",
+  "Sen",
+  "Bose",
+  "Roy",
+  "Dutta",
+  "Thakur",
+  "Chauhan",
+  "Rathore",
+  "Deshmukh",
+  "Patil",
+  "Kulkarni",
+  "Bhatt",
+  "Trivedi",
+  "Yadav",
+  "Rajput",
+  "Negi",
+  "Bhat",
+  "Hegde",
+  "Shetty",
+  "Menon",
+  "Kaur",
+  "Gill",
 ]
 
 function generateStudentName(index: number): { first: string; last: string } {
   const pool = index % 2 === 0 ? FIRST_NAMES_MALE : FIRST_NAMES_FEMALE
-  return {
-    first: pool[index % pool.length]!,
-    last: LAST_NAMES[index % LAST_NAMES.length]!,
+  const first = pool[index % pool.length] ?? pool[0]
+  const last = LAST_NAMES[index % LAST_NAMES.length] ?? LAST_NAMES[0]
+  if (first === undefined || last === undefined) {
+    throw new Error("name pools must not be empty")
   }
+  return { first, last }
 }
 
 // ─── data definitions ────────────────────────────────────────────────
@@ -137,7 +307,9 @@ async function main() {
 
   // Clean up any previous bulk seed data (order matters for FK constraints)
   console.log("  Cleaning previous bulk data...")
-  await prisma.$executeRawUnsafe(`DELETE FROM analytics_student_course_summary WHERE "courseOfferingId" LIKE 'bulk_%' OR "studentId" LIKE 'bulk_%'`)
+  await prisma.$executeRawUnsafe(
+    `DELETE FROM analytics_student_course_summary WHERE "courseOfferingId" LIKE 'bulk_%' OR "studentId" LIKE 'bulk_%'`,
+  )
   await prisma.$executeRawUnsafe(`DELETE FROM attendance_records WHERE id LIKE 'bulk_%'`)
   await prisma.$executeRawUnsafe(`DELETE FROM attendance_sessions WHERE id LIKE 'bulk_%'`)
   await prisma.$executeRawUnsafe(`DELETE FROM announcement_posts WHERE id LIKE 'bulk_%'`)
@@ -288,7 +460,13 @@ async function main() {
     await prisma.subject.upsert({
       where: { code: s.code },
       update: {},
-      create: { id: s.id, code: s.code, title: s.title, shortTitle: s.shortTitle, status: "ACTIVE" },
+      create: {
+        id: s.id,
+        code: s.code,
+        title: s.title,
+        shortTitle: s.shortTitle,
+        status: "ACTIVE",
+      },
     })
   }
 
@@ -310,17 +488,81 @@ async function main() {
 
   // Keep reference to existing 4 CSE students
   const existingStudents: StudentRecord[] = [
-    { id: "seed_user_student_one", email: "student.one@attendease.dev", displayName: "Aarav Sharma", rollNumber: "CSE2301", branch: "CSE", classId: EXISTING_IDS.class_cse, sectionId: EXISTING_IDS.section_a },
-    { id: "seed_user_student_two", email: "student.two@attendease.dev", displayName: "Diya Verma", rollNumber: "CSE2302", branch: "CSE", classId: EXISTING_IDS.class_cse, sectionId: EXISTING_IDS.section_a },
-    { id: "seed_user_student_three", email: "student.three@attendease.dev", displayName: "Kabir Singh", rollNumber: "CSE2303", branch: "CSE", classId: EXISTING_IDS.class_cse, sectionId: EXISTING_IDS.section_a },
-    { id: "seed_user_student_four", email: "student.four@attendease.dev", displayName: "Meera Patel", rollNumber: "CSE2304", branch: "CSE", classId: EXISTING_IDS.class_cse, sectionId: EXISTING_IDS.section_a },
+    {
+      id: "seed_user_student_one",
+      email: "student.one@attendease.dev",
+      displayName: "Aarav Sharma",
+      rollNumber: "CSE2301",
+      branch: "CSE",
+      classId: EXISTING_IDS.class_cse,
+      sectionId: EXISTING_IDS.section_a,
+    },
+    {
+      id: "seed_user_student_two",
+      email: "student.two@attendease.dev",
+      displayName: "Diya Verma",
+      rollNumber: "CSE2302",
+      branch: "CSE",
+      classId: EXISTING_IDS.class_cse,
+      sectionId: EXISTING_IDS.section_a,
+    },
+    {
+      id: "seed_user_student_three",
+      email: "student.three@attendease.dev",
+      displayName: "Kabir Singh",
+      rollNumber: "CSE2303",
+      branch: "CSE",
+      classId: EXISTING_IDS.class_cse,
+      sectionId: EXISTING_IDS.section_a,
+    },
+    {
+      id: "seed_user_student_four",
+      email: "student.four@attendease.dev",
+      displayName: "Meera Patel",
+      rollNumber: "CSE2304",
+      branch: "CSE",
+      classId: EXISTING_IDS.class_cse,
+      sectionId: EXISTING_IDS.section_a,
+    },
   ]
   allStudents.push(...existingStudents)
 
-  const branchConfig: Array<{ branch: "CSE" | "ECE" | "ME"; prefix: string; count: number; startRoll: number; classId: string; sectionId: string; program: string }> = [
-    { branch: "CSE", prefix: "CSE", count: 66, startRoll: 2305, classId: EXISTING_IDS.class_cse, sectionId: EXISTING_IDS.section_a, program: "B.Tech CSE" },
-    { branch: "ECE", prefix: "ECE", count: 65, startRoll: 2301, classId: classECE, sectionId: sectionECE, program: "B.Tech ECE" },
-    { branch: "ME", prefix: "ME", count: 65, startRoll: 2301, classId: classME, sectionId: sectionME, program: "B.Tech ME" },
+  const branchConfig: Array<{
+    branch: "CSE" | "ECE" | "ME"
+    prefix: string
+    count: number
+    startRoll: number
+    classId: string
+    sectionId: string
+    program: string
+  }> = [
+    {
+      branch: "CSE",
+      prefix: "CSE",
+      count: 66,
+      startRoll: 2305,
+      classId: EXISTING_IDS.class_cse,
+      sectionId: EXISTING_IDS.section_a,
+      program: "B.Tech CSE",
+    },
+    {
+      branch: "ECE",
+      prefix: "ECE",
+      count: 65,
+      startRoll: 2301,
+      classId: classECE,
+      sectionId: sectionECE,
+      program: "B.Tech ECE",
+    },
+    {
+      branch: "ME",
+      prefix: "ME",
+      count: 65,
+      startRoll: 2301,
+      classId: classME,
+      sectionId: sectionME,
+      program: "B.Tech ME",
+    },
   ]
 
   let nameIdx = 10 // offset to avoid duplicating existing names
@@ -391,7 +633,20 @@ async function main() {
   const joinCodeExpiry = new Date("2026-12-31T23:59:59Z")
 
   const WEEKDAYS = [1, 2, 3, 4, 5] // Mon-Fri
-  const LOCATIONS = ["Room 101", "Room 102", "Room 201", "Room 202", "Room 301", "Room 302", "Lab 1", "Lab 2", "Lab 3", "Lecture Hall A", "Lecture Hall B", "Seminar Hall"]
+  const LOCATIONS = [
+    "Room 101",
+    "Room 102",
+    "Room 201",
+    "Room 202",
+    "Room 301",
+    "Room 302",
+    "Lab 1",
+    "Lab 2",
+    "Lab 3",
+    "Lecture Hall A",
+    "Lecture Hall B",
+    "Seminar Hall",
+  ]
 
   // CSE courses for teacher1 (Anurag) – 4 new courses (already has Math + Physics = 6 total)
   const cseNewSubjects = newSubjects.filter((s) => s.code.startsWith("CSE"))
@@ -404,8 +659,34 @@ async function main() {
 
   // include existing course offerings for enrollment purposes
   const existingCourses: CourseDef[] = [
-    { id: EXISTING_IDS.co_math, code: "CSE6-MATHS-A", displayTitle: "Mathematics - Semester 6 A", subjectId: EXISTING_IDS.sub_math, teacherId: EXISTING_IDS.teacher1, classId: EXISTING_IDS.class_cse, sectionId: EXISTING_IDS.section_a, taId: EXISTING_IDS.ta_math, joinCodeId: "", joinCode: "MATH6A", mode: "QR_GPS", location: "Room 204" },
-    { id: EXISTING_IDS.co_physics, code: "CSE6-PHYSICS-A", displayTitle: "Physics - Semester 6 A", subjectId: EXISTING_IDS.sub_physics, teacherId: EXISTING_IDS.teacher1, classId: EXISTING_IDS.class_cse, sectionId: EXISTING_IDS.section_a, taId: EXISTING_IDS.ta_physics, joinCodeId: "", joinCode: "PHY6A", mode: "BLUETOOTH", location: "Lab 2" },
+    {
+      id: EXISTING_IDS.co_math,
+      code: "CSE6-MATHS-A",
+      displayTitle: "Mathematics - Semester 6 A",
+      subjectId: EXISTING_IDS.sub_math,
+      teacherId: EXISTING_IDS.teacher1,
+      classId: EXISTING_IDS.class_cse,
+      sectionId: EXISTING_IDS.section_a,
+      taId: EXISTING_IDS.ta_math,
+      joinCodeId: "",
+      joinCode: "MATH6A",
+      mode: "QR_GPS",
+      location: "Room 204",
+    },
+    {
+      id: EXISTING_IDS.co_physics,
+      code: "CSE6-PHYSICS-A",
+      displayTitle: "Physics - Semester 6 A",
+      subjectId: EXISTING_IDS.sub_physics,
+      teacherId: EXISTING_IDS.teacher1,
+      classId: EXISTING_IDS.class_cse,
+      sectionId: EXISTING_IDS.section_a,
+      taId: EXISTING_IDS.ta_physics,
+      joinCodeId: "",
+      joinCode: "PHY6A",
+      mode: "BLUETOOTH",
+      location: "Lab 2",
+    },
   ]
 
   function buildCourses(
@@ -432,15 +713,27 @@ async function main() {
         taId,
         joinCodeId: jcId,
         joinCode,
-        mode: idx % 2 === 0 ? "QR_GPS" as const : "BLUETOOTH" as const,
-        location: LOCATIONS[idx % LOCATIONS.length]!,
+        mode: idx % 2 === 0 ? ("QR_GPS" as const) : ("BLUETOOTH" as const),
+        location: (() => {
+          const loc = LOCATIONS[idx % LOCATIONS.length] ?? LOCATIONS[0]
+          if (loc === undefined) {
+            throw new Error("LOCATIONS must not be empty")
+          }
+          return loc
+        })(),
       }
     })
   }
 
-  const cseNewCourses = buildCourses(cseNewSubjects, EXISTING_IDS.teacher1, EXISTING_IDS.class_cse, EXISTING_IDS.section_a, "CSE6")
-  const eceCourses = buildCourses(eceSubjects, teachers[0]!.id, classECE, sectionECE, "ECE6")
-  const meCourses = buildCourses(meSubjects, teachers[1]!.id, classME, sectionME, "ME6")
+  const cseNewCourses = buildCourses(
+    cseNewSubjects,
+    EXISTING_IDS.teacher1,
+    EXISTING_IDS.class_cse,
+    EXISTING_IDS.section_a,
+    "CSE6",
+  )
+  const eceCourses = buildCourses(eceSubjects, teachers[0]?.id ?? "", classECE, sectionECE, "ECE6")
+  const meCourses = buildCourses(meSubjects, teachers[1]?.id ?? "", classME, sectionME, "ME6")
 
   const newCoursesList = [...cseNewCourses, ...eceCourses, ...meCourses]
   allCourses.push(...existingCourses, ...newCoursesList)
@@ -448,7 +741,15 @@ async function main() {
   for (const c of newCoursesList) {
     // Teacher assignment
     await prisma.teacherAssignment.upsert({
-      where: { teacherId_semesterId_classId_sectionId_subjectId: { teacherId: c.teacherId, semesterId: semId, classId: c.classId, sectionId: c.sectionId, subjectId: c.subjectId } },
+      where: {
+        teacherId_semesterId_classId_sectionId_subjectId: {
+          teacherId: c.teacherId,
+          semesterId: semId,
+          classId: c.classId,
+          sectionId: c.sectionId,
+          subjectId: c.subjectId,
+        },
+      },
       update: {},
       create: {
         id: c.taId,
@@ -502,11 +803,20 @@ async function main() {
     })
   }
 
-  console.log(`  ✓ Created ${newCoursesList.length} new course offerings (${allCourses.length} total)`)
+  console.log(
+    `  ✓ Created ${newCoursesList.length} new course offerings (${allCourses.length} total)`,
+  )
 
   // ── 6. Schedule slots ─────────────────────────────────────────────
 
-  const scheduleSlots: Array<{ id: string; courseOfferingId: string; weekday: number; startMin: number; endMin: number; location: string }> = []
+  const scheduleSlots: Array<{
+    id: string
+    courseOfferingId: string
+    weekday: number
+    startMin: number
+    endMin: number
+    location: string
+  }> = []
 
   for (const c of newCoursesList) {
     const numSlots = randInt(2, 3)
@@ -519,13 +829,27 @@ async function main() {
       const startMin = startHour * 60
       const endMin = startMin + 50
       const slotId = uid("slot")
-      scheduleSlots.push({ id: slotId, courseOfferingId: c.id, weekday: day, startMin, endMin, location: c.location })
+      scheduleSlots.push({
+        id: slotId,
+        courseOfferingId: c.id,
+        weekday: day,
+        startMin,
+        endMin,
+        location: c.location,
+      })
     }
   }
 
   for (const slot of scheduleSlots) {
     await prisma.courseScheduleSlot.upsert({
-      where: { courseOfferingId_weekday_startMinutes_endMinutes: { courseOfferingId: slot.courseOfferingId, weekday: slot.weekday, startMinutes: slot.startMin, endMinutes: slot.endMin } },
+      where: {
+        courseOfferingId_weekday_startMinutes_endMinutes: {
+          courseOfferingId: slot.courseOfferingId,
+          weekday: slot.weekday,
+          startMinutes: slot.startMin,
+          endMinutes: slot.endMin,
+        },
+      },
       update: {},
       create: {
         id: slot.id,
@@ -543,7 +867,14 @@ async function main() {
 
   // ── 7. Enrollments ────────────────────────────────────────────────
 
-  const enrollmentRecords: Array<{ id: string; courseOfferingId: string; studentId: string; classId: string; sectionId: string; subjectId: string }> = []
+  const enrollmentRecords: Array<{
+    id: string
+    courseOfferingId: string
+    studentId: string
+    classId: string
+    sectionId: string
+    subjectId: string
+  }> = []
 
   // Group students by branch
   const cseStudents = allStudents.filter((s) => s.branch === "CSE")
@@ -567,7 +898,10 @@ async function main() {
   }
 
   // CSE students get enrolled in CSE new courses (not existing Math/Physics to avoid duplicate enrollments)
-  enrollStudentsInCourses(cseStudents.filter((s) => !existingStudents.some((e) => e.id === s.id)), cseNewCourses)
+  enrollStudentsInCourses(
+    cseStudents.filter((s) => !existingStudents.some((e) => e.id === s.id)),
+    cseNewCourses,
+  )
   // Also enroll existing students in the new CSE courses
   enrollStudentsInCourses(existingStudents, cseNewCourses)
   // ECE students in ECE courses
@@ -595,7 +929,12 @@ async function main() {
   for (const e of enrollmentRecords) {
     try {
       await prisma.enrollment.upsert({
-        where: { studentId_courseOfferingId: { studentId: e.studentId, courseOfferingId: e.courseOfferingId } },
+        where: {
+          studentId_courseOfferingId: {
+            studentId: e.studentId,
+            courseOfferingId: e.courseOfferingId,
+          },
+        },
         update: {},
         create: {
           id: e.id,
@@ -637,10 +976,13 @@ async function main() {
     const courseSlots = scheduleSlots.filter((s) => s.courseOfferingId === c.id)
     const numLectures = randInt(8, 14)
     for (let i = 0; i < numLectures; i++) {
-      const slot = courseSlots.length > 0 ? courseSlots[i % courseSlots.length]! : null
+      const slot =
+        courseSlots.length > 0
+          ? (courseSlots[i % courseSlots.length] ?? courseSlots[0] ?? null)
+          : null
       const daysAgo = numLectures - i
       const date = dateDaysAgo(daysAgo)
-      const status = daysAgo >= 1 ? "COMPLETED" as const : "PLANNED" as const
+      const status = daysAgo >= 1 ? ("COMPLETED" as const) : ("PLANNED" as const)
       lectures.push({
         id: uid("lec"),
         courseOfferingId: c.id,
@@ -745,7 +1087,9 @@ async function main() {
     for (const studentId of enrolledStudentIds) {
       // Find enrollment ID
       let enrollmentId: string | undefined
-      const localEnrl = enrollmentRecords.find((e) => e.courseOfferingId === c.id && e.studentId === studentId)
+      const localEnrl = enrollmentRecords.find(
+        (e) => e.courseOfferingId === c.id && e.studentId === studentId,
+      )
       if (localEnrl) {
         enrollmentId = localEnrl.id
       } else {
@@ -766,7 +1110,9 @@ async function main() {
           studentId,
           status: isPresent ? "PRESENT" : "ABSENT",
           markSource: isPresent ? (c.mode === "QR_GPS" ? "QR_GPS" : "BLUETOOTH") : null,
-          markedAt: isPresent ? new Date(sessionStart.getTime() + randInt(1, 12) * 60 * 1000) : null,
+          markedAt: isPresent
+            ? new Date(sessionStart.getTime() + randInt(1, 12) * 60 * 1000)
+            : null,
         },
       })
       recordCount++
@@ -797,14 +1143,20 @@ async function main() {
 
     for (const enrl of enrollments) {
       const presentSessions = await prisma.attendanceRecord.count({
-        where: { studentId: enrl.studentId, session: { courseOfferingId: c.id }, status: "PRESENT" },
+        where: {
+          studentId: enrl.studentId,
+          session: { courseOfferingId: c.id },
+          status: "PRESENT",
+        },
       })
       const totalSessions = sessions.length
       const absentSessions = totalSessions - presentSessions
       const pct = totalSessions > 0 ? (presentSessions / totalSessions) * 100 : 0
 
       await prisma.analyticsStudentCourseSummary.upsert({
-        where: { courseOfferingId_studentId: { courseOfferingId: c.id, studentId: enrl.studentId } },
+        where: {
+          courseOfferingId_studentId: { courseOfferingId: c.id, studentId: enrl.studentId },
+        },
         update: {
           totalSessions,
           presentSessions,
@@ -835,18 +1187,37 @@ async function main() {
   // ── 11. Announcements ─────────────────────────────────────────────
 
   const announcementTemplates = [
-    { title: "Welcome to the course!", body: "Welcome everyone. Please review the syllabus and schedule. Looking forward to a great semester." },
-    { title: "Assignment 1 posted", body: "The first assignment has been posted. Due date is next Friday. Please submit through the portal." },
-    { title: "Mid-semester exam schedule", body: "Mid-semester exams will be held in Week 8. Detailed schedule will be shared soon." },
-    { title: "Lab session rescheduled", body: "This week's lab session has been moved to Thursday due to a scheduling conflict." },
-    { title: "Extra class this Saturday", body: "We will hold an extra class this Saturday from 10am to 12pm to cover pending topics." },
+    {
+      title: "Welcome to the course!",
+      body: "Welcome everyone. Please review the syllabus and schedule. Looking forward to a great semester.",
+    },
+    {
+      title: "Assignment 1 posted",
+      body: "The first assignment has been posted. Due date is next Friday. Please submit through the portal.",
+    },
+    {
+      title: "Mid-semester exam schedule",
+      body: "Mid-semester exams will be held in Week 8. Detailed schedule will be shared soon.",
+    },
+    {
+      title: "Lab session rescheduled",
+      body: "This week's lab session has been moved to Thursday due to a scheduling conflict.",
+    },
+    {
+      title: "Extra class this Saturday",
+      body: "We will hold an extra class this Saturday from 10am to 12pm to cover pending topics.",
+    },
   ]
 
   let announcementCount = 0
   for (const c of newCoursesList) {
     const numAnnouncements = randInt(2, 4)
     for (let i = 0; i < numAnnouncements; i++) {
-      const template = announcementTemplates[i % announcementTemplates.length]!
+      const template =
+        announcementTemplates[i % announcementTemplates.length] ?? announcementTemplates[0]
+      if (template === undefined) {
+        throw new Error("announcement templates must not be empty")
+      }
       await prisma.announcementPost.create({
         data: {
           id: uid("ann"),
@@ -868,15 +1239,17 @@ async function main() {
   // ── Done ──────────────────────────────────────────────────────────
 
   console.log("\n🎉 Bulk seed complete!")
-  console.log(`   Teachers: 3 total (1 existing + 2 new)`)
-  console.log(`   Students: ${allStudents.length} total (4 existing + ${allStudents.length - 4} new)`)
+  console.log("   Teachers: 3 total (1 existing + 2 new)")
+  console.log(
+    `   Students: ${allStudents.length} total (4 existing + ${allStudents.length - 4} new)`,
+  )
   console.log(`   Courses: ${allCourses.length} total`)
   console.log(`   Lectures: ${lectures.length}`)
   console.log(`   Sessions: ${sessionCount}`)
   console.log(`   Attendance records: ${recordCount}`)
   console.log(`   Analytics summaries: ${analyticsSummaries}`)
-  console.log(`\n   All new users share password: Pass1234!`)
-  console.log(`   Teacher logins: sneha.reddy@attendease.dev / vikram.mehta@attendease.dev`)
+  console.log("\n   All new users share password: Pass1234!")
+  console.log("   Teacher logins: sneha.reddy@attendease.dev / vikram.mehta@attendease.dev")
 }
 
 main()

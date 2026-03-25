@@ -6,11 +6,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 
 import { createWebAuthBootstrap } from "../auth"
-import {
-  formatPortalDate,
-  teacherWorkflowRoutes,
-  webWorkflowQueryKeys,
-} from "../web-workflows"
+import { formatPortalDate, teacherWorkflowRoutes, webWorkflowQueryKeys } from "../web-workflows"
 
 import { WorkflowBanner, WorkflowField, WorkflowStateCard, workflowStyles } from "./shared"
 
@@ -39,10 +35,7 @@ export function TeacherClassroomLecturesWorkspace(props: {
     queryKey: webWorkflowQueryKeys.classroomLectures(props.classroomId),
     enabled: Boolean(props.accessToken),
     queryFn: () =>
-      bootstrap.authClient.listClassroomLectures(
-        props.accessToken ?? "",
-        props.classroomId,
-      ),
+      bootstrap.authClient.listClassroomLectures(props.accessToken ?? "", props.classroomId),
   })
 
   const sessionsQuery = useQuery({
@@ -80,16 +73,11 @@ export function TeacherClassroomLecturesWorkspace(props: {
       if (!props.accessToken) {
         throw new Error("Sign in to create a lecture.")
       }
-      const title =
-        createTitle.trim() || `Lecture ${lectures.length + 1}`
-      return bootstrap.authClient.createClassroomLecture(
-        props.accessToken,
-        props.classroomId,
-        {
-          title,
-          lectureDate: (createDate.split("T")[0] ?? createDate) + "T00:00:00.000Z",
-        },
-      )
+      const title = createTitle.trim() || `Lecture ${lectures.length + 1}`
+      return bootstrap.authClient.createClassroomLecture(props.accessToken, props.classroomId, {
+        title,
+        lectureDate: `${createDate.split("T")[0] ?? createDate}T00:00:00.000Z`,
+      })
     },
     onSuccess: async () => {
       setShowCreate(false)
@@ -187,7 +175,9 @@ export function TeacherClassroomLecturesWorkspace(props: {
             onChange={setCreateDate}
             type="datetime-local"
           />
-          <div style={{ gridColumn: "1 / -1", display: "flex", gap: 10, justifyContent: "flex-end" }}>
+          <div
+            style={{ gridColumn: "1 / -1", display: "flex", gap: 10, justifyContent: "flex-end" }}
+          >
             <button
               type="button"
               className="ui-secondary-btn"
@@ -228,20 +218,32 @@ export function TeacherClassroomLecturesWorkspace(props: {
       {error ? (
         <WorkflowBanner
           tone="danger"
-          message={
-            error instanceof Error ? error.message : "Failed to load lectures."
-          }
+          message={error instanceof Error ? error.message : "Failed to load lectures."}
         />
       ) : null}
 
       {isLoading ? (
-        <div style={{ display: "grid", gap: 1, borderRadius: webTheme.radius.card, overflow: "hidden", border: `1px solid ${webTheme.colors.border}` }}>
+        <div
+          style={{
+            display: "grid",
+            gap: 1,
+            borderRadius: webTheme.radius.card,
+            overflow: "hidden",
+            border: `1px solid ${webTheme.colors.border}`,
+          }}
+        >
           {[1, 2, 3].map((i) => (
-            <div key={i} className="skeleton" style={{ height: 68, background: webTheme.colors.surfaceRaised }} />
+            <div
+              key={i}
+              className="skeleton"
+              style={{ height: 68, background: webTheme.colors.surfaceRaised }}
+            />
           ))}
         </div>
       ) : lectures.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "56px 24px", color: webTheme.colors.textMuted }}>
+        <div
+          style={{ textAlign: "center", padding: "56px 24px", color: webTheme.colors.textMuted }}
+        >
           <div
             style={{
               width: 48,
@@ -256,7 +258,14 @@ export function TeacherClassroomLecturesWorkspace(props: {
           >
             📋
           </div>
-          <p style={{ fontSize: 16, fontWeight: 600, color: webTheme.colors.text, margin: "0 0 4px" }}>
+          <p
+            style={{
+              fontSize: 16,
+              fontWeight: 600,
+              color: webTheme.colors.text,
+              margin: "0 0 4px",
+            }}
+          >
             No lectures yet
           </p>
           <p style={{ margin: 0, fontSize: 14 }}>Create your first lecture to start.</p>
@@ -281,9 +290,14 @@ export function TeacherClassroomLecturesWorkspace(props: {
                 : null
             const detailHref = teacherWorkflowRoutes.lectureSession(props.classroomId, lecture.id)
             const hasSession = attendancePct != null
-            const durationMin = sessionForLecture?.startedAt && sessionForLecture.endedAt
-              ? Math.round((new Date(sessionForLecture.endedAt).getTime() - new Date(sessionForLecture.startedAt).getTime()) / 60_000)
-              : null
+            const durationMin =
+              sessionForLecture?.startedAt && sessionForLecture.endedAt
+                ? Math.round(
+                    (new Date(sessionForLecture.endedAt).getTime() -
+                      new Date(sessionForLecture.startedAt).getTime()) /
+                      60_000,
+                  )
+                : null
 
             return (
               <Link
@@ -299,7 +313,8 @@ export function TeacherClassroomLecturesWorkspace(props: {
                   background: webTheme.colors.surfaceRaised,
                   textDecoration: "none",
                   color: "inherit",
-                  borderBottom: index < lectures.length - 1 ? `1px solid ${webTheme.colors.border}` : "none",
+                  borderBottom:
+                    index < lectures.length - 1 ? `1px solid ${webTheme.colors.border}` : "none",
                   transition: `background ${webTheme.animation.fast}`,
                 }}
               >
@@ -309,7 +324,9 @@ export function TeacherClassroomLecturesWorkspace(props: {
                       width: 36,
                       height: 36,
                       borderRadius: 10,
-                      background: hasSession ? webTheme.colors.successSoft : webTheme.colors.surfaceMuted,
+                      background: hasSession
+                        ? webTheme.colors.successSoft
+                        : webTheme.colors.surfaceMuted,
                       border: `1px solid ${hasSession ? webTheme.colors.successBorder : webTheme.colors.border}`,
                       display: "grid",
                       placeItems: "center",
@@ -322,10 +339,28 @@ export function TeacherClassroomLecturesWorkspace(props: {
                     {index + 1}
                   </div>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: webTheme.colors.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: webTheme.colors.text,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
                       {lecture.title ?? `Lecture ${index + 1}`}
                     </div>
-                    <div style={{ fontSize: 12, color: webTheme.colors.textMuted, marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: webTheme.colors.textMuted,
+                        marginTop: 2,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                      }}
+                    >
                       <span>{formatPortalDate(lecture.lectureDate)}</span>
                       {hasSession && durationMin != null ? (
                         <>
@@ -373,13 +408,23 @@ export function TeacherClassroomLecturesWorkspace(props: {
                   )}
                   {!hasSession ? (
                     confirmDeleteId === lecture.id ? (
-                      <span
-                        style={{ display: "inline-flex", gap: 4, alignItems: "center" }}
-                        onClick={(e) => e.preventDefault()}
+                      <fieldset
+                        style={{
+                          display: "inline-flex",
+                          gap: 4,
+                          alignItems: "center",
+                          border: "none",
+                          margin: 0,
+                          padding: 0,
+                          minWidth: 0,
+                        }}
                       >
                         <button
                           type="button"
-                          onClick={(e) => { e.preventDefault(); deleteLecture.mutate(lecture.id) }}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            deleteLecture.mutate(lecture.id)
+                          }}
                           className="ui-danger-action"
                           style={{
                             border: "none",
@@ -396,7 +441,10 @@ export function TeacherClassroomLecturesWorkspace(props: {
                         </button>
                         <button
                           type="button"
-                          onClick={(e) => { e.preventDefault(); setConfirmDeleteId(null) }}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            setConfirmDeleteId(null)
+                          }}
                           className="ui-secondary-btn"
                           style={{
                             border: "none",
@@ -411,11 +459,14 @@ export function TeacherClassroomLecturesWorkspace(props: {
                         >
                           No
                         </button>
-                      </span>
+                      </fieldset>
                     ) : (
                       <button
                         type="button"
-                        onClick={(e) => { e.preventDefault(); setConfirmDeleteId(lecture.id) }}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          setConfirmDeleteId(lecture.id)
+                        }}
                         className="ui-danger-action"
                         aria-label={`Delete ${lecture.title ?? `Lecture ${index + 1}`}`}
                         style={{

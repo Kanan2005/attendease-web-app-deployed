@@ -9,12 +9,7 @@ import type {
   TeacherWebHistoryFilterDraft,
   TeacherWebSessionHistorySummaryModel,
 } from "../../teacher-review-workflows"
-import {
-  WorkflowField,
-  WorkflowSelectField,
-  WorkflowStateCard,
-  workflowStyles,
-} from "../shared"
+import { WorkflowField, WorkflowSelectField, WorkflowStateCard, workflowStyles } from "../shared"
 
 export function TeacherSessionHistoryFiltersPanel(props: {
   accessToken: string | null

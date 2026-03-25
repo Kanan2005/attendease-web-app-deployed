@@ -6,7 +6,15 @@ import { Text, View } from "react-native"
 import { adminRoutes } from "../admin-routes"
 import { useAdminSession } from "../admin-session"
 import { useAdminClassroomsQuery, useAdminStudentsQuery } from "./queries"
-import { AdminEmptyCard, AdminErrorCard, AdminLoadingCard, AdminNavAction, AdminScreen, AdminSessionSetupCard, styles } from "./shared-ui"
+import {
+  AdminEmptyCard,
+  AdminErrorCard,
+  AdminLoadingCard,
+  AdminNavAction,
+  AdminScreen,
+  AdminSessionSetupCard,
+  styles,
+} from "./shared-ui"
 
 function formatClassroomStatus(status: string) {
   return status
@@ -44,7 +52,12 @@ export function AdminClassroomsScreen() {
           <View style={styles.cardGrid}>
             <StatCard label="Classrooms" value={classrooms.length} tone="primary" index={0} />
             <StatCard label="Total Enrollments" value={totalEnrollments} tone="primary" index={1} />
-            <StatCard label="Active Enrollments" value={activeEnrollments} tone="success" index={2} />
+            <StatCard
+              label="Active Enrollments"
+              value={activeEnrollments}
+              tone="success"
+              index={2}
+            />
           </View>
 
           {classrooms.length > 0 ? (
@@ -52,9 +65,11 @@ export function AdminClassroomsScreen() {
               <Text style={styles.cardTitle}>Classroom Directory</Text>
               {classrooms.map((classroom, i) => {
                 const statusColor =
-                  classroom.status === "ACTIVE" ? c.success
-                  : classroom.status === "ARCHIVED" ? c.textSubtle
-                  : c.warning
+                  classroom.status === "ACTIVE"
+                    ? c.success
+                    : classroom.status === "ARCHIVED"
+                      ? c.textSubtle
+                      : c.warning
                 return (
                   <View
                     key={classroom.id}
@@ -92,12 +107,11 @@ export function AdminClassroomsScreen() {
                     </View>
                     <View style={{ flexDirection: "row", gap: 12, marginLeft: 46 }}>
                       <Text style={styles.listMeta}>
-                        {classroom.governance.activeStudentCount} student{classroom.governance.activeStudentCount === 1 ? "" : "s"}
+                        {classroom.governance.activeStudentCount} student
+                        {classroom.governance.activeStudentCount === 1 ? "" : "s"}
                       </Text>
                       {classroom.activeJoinCode ? (
-                        <Text style={styles.listMeta}>
-                          Join: {classroom.activeJoinCode.code}
-                        </Text>
+                        <Text style={styles.listMeta}>Join: {classroom.activeJoinCode.code}</Text>
                       ) : null}
                     </View>
                   </View>
@@ -107,9 +121,21 @@ export function AdminClassroomsScreen() {
           ) : null}
 
           <View style={styles.actionGrid}>
-            <AdminNavAction href={adminRoutes.students} label="View Students" icon="people-outline" />
-            <AdminNavAction href={adminRoutes.devices} label="View Devices" icon="phone-portrait-outline" />
-            <AdminNavAction href={adminRoutes.dashboard} label="Back to Dashboard" icon="arrow-back-outline" />
+            <AdminNavAction
+              href={adminRoutes.students}
+              label="View Students"
+              icon="people-outline"
+            />
+            <AdminNavAction
+              href={adminRoutes.devices}
+              label="View Devices"
+              icon="phone-portrait-outline"
+            />
+            <AdminNavAction
+              href={adminRoutes.dashboard}
+              label="Back to Dashboard"
+              icon="arrow-back-outline"
+            />
           </View>
         </>
       )}

@@ -98,8 +98,14 @@ export function WebPortalPage(props: {
       {props.model.metrics.length > 0 ? <MetricGrid metrics={props.model.metrics} /> : null}
 
       {hasActions ? (
-        <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-          {props.model.actions!.map((action) => (
+        <div
+          style={{
+            display: "grid",
+            gap: 10,
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          }}
+        >
+          {props.model.actions?.map((action) => (
             <a
               key={action.href}
               href={action.href}
@@ -111,10 +117,19 @@ export function WebPortalPage(props: {
                 padding: "18px 20px",
               }}
             >
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: webTheme.colors.accent }}>
+              <p
+                style={{ margin: 0, fontSize: 14, fontWeight: 600, color: webTheme.colors.accent }}
+              >
                 {action.label}
               </p>
-              <p style={{ margin: "4px 0 0", fontSize: 13, color: webTheme.colors.textMuted, lineHeight: 1.5 }}>
+              <p
+                style={{
+                  margin: "4px 0 0",
+                  fontSize: 13,
+                  color: webTheme.colors.textMuted,
+                  lineHeight: 1.5,
+                }}
+              >
                 {action.description}
               </p>
             </a>
@@ -124,13 +139,32 @@ export function WebPortalPage(props: {
 
       {hasSpotlight ? (
         <div style={{ display: "grid", gap: 28 }}>
-          {props.model.spotlightSections!.map((section) => (
+          {props.model.spotlightSections?.map((section) => (
             <div key={section.title} style={{ display: "grid", gap: 14 }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: webTheme.colors.text }}>{section.title}</h3>
-                <p style={{ margin: "4px 0 0", fontSize: 14, color: webTheme.colors.textMuted, lineHeight: 1.5 }}>{section.description}</p>
+                <h3
+                  style={{ margin: 0, fontSize: 18, fontWeight: 600, color: webTheme.colors.text }}
+                >
+                  {section.title}
+                </h3>
+                <p
+                  style={{
+                    margin: "4px 0 0",
+                    fontSize: 14,
+                    color: webTheme.colors.textMuted,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {section.description}
+                </p>
               </div>
-              <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
+              <div
+                style={{
+                  display: "grid",
+                  gap: 12,
+                  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+                }}
+              >
                 {section.cards.map((card) => (
                   <a
                     key={card.href}
@@ -143,16 +177,46 @@ export function WebPortalPage(props: {
                       padding: "20px 22px",
                     }}
                   >
-                    <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: webTheme.colors.accent, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: webTheme.colors.accent,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                      }}
+                    >
                       {card.eyebrow}
                     </p>
-                    <p style={{ margin: "6px 0 4px", fontSize: 15, fontWeight: 600, color: webTheme.colors.text }}>
+                    <p
+                      style={{
+                        margin: "6px 0 4px",
+                        fontSize: 15,
+                        fontWeight: 600,
+                        color: webTheme.colors.text,
+                      }}
+                    >
                       {card.title}
                     </p>
-                    <p style={{ margin: 0, fontSize: 13, color: webTheme.colors.textMuted, lineHeight: 1.5 }}>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: 13,
+                        color: webTheme.colors.textMuted,
+                        lineHeight: 1.5,
+                      }}
+                    >
                       {card.description}
                     </p>
-                    <p style={{ margin: "10px 0 0", fontSize: 13, fontWeight: 600, color: webTheme.colors.accent }}>
+                    <p
+                      style={{
+                        margin: "10px 0 0",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: webTheme.colors.accent,
+                      }}
+                    >
                       {card.ctaLabel} →
                     </p>
                   </a>

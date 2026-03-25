@@ -3,9 +3,7 @@ import { loadWebEnv } from "@attendease/config"
 
 import { webEnvSource } from "./web-env"
 
-export function createWebAuthBootstrap(
-  source: Record<string, string | undefined> = webEnvSource,
-) {
+export function createWebAuthBootstrap(source: Record<string, string | undefined> = webEnvSource) {
   const env = loadWebEnv(source)
 
   return {

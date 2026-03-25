@@ -68,7 +68,9 @@ export async function markAttendanceFromBluetooth(
       status: "ACTIVE",
       ...(isCompact && compactParts
         ? { blePublicId: { startsWith: compactParts.pidShort } }
-        : { blePublicId: parsedPayload!.pid }),
+        : parsedPayload
+          ? { blePublicId: parsedPayload.pid }
+          : {}),
     },
   })
 
@@ -107,24 +109,25 @@ export async function markAttendanceFromBluetooth(
       } satisfies MarkAttendanceAttemptResult
     }
 
-    const tokenValidation = isCompact && compactParts
-      ? context.bluetoothTokenService.validateCompactToken({
-          publicId: sessionForMark.blePublicId,
-          bleSeed: sessionForMark.bleSeed,
-          protocolVersion: sessionForMark.bleProtocolVersion,
-          rotationWindowSeconds: sessionForMark.bluetoothRotationWindowSeconds,
-          pidShort: compactParts.pidShort,
-          eidShort: compactParts.eidShort,
-          now,
-        })
-      : context.bluetoothTokenService.validateToken({
-          publicId: sessionForMark.blePublicId,
-          bleSeed: sessionForMark.bleSeed,
-          protocolVersion: sessionForMark.bleProtocolVersion,
-          rotationWindowSeconds: sessionForMark.bluetoothRotationWindowSeconds,
-          payload: request.detectedPayload,
-          now,
-        })
+    const tokenValidation =
+      isCompact && compactParts
+        ? context.bluetoothTokenService.validateCompactToken({
+            publicId: sessionForMark.blePublicId,
+            bleSeed: sessionForMark.bleSeed,
+            protocolVersion: sessionForMark.bleProtocolVersion,
+            rotationWindowSeconds: sessionForMark.bluetoothRotationWindowSeconds,
+            pidShort: compactParts.pidShort,
+            eidShort: compactParts.eidShort,
+            now,
+          })
+        : context.bluetoothTokenService.validateToken({
+            publicId: sessionForMark.blePublicId,
+            bleSeed: sessionForMark.bleSeed,
+            protocolVersion: sessionForMark.bleProtocolVersion,
+            rotationWindowSeconds: sessionForMark.bluetoothRotationWindowSeconds,
+            payload: request.detectedPayload,
+            now,
+          })
 
     if (!tokenValidation.accepted) {
       return {

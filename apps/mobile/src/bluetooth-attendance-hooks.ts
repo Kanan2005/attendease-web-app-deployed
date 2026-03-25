@@ -1,5 +1,4 @@
 import { createAuthApiClient } from "@attendease/auth"
-import { mobileEnv } from "./mobile-env"
 import type {
   BluetoothSessionCreateResponse,
   CreateBluetoothSessionRequest,
@@ -7,6 +6,7 @@ import type {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { PermissionsAndroid, Platform } from "react-native"
+import { mobileEnv } from "./mobile-env"
 
 import { getMobileAttendanceSessionPollInterval } from "./attendance-live"
 import {
@@ -37,12 +37,18 @@ const env = mobileEnv
 
 function describeAdvertiseErrorCode(code: number): string {
   switch (code) {
-    case 1: return "Data too large (payload exceeds BLE limit)"
-    case 2: return "Too many advertisers"
-    case 3: return "Already started"
-    case 4: return "Internal error"
-    case 5: return "Feature unsupported"
-    default: return `Unknown error (${code})`
+    case 1:
+      return "Data too large (payload exceeds BLE limit)"
+    case 2:
+      return "Too many advertisers"
+    case 3:
+      return "Already started"
+    case 4:
+      return "Internal error"
+    case 5:
+      return "Feature unsupported"
+    default:
+      return `Unknown error (${code})`
   }
 }
 const authClient = createAuthApiClient({
@@ -109,9 +115,10 @@ export function useTeacherBluetoothAdvertiser(runtime: BluetoothSessionCreateRes
       // Show errorCode in the message if present
       if (event.state === "FAILED") {
         const errorCode = (event as { errorCode?: number }).errorCode
-        const errorMsg = errorCode !== undefined 
-          ? `BLE Error Code ${errorCode}: ${describeAdvertiseErrorCode(errorCode)}`
-          : (event.message || "Bluetooth advertising failed")
+        const errorMsg =
+          errorCode !== undefined
+            ? `BLE Error Code ${errorCode}: ${describeAdvertiseErrorCode(errorCode)}`
+            : event.message || "Bluetooth advertising failed"
         setErrorMessage(errorMsg)
       } else if (event.message) {
         setErrorMessage(event.message)
@@ -203,7 +210,9 @@ export function useTeacherBluetoothAdvertiser(runtime: BluetoothSessionCreateRes
           setErrorMessage("Bluetooth was turned off. Turn it back on to resume broadcasting.")
         } else if (!avail.canAdvertise) {
           setState("PERMISSION_REQUIRED")
-          setErrorMessage("Bluetooth advertising permission was revoked. Grant 'Nearby devices' in Settings.")
+          setErrorMessage(
+            "Bluetooth advertising permission was revoked. Grant 'Nearby devices' in Settings.",
+          )
         } else if (wasBluetoothOff.current) {
           // BT is back on after being off → auto-restart advertising
           wasBluetoothOff.current = false
@@ -285,7 +294,9 @@ export function useStudentBluetoothScanner(serviceUuid: string | null, enabled =
         )
         if (!allGranted) {
           setState("PERMISSION_REQUIRED")
-          setErrorMessage("Bluetooth scan permission is required. Grant 'Nearby devices' in Settings.")
+          setErrorMessage(
+            "Bluetooth scan permission is required. Grant 'Nearby devices' in Settings.",
+          )
           return false
         }
       } catch {
@@ -369,7 +380,9 @@ export function useStudentBluetoothScanner(serviceUuid: string | null, enabled =
           setErrorMessage("Bluetooth was turned off. Turn it back on to scan for your teacher.")
         } else if (!avail.canScan) {
           setState("PERMISSION_REQUIRED")
-          setErrorMessage("Bluetooth scan permission was revoked. Grant 'Nearby devices' in Settings.")
+          setErrorMessage(
+            "Bluetooth scan permission was revoked. Grant 'Nearby devices' in Settings.",
+          )
         } else if (wasBluetoothOffScanner.current) {
           wasBluetoothOffScanner.current = false
           setErrorMessage(null)

@@ -154,8 +154,22 @@ export function TeacherClassroomDetailScreen(props: { classroomId: string }) {
       announcementsCount={classroom.announcementsQuery.data?.length ?? 0}
       lecturesCount={classroom.lecturesQuery.data?.length ?? 0}
       importsCount={classroom.rosterImportsQuery.data?.length ?? 0}
-      announcements={classroom.announcementsQuery.data?.map((a) => ({ id: a.id, title: a.title ?? "Announcement", body: a.body, createdAt: a.createdAt })) ?? []}
-      lectures={classroom.lecturesQuery.data?.map((l) => ({ id: l.id, title: l.title ?? "", lectureDate: l.lectureDate, status: l.status })) ?? []}
+      announcements={
+        classroom.announcementsQuery.data?.map((a) => ({
+          id: a.id,
+          title: a.title ?? "Announcement",
+          body: a.body,
+          createdAt: a.createdAt,
+        })) ?? []
+      }
+      lectures={
+        classroom.lecturesQuery.data?.map((l) => ({
+          id: l.id,
+          title: l.title ?? "",
+          lectureDate: l.lectureDate,
+          status: l.status,
+        })) ?? []
+      }
       onStartEditCourseInfo={() => {
         setCourseInfoMessage(null)
         setIsEditingCourseInfo(true)
@@ -219,7 +233,9 @@ export function TeacherClassroomDetailScreen(props: { classroomId: string }) {
                 archiveClassroomMutation.mutate(undefined, {
                   onSuccess: (archived) => {
                     setCourseInfoDraft(createTeacherClassroomEditDraft(archived))
-                    setCourseInfoMessage(`Archived ${archived.classroomTitle ?? archived.displayTitle}.`)
+                    setCourseInfoMessage(
+                      `Archived ${archived.classroomTitle ?? archived.displayTitle}.`,
+                    )
                     setIsEditingCourseInfo(false)
                   },
                 })

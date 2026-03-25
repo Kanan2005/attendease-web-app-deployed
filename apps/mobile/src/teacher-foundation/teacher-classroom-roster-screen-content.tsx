@@ -89,16 +89,33 @@ export function TeacherClassroomRosterScreenContent(props: Props) {
 
   if (!props.hasSession) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 32,
+        }}
+      >
         <Ionicons name="lock-closed-outline" size={40} color={c.textSubtle} />
-        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>Sign in required</Text>
+        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>
+          Sign in required
+        </Text>
       </View>
     )
   }
 
   if (props.isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center" }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <ActivityIndicator size="large" color={c.primary} />
         <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 12 }}>Loading roster…</Text>
       </View>
@@ -107,9 +124,19 @@ export function TeacherClassroomRosterScreenContent(props: Props) {
 
   if (props.loadErrorMessage) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 32,
+        }}
+      >
         <Ionicons name="alert-circle" size={40} color={c.danger} />
-        <Text style={{ fontSize: 14, color: c.danger, marginTop: 12, textAlign: "center" }}>{props.loadErrorMessage}</Text>
+        <Text style={{ fontSize: 14, color: c.danger, marginTop: 12, textAlign: "center" }}>
+          {props.loadErrorMessage}
+        </Text>
       </View>
     )
   }
@@ -127,20 +154,51 @@ export function TeacherClassroomRosterScreenContent(props: Props) {
           {props.classroomTitle}
         </Text>
         <View style={rs.statsRow}>
-          <StatChip label="Total" value={props.totalRosterCount} color={c.primary} bg={c.primarySoft} />
-          <StatChip label="Active" value={props.activeRosterCount} color={c.success} bg={c.successSoft} />
+          <StatChip
+            label="Total"
+            value={props.totalRosterCount}
+            color={c.primary}
+            bg={c.primarySoft}
+          />
+          <StatChip
+            label="Active"
+            value={props.activeRosterCount}
+            color={c.success}
+            bg={c.successSoft}
+          />
           {props.pendingRosterCount > 0 ? (
-            <StatChip label="Pending" value={props.pendingRosterCount} color={c.warning} bg={c.warningSoft} />
+            <StatChip
+              label="Pending"
+              value={props.pendingRosterCount}
+              color={c.warning}
+              bg={c.warningSoft}
+            />
           ) : null}
           {props.blockedRosterCount > 0 ? (
-            <StatChip label="Blocked" value={props.blockedRosterCount} color={c.danger} bg={c.dangerSoft} />
+            <StatChip
+              label="Blocked"
+              value={props.blockedRosterCount}
+              color={c.danger}
+              bg={c.dangerSoft}
+            />
           ) : null}
         </View>
       </View>
 
       {/* ── Search + filter bar ── */}
-      <View style={[rs.section, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.border, paddingBottom: 16 }]}>
-        <View style={[rs.searchBar, { backgroundColor: c.surfaceMuted, borderColor: c.borderStrong }]}>
+      <View
+        style={[
+          rs.section,
+          {
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: c.border,
+            paddingBottom: 16,
+          },
+        ]}
+      >
+        <View
+          style={[rs.searchBar, { backgroundColor: c.surfaceMuted, borderColor: c.borderStrong }]}
+        >
           <Ionicons name="search-outline" size={18} color={c.textSubtle} />
           <TextInput
             value={props.searchText}
@@ -157,7 +215,11 @@ export function TeacherClassroomRosterScreenContent(props: Props) {
           ) : null}
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 }}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingRight: 4 }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingRight: 4 }}
+          >
             {props.statusFilters.map((filter) => {
               const active = props.statusFilter === filter
               return (
@@ -166,10 +228,19 @@ export function TeacherClassroomRosterScreenContent(props: Props) {
                   onPress={() => props.onSetStatusFilter(filter)}
                   style={[
                     rs.filterPill,
-                    { borderColor: active ? c.primary : c.border, backgroundColor: active ? c.primarySoft : c.surfaceRaised },
+                    {
+                      borderColor: active ? c.primary : c.border,
+                      backgroundColor: active ? c.primarySoft : c.surfaceRaised,
+                    },
                   ]}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: "600", color: active ? c.primary : c.textMuted }}>
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: "600",
+                      color: active ? c.primary : c.textMuted,
+                    }}
+                  >
                     {filter === "ALL" ? "All" : filter.charAt(0) + filter.slice(1).toLowerCase()}
                   </Text>
                 </Pressable>
@@ -180,7 +251,11 @@ export function TeacherClassroomRosterScreenContent(props: Props) {
             onPress={() => setShowAddForm((v) => !v)}
             style={[rs.addToggle, { backgroundColor: c.primary }]}
           >
-            <Ionicons name={showAddForm ? "close" : "person-add-outline"} size={16} color={c.primaryContrast} />
+            <Ionicons
+              name={showAddForm ? "close" : "person-add-outline"}
+              size={16}
+              color={c.primaryContrast}
+            />
           </Pressable>
         </View>
         <Text style={{ fontSize: 12, color: c.textSubtle }}>{props.rosterSummaryText}</Text>
@@ -188,7 +263,22 @@ export function TeacherClassroomRosterScreenContent(props: Props) {
 
       {/* ── Inline add student form (toggled) ── */}
       {showAddForm ? (
-        <Animated.View entering={FadeInDown.duration(250)} style={[rs.section, { backgroundColor: c.surfaceTint, marginHorizontal: 16, marginTop: 12, borderRadius: 14, padding: 16, gap: 12, borderWidth: 1, borderColor: c.border }]}>
+        <Animated.View
+          entering={FadeInDown.duration(250)}
+          style={[
+            rs.section,
+            {
+              backgroundColor: c.surfaceTint,
+              marginHorizontal: 16,
+              marginTop: 12,
+              borderRadius: 14,
+              padding: 16,
+              gap: 12,
+              borderWidth: 1,
+              borderColor: c.border,
+            },
+          ]}
+        >
           <Text style={{ fontSize: 15, fontWeight: "700", color: c.text }}>Add Student</Text>
           <TextInput
             value={props.studentLookup}
@@ -196,24 +286,70 @@ export function TeacherClassroomRosterScreenContent(props: Props) {
             placeholder="Email, roll number, or student ID"
             placeholderTextColor={c.textSubtle}
             onChangeText={props.onSetStudentLookup}
-            style={[rs.searchBar, rs.searchInput, { backgroundColor: c.surfaceMuted, borderColor: c.borderStrong, flex: 0, paddingHorizontal: 14, paddingVertical: 12 }]}
+            style={[
+              rs.searchBar,
+              rs.searchInput,
+              {
+                backgroundColor: c.surfaceMuted,
+                borderColor: c.borderStrong,
+                flex: 0,
+                paddingHorizontal: 14,
+                paddingVertical: 12,
+              },
+            ]}
           />
           <View style={{ flexDirection: "row", gap: 8 }}>
             <Pressable
               onPress={() => props.onSetMemberStatus("ACTIVE")}
-              style={[rs.filterPill, { borderColor: props.memberStatus === "ACTIVE" ? c.primary : c.border, backgroundColor: props.memberStatus === "ACTIVE" ? c.primarySoft : c.surfaceRaised }]}
+              style={[
+                rs.filterPill,
+                {
+                  borderColor: props.memberStatus === "ACTIVE" ? c.primary : c.border,
+                  backgroundColor:
+                    props.memberStatus === "ACTIVE" ? c.primarySoft : c.surfaceRaised,
+                },
+              ]}
             >
-              <Text style={{ fontSize: 13, fontWeight: "600", color: props.memberStatus === "ACTIVE" ? c.primary : c.textMuted }}>Active</Text>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: "600",
+                  color: props.memberStatus === "ACTIVE" ? c.primary : c.textMuted,
+                }}
+              >
+                Active
+              </Text>
             </Pressable>
             <Pressable
               onPress={() => props.onSetMemberStatus("PENDING")}
-              style={[rs.filterPill, { borderColor: props.memberStatus === "PENDING" ? c.primary : c.border, backgroundColor: props.memberStatus === "PENDING" ? c.primarySoft : c.surfaceRaised }]}
+              style={[
+                rs.filterPill,
+                {
+                  borderColor: props.memberStatus === "PENDING" ? c.primary : c.border,
+                  backgroundColor:
+                    props.memberStatus === "PENDING" ? c.primarySoft : c.surfaceRaised,
+                },
+              ]}
             >
-              <Text style={{ fontSize: 13, fontWeight: "600", color: props.memberStatus === "PENDING" ? c.primary : c.textMuted }}>Pending</Text>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: "600",
+                  color: props.memberStatus === "PENDING" ? c.primary : c.textMuted,
+                }}
+              >
+                Pending
+              </Text>
             </Pressable>
           </View>
           <Pressable
-            style={[rs.addButton, { backgroundColor: c.primary, opacity: props.isAddPending || props.studentLookup.trim().length < 3 ? 0.5 : 1 }]}
+            style={[
+              rs.addButton,
+              {
+                backgroundColor: c.primary,
+                opacity: props.isAddPending || props.studentLookup.trim().length < 3 ? 0.5 : 1,
+              },
+            ]}
             disabled={props.isAddPending || props.studentLookup.trim().length < 3}
             onPress={() => {
               props.onSetRosterMessage(null)
@@ -221,10 +357,14 @@ export function TeacherClassroomRosterScreenContent(props: Props) {
             }}
           >
             <Ionicons name="person-add-outline" size={16} color={c.primaryContrast} />
-            <Text style={{ fontSize: 14, fontWeight: "700", color: c.primaryContrast }}>{props.isAddPending ? "Adding…" : "Add"}</Text>
+            <Text style={{ fontSize: 14, fontWeight: "700", color: c.primaryContrast }}>
+              {props.isAddPending ? "Adding…" : "Add"}
+            </Text>
           </Pressable>
           {rosterErrorMessage(props.addMutationError) ? (
-            <Text style={{ fontSize: 13, color: c.danger }}>{rosterErrorMessage(props.addMutationError)}</Text>
+            <Text style={{ fontSize: 13, color: c.danger }}>
+              {rosterErrorMessage(props.addMutationError)}
+            </Text>
           ) : null}
         </Animated.View>
       ) : null}
@@ -232,7 +372,16 @@ export function TeacherClassroomRosterScreenContent(props: Props) {
       {/* ── Success/error messages ── */}
       {props.rosterMessage ? (
         <View style={[rs.section, { paddingVertical: 8 }]}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: c.successSoft, borderRadius: 10, padding: 12 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+              backgroundColor: c.successSoft,
+              borderRadius: 10,
+              padding: 12,
+            }}
+          >
             <Ionicons name="checkmark-circle" size={18} color={c.success} />
             <Text style={{ fontSize: 13, color: c.success, flex: 1 }}>{props.rosterMessage}</Text>
             <Pressable onPress={() => props.onSetRosterMessage(null)} hitSlop={8}>
@@ -266,12 +415,16 @@ export function TeacherClassroomRosterScreenContent(props: Props) {
 
       {props.updateMutationError ? (
         <View style={[rs.section, { paddingVertical: 4 }]}>
-          <Text style={{ fontSize: 13, color: c.danger }}>{mapTeacherApiErrorToMessage(props.updateMutationError)}</Text>
+          <Text style={{ fontSize: 13, color: c.danger }}>
+            {mapTeacherApiErrorToMessage(props.updateMutationError)}
+          </Text>
         </View>
       ) : null}
       {props.removeMutationError ? (
         <View style={[rs.section, { paddingVertical: 4 }]}>
-          <Text style={{ fontSize: 13, color: c.danger }}>{mapTeacherApiErrorToMessage(props.removeMutationError)}</Text>
+          <Text style={{ fontSize: 13, color: c.danger }}>
+            {mapTeacherApiErrorToMessage(props.removeMutationError)}
+          </Text>
         </View>
       ) : null}
 
@@ -290,7 +443,9 @@ export function TeacherClassroomRosterScreenContent(props: Props) {
           onCreateImportJob={props.onCreateImportJob}
           onSetRosterMessage={props.onSetRosterMessage}
           isAddStudentEnabled={props.isAddStudentEnabled}
-          hasSourceAndRows={props.importSourceFileName.trim().length > 0 && props.parsedRowsCount > 0}
+          hasSourceAndRows={
+            props.importSourceFileName.trim().length > 0 && props.parsedRowsCount > 0
+          }
         />
 
         {props.rosterImportLoading ? (
@@ -322,7 +477,15 @@ function StudentRow(props: {
   const isActive = member.attendanceDisabled !== "Yes"
 
   return (
-    <View style={[rs.studentRow, !props.isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.border }]}>
+    <View
+      style={[
+        rs.studentRow,
+        !props.isLast && {
+          borderBottomWidth: StyleSheet.hairlineWidth,
+          borderBottomColor: c.border,
+        },
+      ]}
+    >
       <View style={rs.studentRowTop}>
         <View style={[rs.avatar, { backgroundColor: c.primarySoft }]}>
           <Text style={{ fontSize: 15, fontWeight: "800", color: c.primary }}>
@@ -337,7 +500,10 @@ function StudentRow(props: {
             {member.identityText}
           </Text>
         </View>
-        <StatusPill label={isActive ? "Active" : "Paused"} tone={isActive ? "success" : "warning"} />
+        <StatusPill
+          label={isActive ? "Active" : "Paused"}
+          tone={isActive ? "success" : "warning"}
+        />
       </View>
       {member.actions.length > 0 ? (
         <View style={rs.actionRow}>
@@ -346,9 +512,20 @@ function StudentRow(props: {
               key={`${member.id}-${action.label}`}
               disabled={props.isRosterLoading}
               onPress={() => props.onPerformMemberAction(member, action)}
-              style={[rs.actionBtn, action.tone === "danger" ? { backgroundColor: c.dangerSoft } : { backgroundColor: c.surfaceTint, borderWidth: 1, borderColor: c.border }]}
+              style={[
+                rs.actionBtn,
+                action.tone === "danger"
+                  ? { backgroundColor: c.dangerSoft }
+                  : { backgroundColor: c.surfaceTint, borderWidth: 1, borderColor: c.border },
+              ]}
             >
-              <Text style={{ fontSize: 12, fontWeight: "600", color: action.tone === "danger" ? c.danger : c.text }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: "600",
+                  color: action.tone === "danger" ? c.danger : c.text,
+                }}
+              >
                 {action.label}
               </Text>
             </Pressable>
@@ -364,7 +541,9 @@ function StatChip(props: { label: string; value: number; color: string; bg: stri
   return (
     <View style={[rs.statChip, { backgroundColor: props.bg }]}>
       <Text style={{ fontSize: 16, fontWeight: "800", color: props.color }}>{props.value}</Text>
-      <Text style={{ fontSize: 11, fontWeight: "600", color: props.color, opacity: 0.8 }}>{props.label}</Text>
+      <Text style={{ fontSize: 11, fontWeight: "600", color: props.color, opacity: 0.8 }}>
+        {props.label}
+      </Text>
     </View>
   )
 }

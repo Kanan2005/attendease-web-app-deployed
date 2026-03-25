@@ -108,6 +108,7 @@ import {
 import {
   AnnouncementRow,
   AttendanceCandidateRow,
+  StudentBackButton,
   StudentCard,
   StudentDashboardSpotlightCard,
   StudentEmptyCard,
@@ -115,7 +116,6 @@ import {
   StudentLoadingCard,
   StudentNavAction,
   StudentQuickActions,
-  StudentBackButton,
   StudentScreen,
   StudentSessionSetupCard,
   StudentStatusBanner,
@@ -142,10 +142,7 @@ export function StudentSubjectReportScreen(props: { subjectId: string }) {
     : null
 
   return (
-    <StudentScreen
-      title="Subject Report"
-      subtitle="Attendance details for this subject."
-    >
+    <StudentScreen title="Subject Report" subtitle="Attendance details for this subject.">
       <StudentBackButton label="Back" />
       {!session ? (
         <StudentSessionSetupCard />
@@ -163,15 +160,35 @@ export function StudentSubjectReportScreen(props: { subjectId: string }) {
           >
             {/* Progress Bar */}
             <View style={{ gap: 8 }}>
-              <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" }}>
-                <Text style={{ fontSize: 32, fontWeight: "800", color: toneColorStyle(subjectInsight?.tone ?? "primary").color }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "baseline",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 32,
+                    fontWeight: "800",
+                    color: toneColorStyle(subjectInsight?.tone ?? "primary").color,
+                  }}
+                >
                   {report.subjectReport.attendancePercentage}%
                 </Text>
                 <Text style={{ fontSize: 13, color: c.textMuted }}>
-                  {report.subjectReport.totalSessions} session{report.subjectReport.totalSessions === 1 ? "" : "s"}
+                  {report.subjectReport.totalSessions} session
+                  {report.subjectReport.totalSessions === 1 ? "" : "s"}
                 </Text>
               </View>
-              <View style={{ height: 10, borderRadius: 5, backgroundColor: c.surfaceMuted, overflow: "hidden" }}>
+              <View
+                style={{
+                  height: 10,
+                  borderRadius: 5,
+                  backgroundColor: c.surfaceMuted,
+                  overflow: "hidden",
+                }}
+              >
                 <View
                   style={{
                     height: 10,
@@ -259,7 +276,13 @@ export function StudentSubjectReportScreen(props: { subjectId: string }) {
                 subtitle={card.classroomCode}
               >
                 <View style={{ gap: 6 }}>
-                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "baseline",
+                    }}
+                  >
                     <Text style={{ fontSize: 22, fontWeight: "800", color: barColor }}>
                       {card.attendancePercentage}%
                     </Text>
@@ -267,7 +290,14 @@ export function StudentSubjectReportScreen(props: { subjectId: string }) {
                       {card.presentSessions}/{card.totalSessions} present
                     </Text>
                   </View>
-                  <View style={{ height: 6, borderRadius: 3, backgroundColor: c.surfaceMuted, overflow: "hidden" }}>
+                  <View
+                    style={{
+                      height: 6,
+                      borderRadius: 3,
+                      backgroundColor: c.surfaceMuted,
+                      overflow: "hidden",
+                    }}
+                  >
                     <View
                       style={{
                         height: 6,

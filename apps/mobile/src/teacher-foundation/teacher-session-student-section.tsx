@@ -8,7 +8,11 @@ import type { TeacherSessionRosterRowModel } from "../teacher-operational"
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/)
-  if (parts.length >= 2) return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase()
+  if (parts.length >= 2) {
+    const first = parts[0]?.[0] ?? "?"
+    const last = parts[parts.length - 1]?.[0] ?? "?"
+    return (first + last).toUpperCase()
+  }
   return (parts[0]?.[0] ?? "?").toUpperCase()
 }
 
@@ -36,25 +40,50 @@ export function TeacherSessionStudentSection(props: {
       {props.rows.map((row, i) => {
         const isAbsentAction = row.actionTargetStatus === "ABSENT"
         return (
-          <Animated.View key={row.attendanceRecordId} entering={FadeInDown.duration(180).delay(i * 20)}>
-            <View style={[ss.studentRow, { backgroundColor: c.surfaceRaised, borderColor: row.pendingChangeLabel ? c.warning : c.border }]}>
+          <Animated.View
+            key={row.attendanceRecordId}
+            entering={FadeInDown.duration(180).delay(i * 20)}
+          >
+            <View
+              style={[
+                ss.studentRow,
+                {
+                  backgroundColor: c.surfaceRaised,
+                  borderColor: row.pendingChangeLabel ? c.warning : c.border,
+                },
+              ]}
+            >
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 {/* Avatar */}
                 <View style={[ss.avatar, { backgroundColor: c.primarySoft }]}>
-                  <Text style={{ fontSize: 12, fontWeight: "700", color: c.primary }}>{getInitials(row.studentDisplayName)}</Text>
+                  <Text style={{ fontSize: 12, fontWeight: "700", color: c.primary }}>
+                    {getInitials(row.studentDisplayName)}
+                  </Text>
                 </View>
                 {/* Info */}
                 <View style={{ flex: 1, gap: 1 }}>
-                  <Text style={{ fontSize: 14, fontWeight: "600", color: c.text }} numberOfLines={1}>{row.studentDisplayName}</Text>
-                  <Text style={{ fontSize: 11, color: c.textMuted }} numberOfLines={1}>{row.identityLabel}</Text>
+                  <Text
+                    style={{ fontSize: 14, fontWeight: "600", color: c.text }}
+                    numberOfLines={1}
+                  >
+                    {row.studentDisplayName}
+                  </Text>
+                  <Text style={{ fontSize: 11, color: c.textMuted }} numberOfLines={1}>
+                    {row.identityLabel}
+                  </Text>
                   {row.pendingChangeLabel ? (
-                    <Text style={{ fontSize: 11, fontWeight: "600", color: c.warning }}>{row.pendingChangeLabel}</Text>
+                    <Text style={{ fontSize: 11, fontWeight: "600", color: c.warning }}>
+                      {row.pendingChangeLabel}
+                    </Text>
                   ) : null}
                 </View>
                 {/* Action */}
                 {props.isEditable && row.actionLabel && props.onToggleStatus ? (
                   <Pressable
-                    style={[ss.actionBtn, { backgroundColor: isAbsentAction ? c.dangerSoft : c.primarySoft }]}
+                    style={[
+                      ss.actionBtn,
+                      { backgroundColor: isAbsentAction ? c.dangerSoft : c.primarySoft },
+                    ]}
                     onPress={() => props.onToggleStatus?.(row)}
                   >
                     <Ionicons
@@ -62,7 +91,15 @@ export function TeacherSessionStudentSection(props: {
                       size={14}
                       color={isAbsentAction ? c.danger : c.primary}
                     />
-                    <Text style={{ fontSize: 12, fontWeight: "600", color: isAbsentAction ? c.danger : c.primary }}>{row.actionLabel}</Text>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: "600",
+                        color: isAbsentAction ? c.danger : c.primary,
+                      }}
+                    >
+                      {row.actionLabel}
+                    </Text>
                   </Pressable>
                 ) : null}
               </View>
@@ -76,13 +113,24 @@ export function TeacherSessionStudentSection(props: {
 
 const ss = StyleSheet.create({
   studentRow: {
-    borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   avatar: {
-    width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center",
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
   },
   actionBtn: {
-    flexDirection: "row", alignItems: "center", gap: 4,
-    paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
 })

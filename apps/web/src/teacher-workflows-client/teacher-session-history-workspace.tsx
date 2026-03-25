@@ -205,7 +205,14 @@ export function TeacherSessionHistoryWorkspace(props: {
       <Link
         href="/teacher/classrooms"
         className="ui-back-link"
-        style={{ fontSize: 13, color: webTheme.colors.textMuted, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+        style={{
+          fontSize: 13,
+          color: webTheme.colors.textMuted,
+          textDecoration: "none",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+        }}
       >
         <span aria-hidden>←</span> Back to classrooms
       </Link>

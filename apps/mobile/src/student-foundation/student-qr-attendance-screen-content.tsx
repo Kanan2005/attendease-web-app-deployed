@@ -17,7 +17,15 @@ type Props = {
   hasSession: boolean
   isLoading: boolean
   loadError: string | null
-  phase: "loading" | "camera_denied" | "location_denied" | "location_unavailable" | "camera" | "verifying" | "success" | "error"
+  phase:
+    | "loading"
+    | "camera_denied"
+    | "location_denied"
+    | "location_unavailable"
+    | "camera"
+    | "verifying"
+    | "success"
+    | "error"
   errorMessage: string | null
   gpsStatus: "pending" | "acquiring" | "ready" | "denied" | "unavailable"
   isLocationError: boolean
@@ -56,8 +64,11 @@ export function StudentQrAttendanceScreenContent(props: Props) {
           <Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>
             Location Services Off
           </Text>
-          <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}>
-            QR attendance requires GPS to verify you are in the classroom. Turn on Location Services in your device settings.
+          <Text
+            style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}
+          >
+            QR attendance requires GPS to verify you are in the classroom. Turn on Location Services
+            in your device settings.
           </Text>
           <Pressable
             style={localStyles.settingsButton(c.primary)}
@@ -78,8 +89,11 @@ export function StudentQrAttendanceScreenContent(props: Props) {
           <Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>
             Location Access Denied
           </Text>
-          <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}>
-            QR attendance needs location access to verify you are near the teacher. Please enable it in your device settings.
+          <Text
+            style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}
+          >
+            QR attendance needs location access to verify you are near the teacher. Please enable it
+            in your device settings.
           </Text>
           <Pressable
             style={localStyles.settingsButton(c.primary)}
@@ -100,8 +114,11 @@ export function StudentQrAttendanceScreenContent(props: Props) {
           <Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>
             Camera Access Denied
           </Text>
-          <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}>
-            QR attendance needs camera access to scan the code. Please enable it in your device settings.
+          <Text
+            style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}
+          >
+            QR attendance needs camera access to scan the code. Please enable it in your device
+            settings.
           </Text>
           <Pressable
             style={localStyles.settingsButton(c.primary)}
@@ -136,10 +153,10 @@ export function StudentQrAttendanceScreenContent(props: Props) {
           <View style={localStyles.iconCircle(c.dangerSoft)}>
             <Ionicons name="close-circle" size={48} color={c.danger} />
           </View>
-          <Text style={{ fontSize: 18, fontWeight: "700", color: c.danger }}>
-            Failed
-          </Text>
-          <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}>
+          <Text style={{ fontSize: 18, fontWeight: "700", color: c.danger }}>Failed</Text>
+          <Text
+            style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}
+          >
             {props.errorMessage ?? "Could not mark attendance. Please try again."}
           </Text>
           {props.isLocationError ? (
@@ -166,7 +183,9 @@ export function StudentQrAttendanceScreenContent(props: Props) {
           <Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>
             Verifying & Marking…
           </Text>
-          <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}>
+          <Text
+            style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}
+          >
             Checking enrollment, capturing GPS, and marking your attendance.
           </Text>
           {props.classroomTitle ? (
@@ -211,7 +230,9 @@ export function StudentQrAttendanceScreenContent(props: Props) {
   )
 }
 
-function GpsStatusBanner(props: { status: "pending" | "acquiring" | "ready" | "denied" | "unavailable" }) {
+function GpsStatusBanner(props: {
+  status: "pending" | "acquiring" | "ready" | "denied" | "unavailable"
+}) {
   const c = getColors()
   let icon: React.ComponentProps<typeof Ionicons>["name"] = "location-outline"
   let label = ""

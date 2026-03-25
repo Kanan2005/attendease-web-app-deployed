@@ -8,10 +8,7 @@ import QRCode from "qrcode"
 import { useEffect, useState } from "react"
 
 import { createWebAuthBootstrap } from "./auth"
-import {
-  QrSessionRosterPanel,
-  StatPill,
-} from "./qr-session-shell-components"
+import { QrSessionRosterPanel, StatPill } from "./qr-session-shell-components"
 import { qrShellStyles } from "./qr-session-shell-styles"
 import {
   buildQrSessionLiveModel,
@@ -60,15 +57,22 @@ export function QrActiveSessionShell(props: {
     },
     onSuccess: async (_, __, ___) => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: webWorkflowQueryKeys.attendanceSession(props.sessionId) }),
-        queryClient.invalidateQueries({ queryKey: webWorkflowQueryKeys.attendanceSessionStudents(props.sessionId) }),
+        queryClient.invalidateQueries({
+          queryKey: webWorkflowQueryKeys.attendanceSession(props.sessionId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: webWorkflowQueryKeys.attendanceSessionStudents(props.sessionId),
+        }),
         queryClient.invalidateQueries({ queryKey: webWorkflowQueryKeys.sessionHistory() }),
       ])
-      const sessionData = queryClient.getQueryData<{ classroomId?: string; lectureId?: string | null }>(
-        webWorkflowQueryKeys.attendanceSession(props.sessionId),
-      )
+      const sessionData = queryClient.getQueryData<{
+        classroomId?: string
+        lectureId?: string | null
+      }>(webWorkflowQueryKeys.attendanceSession(props.sessionId))
       if (sessionData?.classroomId && sessionData.lectureId) {
-        router.push(teacherWorkflowRoutes.lectureSession(sessionData.classroomId, sessionData.lectureId))
+        router.push(
+          teacherWorkflowRoutes.lectureSession(sessionData.classroomId, sessionData.lectureId),
+        )
       } else if (sessionData?.classroomId) {
         router.push(teacherWorkflowRoutes.classroomLectures(sessionData.classroomId))
       }
@@ -91,17 +95,25 @@ export function QrActiveSessionShell(props: {
       color: { dark: "#09090B", light: "#ffffff" },
       width: 400,
     })
-      .then((url) => { if (!cancelled) setQrDataUrl(url) })
-      .catch(() => { if (!cancelled) setQrDataUrl(null) })
-    return () => { cancelled = true }
-  }, [props.projector, detailQuery.data?.currentQrPayload])
+      .then((url) => {
+        if (!cancelled) setQrDataUrl(url)
+      })
+      .catch(() => {
+        if (!cancelled) setQrDataUrl(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [detailQuery.data?.currentQrPayload])
 
   const session = detailQuery.data
   const liveModel = session ? buildQrSessionLiveModel(session, now) : null
   const rosterModel = studentsQuery.data ? buildQrSessionRosterModel(studentsQuery.data) : null
 
   if (!props.accessToken) {
-    return <div style={qrShellStyles.statusBanner}>Sign in to view the live attendance session.</div>
+    return (
+      <div style={qrShellStyles.statusBanner}>Sign in to view the live attendance session.</div>
+    )
   }
   if (detailQuery.error) {
     return (
@@ -113,7 +125,10 @@ export function QrActiveSessionShell(props: {
   if (detailQuery.isLoading || !session || !liveModel) {
     return (
       <div style={{ textAlign: "center", padding: "80px 24px", color: webTheme.colors.textMuted }}>
-        <div className="skeleton" style={{ width: 48, height: 48, borderRadius: 14, margin: "0 auto 16px" }} />
+        <div
+          className="skeleton"
+          style={{ width: 48, height: 48, borderRadius: 14, margin: "0 auto 16px" }}
+        />
         <p style={{ fontSize: 15, fontWeight: 500 }}>Loading live session...</p>
       </div>
     )
@@ -128,22 +143,56 @@ export function QrActiveSessionShell(props: {
       : session.classroomDisplayTitle
 
     return (
-      <div style={{ display: "flex", flexDirection: "column", height: "100vh", padding: 16, gap: 12, boxSizing: "border-box" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+          padding: 16,
+          gap: 12,
+          boxSizing: "border-box",
+        }}
+      >
         {/* Compact header */}
         <div style={qrShellStyles.projectorHero}>
           <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
             <Link
               href={teacherWorkflowRoutes.activeSession(props.sessionId)}
               className="ui-back-link"
-              style={{ fontSize: 13, color: webTheme.colors.textMuted, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, flexShrink: 0 }}
+              style={{
+                fontSize: 13,
+                color: webTheme.colors.textMuted,
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                flexShrink: 0,
+              }}
             >
               <span aria-hidden>←</span> Exit projector
             </Link>
             <div style={{ minWidth: 0 }}>
-              <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: webTheme.colors.accent }}>
+              <p
+                style={{
+                  margin: "0 0 2px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  color: webTheme.colors.accent,
+                }}
+              >
                 Live attendance
               </p>
-              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: webTheme.colors.text, letterSpacing: "-0.02em" }}>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: webTheme.colors.text,
+                  letterSpacing: "-0.02em",
+                }}
+              >
                 {projScopeLabel}
               </h2>
             </div>
@@ -153,10 +202,15 @@ export function QrActiveSessionShell(props: {
             <StatPill label="QR refresh" value={liveModel.qrRefreshLabel} />
             {confirmEnd ? (
               <>
-                <span style={{ fontSize: 13, color: webTheme.colors.danger, fontWeight: 600 }}>End session?</span>
+                <span style={{ fontSize: 13, color: webTheme.colors.danger, fontWeight: 600 }}>
+                  End session?
+                </span>
                 <button
                   type="button"
-                  onClick={() => { endSession.mutate(); setConfirmEnd(false) }}
+                  onClick={() => {
+                    endSession.mutate()
+                    setConfirmEnd(false)
+                  }}
                   disabled={endSession.isPending}
                   style={{ ...qrShellStyles.dangerButton, padding: "10px 20px" }}
                 >
@@ -166,7 +220,16 @@ export function QrActiveSessionShell(props: {
                   type="button"
                   onClick={() => setConfirmEnd(false)}
                   className="ui-secondary-btn"
-                  style={{ padding: "10px 16px", border: `1px solid ${webTheme.colors.border}`, borderRadius: 10, background: webTheme.colors.surfaceRaised, color: webTheme.colors.text, fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                  style={{
+                    padding: "10px 16px",
+                    border: `1px solid ${webTheme.colors.border}`,
+                    borderRadius: 10,
+                    background: webTheme.colors.surfaceRaised,
+                    color: webTheme.colors.text,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
                 >
                   Cancel
                 </button>
@@ -188,17 +251,34 @@ export function QrActiveSessionShell(props: {
         {/* Full-height QR */}
         <div style={qrShellStyles.projectorQrFrame}>
           {liveModel.canDisplayQr && qrDataUrl ? (
-            <img src={qrDataUrl} alt="Rolling QR code for classroom projection" style={qrShellStyles.projectorQrImage} />
+            <img
+              src={qrDataUrl}
+              alt="Rolling QR code for classroom projection"
+              style={qrShellStyles.projectorQrImage}
+            />
           ) : (
             <div style={{ textAlign: "center", padding: 32 }}>
-              <p style={{ margin: 0, fontSize: 16, fontWeight: 600, color: webTheme.colors.textMuted }}>QR not available</p>
-              <p style={{ margin: "4px 0 0", fontSize: 13, color: webTheme.colors.textSubtle }}>Session may have ended.</p>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 16,
+                  fontWeight: 600,
+                  color: webTheme.colors.textMuted,
+                }}
+              >
+                QR not available
+              </p>
+              <p style={{ margin: "4px 0 0", fontSize: 13, color: webTheme.colors.textSubtle }}>
+                Session may have ended.
+              </p>
             </div>
           )}
         </div>
 
         {endSession.error instanceof Error ? (
-          <div style={{ ...qrShellStyles.statusBanner, flexShrink: 0 }}>{endSession.error.message}</div>
+          <div style={{ ...qrShellStyles.statusBanner, flexShrink: 0 }}>
+            {endSession.error.message}
+          </div>
         ) : null}
       </div>
     )
@@ -208,20 +288,36 @@ export function QrActiveSessionShell(props: {
     ? `${session.classroomDisplayTitle} · ${session.lectureTitle}`
     : session.classroomDisplayTitle
 
-  const sessionBackHref = session.lectureId && session.classroomId
-    ? teacherWorkflowRoutes.lectureSession(session.classroomId, session.lectureId)
-    : session.classroomId
-      ? teacherWorkflowRoutes.classroomLectures(session.classroomId)
-      : teacherWorkflowRoutes.classrooms
+  const sessionBackHref =
+    session.lectureId && session.classroomId
+      ? teacherWorkflowRoutes.lectureSession(session.classroomId, session.lectureId)
+      : session.classroomId
+        ? teacherWorkflowRoutes.classroomLectures(session.classroomId)
+        : teacherWorkflowRoutes.classrooms
 
   return (
     <div style={qrShellStyles.grid}>
       {/* Back link */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 8,
+        }}
+      >
         <Link
           href={sessionBackHref}
           className="ui-back-link"
-          style={{ fontSize: 13, color: webTheme.colors.textMuted, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+          style={{
+            fontSize: 13,
+            color: webTheme.colors.textMuted,
+            textDecoration: "none",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+          }}
         >
           <span aria-hidden>←</span> Back to session
         </Link>
@@ -230,10 +326,27 @@ export function QrActiveSessionShell(props: {
       {/* Top status bar */}
       <div style={qrShellStyles.hero}>
         <div style={{ minWidth: 0 }}>
-          <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: webTheme.colors.accent }}>
+          <p
+            style={{
+              margin: "0 0 2px",
+              fontSize: 11,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              color: webTheme.colors.accent,
+            }}
+          >
             Live attendance
           </p>
-          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: webTheme.colors.text, letterSpacing: "-0.02em" }}>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: 20,
+              fontWeight: 700,
+              color: webTheme.colors.text,
+              letterSpacing: "-0.02em",
+            }}
+          >
             {scopeLabel}
           </h2>
         </div>
@@ -253,22 +366,42 @@ export function QrActiveSessionShell(props: {
               <img src={qrDataUrl} alt="Live QR code" style={qrShellStyles.qrImage} />
             ) : (
               <div style={{ textAlign: "center", padding: 32, color: webTheme.colors.textSubtle }}>
-                <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: webTheme.colors.textMuted }}>QR not available</p>
-                <p style={{ margin: "4px 0 0", fontSize: 13, color: webTheme.colors.textSubtle }}>Session may have ended.</p>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: webTheme.colors.textMuted,
+                  }}
+                >
+                  QR not available
+                </p>
+                <p style={{ margin: "4px 0 0", fontSize: 13, color: webTheme.colors.textSubtle }}>
+                  Session may have ended.
+                </p>
               </div>
             )}
           </div>
 
           <div style={{ display: "flex", gap: 10, justifyContent: "center", flexShrink: 0 }}>
-            <Link href={teacherWorkflowRoutes.activeSessionProjector(props.sessionId)} className="ui-secondary-btn" style={qrShellStyles.secondaryButton}>
+            <Link
+              href={teacherWorkflowRoutes.activeSessionProjector(props.sessionId)}
+              className="ui-secondary-btn"
+              style={qrShellStyles.secondaryButton}
+            >
               Projector mode
             </Link>
             {confirmEnd ? (
               <>
-                <span style={{ fontSize: 13, color: webTheme.colors.danger, fontWeight: 600 }}>End session?</span>
+                <span style={{ fontSize: 13, color: webTheme.colors.danger, fontWeight: 600 }}>
+                  End session?
+                </span>
                 <button
                   type="button"
-                  onClick={() => { endSession.mutate(); setConfirmEnd(false) }}
+                  onClick={() => {
+                    endSession.mutate()
+                    setConfirmEnd(false)
+                  }}
                   disabled={endSession.isPending}
                   style={{ ...qrShellStyles.dangerButton, padding: "12px 28px" }}
                 >
@@ -278,7 +411,16 @@ export function QrActiveSessionShell(props: {
                   type="button"
                   onClick={() => setConfirmEnd(false)}
                   className="ui-secondary-btn"
-                  style={{ padding: "10px 16px", border: `1px solid ${webTheme.colors.border}`, borderRadius: 10, background: webTheme.colors.surfaceRaised, color: webTheme.colors.text, fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                  style={{
+                    padding: "10px 16px",
+                    border: `1px solid ${webTheme.colors.border}`,
+                    borderRadius: 10,
+                    background: webTheme.colors.surfaceRaised,
+                    color: webTheme.colors.text,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
                 >
                   Cancel
                 </button>
@@ -297,7 +439,9 @@ export function QrActiveSessionShell(props: {
           </div>
 
           {endSession.error instanceof Error ? (
-            <div style={{ ...qrShellStyles.statusBanner, flexShrink: 0 }}>{endSession.error.message}</div>
+            <div style={{ ...qrShellStyles.statusBanner, flexShrink: 0 }}>
+              {endSession.error.message}
+            </div>
           ) : null}
         </div>
 
@@ -315,7 +459,15 @@ export function QrActiveSessionShell(props: {
             overflow: "hidden",
           }}
         >
-          <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: webTheme.colors.text, flexShrink: 0 }}>
+          <h3
+            style={{
+              margin: 0,
+              fontSize: 14,
+              fontWeight: 600,
+              color: webTheme.colors.text,
+              flexShrink: 0,
+            }}
+          >
             Live roster
           </h3>
           <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>

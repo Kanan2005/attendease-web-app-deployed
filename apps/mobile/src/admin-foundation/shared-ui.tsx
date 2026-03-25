@@ -80,9 +80,7 @@ export function AdminNavAction(props: {
             />
           ) : null}
           <Text
-            style={
-              props.variant === "primary" ? styles.primaryButtonLabel : styles.navButtonLabel
-            }
+            style={props.variant === "primary" ? styles.primaryButtonLabel : styles.navButtonLabel}
           >
             {props.label}
           </Text>

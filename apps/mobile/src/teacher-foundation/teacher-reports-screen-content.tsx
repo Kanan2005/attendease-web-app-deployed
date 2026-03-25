@@ -1,7 +1,15 @@
 import { getColors } from "@attendease/ui-mobile"
 import { Ionicons } from "@expo/vector-icons"
 import { useMemo, useState } from "react"
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native"
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native"
 import Animated, { FadeInDown } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
@@ -125,10 +133,22 @@ function toneBg(tone: string, c: ReturnType<typeof getColors>) {
 }
 
 // ── Attendance bar component ──
-function AttendanceBar({ percentage, tone, c }: { percentage: number; tone: string; c: ReturnType<typeof getColors> }) {
+function AttendanceBar({
+  percentage,
+  tone,
+  c,
+}: { percentage: number; tone: string; c: ReturnType<typeof getColors> }) {
   return (
     <View style={[rs.barTrack, { backgroundColor: c.surfaceTint }]}>
-      <View style={[rs.barFill, { width: `${Math.min(100, Math.max(0, percentage))}%`, backgroundColor: toneColor(tone, c) }]} />
+      <View
+        style={[
+          rs.barFill,
+          {
+            width: `${Math.min(100, Math.max(0, percentage))}%`,
+            backgroundColor: toneColor(tone, c),
+          },
+        ]}
+      />
     </View>
   )
 }
@@ -151,23 +171,33 @@ export function TeacherReportsScreenContent({
   const [showAllTrends, setShowAllTrends] = useState(false)
 
   const isLoading =
-    reports.classroomsQuery.isLoading || reports.sessionsQuery.isLoading ||
-    reports.daywiseQuery.isLoading || reports.subjectwiseQuery.isLoading ||
-    reports.studentPercentagesQuery.isLoading || reports.subjectOptionsQuery.isLoading
+    reports.classroomsQuery.isLoading ||
+    reports.sessionsQuery.isLoading ||
+    reports.daywiseQuery.isLoading ||
+    reports.subjectwiseQuery.isLoading ||
+    reports.studentPercentagesQuery.isLoading ||
+    reports.subjectOptionsQuery.isLoading
   const loadError =
-    reports.classroomsQuery.error ?? reports.daywiseQuery.error ??
-    reports.subjectwiseQuery.error ?? reports.studentPercentagesQuery.error ??
+    reports.classroomsQuery.error ??
+    reports.daywiseQuery.error ??
+    reports.subjectwiseQuery.error ??
+    reports.studentPercentagesQuery.error ??
     reports.subjectOptionsQuery.error
 
   const selectedClassroomLabel = selectedClassroomId
-    ? reports.filterOptions.classroomOptions.find((o) => o.value === selectedClassroomId)?.label ?? "All Classes"
+    ? (reports.filterOptions.classroomOptions.find((o) => o.value === selectedClassroomId)?.label ??
+      "All Classes")
     : "All Classes"
 
   // ── Sorted & grouped students ──
   const { atRiskStudents, healthyStudents, filteredStudents } = useMemo(() => {
     const query = studentSearch.trim().toLowerCase()
-    const all = [...reports.model.studentRows].sort((a, b) => a.attendancePercentage - b.attendancePercentage)
-    const filtered = query ? all.filter((r) => r.studentDisplayName.toLowerCase().includes(query)) : all
+    const all = [...reports.model.studentRows].sort(
+      (a, b) => a.attendancePercentage - b.attendancePercentage,
+    )
+    const filtered = query
+      ? all.filter((r) => r.studentDisplayName.toLowerCase().includes(query))
+      : all
     const atRisk = filtered.filter((r) => r.followUpLabel.toLowerCase().includes("follow"))
     const healthy = filtered.filter((r) => !r.followUpLabel.toLowerCase().includes("follow"))
     return { atRiskStudents: atRisk, healthyStudents: healthy, filteredStudents: filtered }
@@ -175,16 +205,33 @@ export function TeacherReportsScreenContent({
 
   if (!session) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 32,
+        }}
+      >
         <Ionicons name="lock-closed-outline" size={40} color={c.textSubtle} />
-        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>Sign in required</Text>
+        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>
+          Sign in required
+        </Text>
       </View>
     )
   }
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center" }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <ActivityIndicator size="large" color={c.primary} />
         <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 12 }}>Loading reports…</Text>
       </View>
@@ -193,9 +240,19 @@ export function TeacherReportsScreenContent({
 
   if (loadError) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 32,
+        }}
+      >
         <Ionicons name="alert-circle" size={40} color={c.danger} />
-        <Text style={{ fontSize: 14, color: c.danger, marginTop: 12, textAlign: "center" }}>{mapTeacherApiErrorToMessage(loadError)}</Text>
+        <Text style={{ fontSize: 14, color: c.danger, marginTop: 12, textAlign: "center" }}>
+          {mapTeacherApiErrorToMessage(loadError)}
+        </Text>
       </View>
     )
   }
@@ -204,22 +261,40 @@ export function TeacherReportsScreenContent({
   function renderStudentRow(row: (typeof reports.model.studentRows)[0], i: number) {
     const isAtRisk = row.followUpLabel.toLowerCase().includes("follow")
     return (
-      <Animated.View key={`${row.classroomId}-${row.studentId}`} entering={FadeInDown.duration(150).delay(i * 20)}>
+      <Animated.View
+        key={`${row.classroomId}-${row.studentId}`}
+        entering={FadeInDown.duration(150).delay(i * 20)}
+      >
         <View style={[rs.studentRow, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <View style={[rs.avatar, { backgroundColor: isAtRisk ? toneBg(row.tone, c) : c.surfaceTint }]}>
-              <Text style={{ fontSize: 13, fontWeight: "800", color: isAtRisk ? toneColor(row.tone, c) : c.primary }}>
+            <View
+              style={[
+                rs.avatar,
+                { backgroundColor: isAtRisk ? toneBg(row.tone, c) : c.surfaceTint },
+              ]}
+            >
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: "800",
+                  color: isAtRisk ? toneColor(row.tone, c) : c.primary,
+                }}
+              >
                 {row.studentDisplayName.charAt(0).toUpperCase()}
               </Text>
             </View>
             <View style={{ flex: 1, gap: 2 }}>
-              <Text style={{ fontSize: 13, fontWeight: "600", color: c.text }} numberOfLines={1}>{row.studentDisplayName}</Text>
+              <Text style={{ fontSize: 13, fontWeight: "600", color: c.text }} numberOfLines={1}>
+                {row.studentDisplayName}
+              </Text>
               <Text style={{ fontSize: 11, color: c.textMuted }} numberOfLines={1}>
                 {row.subjectTitle} · {row.presentSessions}/{row.totalSessions} present
               </Text>
             </View>
             <View style={{ alignItems: "flex-end", gap: 2 }}>
-              <Text style={{ fontSize: 14, fontWeight: "800", color: toneColor(row.tone, c) }}>{row.attendancePercentage}%</Text>
+              <Text style={{ fontSize: 14, fontWeight: "800", color: toneColor(row.tone, c) }}>
+                {row.attendancePercentage}%
+              </Text>
               {isAtRisk ? (
                 <View style={[rs.riskBadge, { backgroundColor: toneBg(row.tone, c) }]}>
                   <Text style={{ fontSize: 9, fontWeight: "700", color: toneColor(row.tone, c) }}>
@@ -248,27 +323,71 @@ export function TeacherReportsScreenContent({
 
       {/* ── Classroom filter ── */}
       <View style={{ paddingHorizontal: 16, paddingBottom: 8 }}>
-        <Pressable onPress={() => setClassroomOpen((v) => !v)}
-          style={[rs.dropdownTrigger, { borderColor: classroomOpen ? c.primary : c.border, backgroundColor: c.surfaceRaised }]}>
+        <Pressable
+          onPress={() => setClassroomOpen((v) => !v)}
+          style={[
+            rs.dropdownTrigger,
+            { borderColor: classroomOpen ? c.primary : c.border, backgroundColor: c.surfaceRaised },
+          ]}
+        >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}>
             <Ionicons name="school-outline" size={16} color={c.textSubtle} />
-            <Text style={{ fontSize: 14, fontWeight: "600", color: c.text }} numberOfLines={1}>{selectedClassroomLabel}</Text>
+            <Text style={{ fontSize: 14, fontWeight: "600", color: c.text }} numberOfLines={1}>
+              {selectedClassroomLabel}
+            </Text>
           </View>
-          <Ionicons name={classroomOpen ? "chevron-up" : "chevron-down"} size={16} color={c.textSubtle} />
+          <Ionicons
+            name={classroomOpen ? "chevron-up" : "chevron-down"}
+            size={16}
+            color={c.textSubtle}
+          />
         </Pressable>
         {classroomOpen ? (
-          <View style={[rs.dropdownMenu, { borderColor: c.border, backgroundColor: c.surfaceRaised }]}>
-            <Pressable onPress={() => { setSelectedClassroomId(""); setClassroomOpen(false) }}
-              style={[rs.dropdownItem, !selectedClassroomId && { backgroundColor: c.primarySoft }]}>
-              <Text style={{ fontSize: 13, color: !selectedClassroomId ? c.primary : c.text, fontWeight: !selectedClassroomId ? "700" : "400" }}>All Classes</Text>
-              {!selectedClassroomId ? <Ionicons name="checkmark" size={16} color={c.primary} /> : null}
+          <View
+            style={[rs.dropdownMenu, { borderColor: c.border, backgroundColor: c.surfaceRaised }]}
+          >
+            <Pressable
+              onPress={() => {
+                setSelectedClassroomId("")
+                setClassroomOpen(false)
+              }}
+              style={[rs.dropdownItem, !selectedClassroomId && { backgroundColor: c.primarySoft }]}
+            >
+              <Text
+                style={{
+                  fontSize: 13,
+                  color: !selectedClassroomId ? c.primary : c.text,
+                  fontWeight: !selectedClassroomId ? "700" : "400",
+                }}
+              >
+                All Classes
+              </Text>
+              {!selectedClassroomId ? (
+                <Ionicons name="checkmark" size={16} color={c.primary} />
+              ) : null}
             </Pressable>
             {reports.filterOptions.classroomOptions.map((opt) => {
               const active = selectedClassroomId === opt.value
               return (
-                <Pressable key={opt.value} onPress={() => { setSelectedClassroomId(opt.value); setClassroomOpen(false) }}
-                  style={[rs.dropdownItem, active && { backgroundColor: c.primarySoft }]}>
-                  <Text style={{ fontSize: 13, color: active ? c.primary : c.text, fontWeight: active ? "700" : "400", flex: 1 }} numberOfLines={1}>{opt.label}</Text>
+                <Pressable
+                  key={opt.value}
+                  onPress={() => {
+                    setSelectedClassroomId(opt.value)
+                    setClassroomOpen(false)
+                  }}
+                  style={[rs.dropdownItem, active && { backgroundColor: c.primarySoft }]}
+                >
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      color: active ? c.primary : c.text,
+                      fontWeight: active ? "700" : "400",
+                      flex: 1,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {opt.label}
+                  </Text>
                   {active ? <Ionicons name="checkmark" size={16} color={c.primary} /> : null}
                 </Pressable>
               )
@@ -281,9 +400,24 @@ export function TeacherReportsScreenContent({
       {reports.model.summaryCards.length > 0 ? (
         <View style={rs.statsRow}>
           {reports.model.summaryCards.map((card) => (
-            <View key={card.label} style={[rs.statCell, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}>
-              <Text style={{ fontSize: 10, fontWeight: "600", color: c.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>{card.label}</Text>
-              <Text style={{ fontSize: 18, fontWeight: "800", color: toneColor(card.tone, c) }}>{card.value}</Text>
+            <View
+              key={card.label}
+              style={[rs.statCell, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}
+            >
+              <Text
+                style={{
+                  fontSize: 10,
+                  fontWeight: "600",
+                  color: c.textMuted,
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
+                }}
+              >
+                {card.label}
+              </Text>
+              <Text style={{ fontSize: 18, fontWeight: "800", color: toneColor(card.tone, c) }}>
+                {card.value}
+              </Text>
             </View>
           ))}
         </View>
@@ -293,19 +427,45 @@ export function TeacherReportsScreenContent({
       <View style={[rs.tabBar, { borderBottomColor: c.border }]}>
         {TABS.map((tab) => {
           const active = activeTab === tab.key
-          const count = tab.key === "students" ? filteredStudents.length
-            : tab.key === "subjects" ? reports.model.subjectRows.length
-            : reports.model.sessionTrendRows.length
+          const count =
+            tab.key === "students"
+              ? filteredStudents.length
+              : tab.key === "subjects"
+                ? reports.model.subjectRows.length
+                : reports.model.sessionTrendRows.length
           return (
-            <Pressable key={tab.key} onPress={() => { setActiveTab(tab.key); setShowAllStudents(false); setShowAllTrends(false) }}
-              style={[rs.tab, active && { borderBottomColor: c.primary, borderBottomWidth: 2 }]}>
+            <Pressable
+              key={tab.key}
+              onPress={() => {
+                setActiveTab(tab.key)
+                setShowAllStudents(false)
+                setShowAllTrends(false)
+              }}
+              style={[rs.tab, active && { borderBottomColor: c.primary, borderBottomWidth: 2 }]}
+            >
               <Ionicons name={tab.icon} size={16} color={active ? c.primary : c.textMuted} />
-              <Text style={{ fontSize: 13, fontWeight: active ? "700" : "500", color: active ? c.primary : c.textMuted }}>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: active ? "700" : "500",
+                  color: active ? c.primary : c.textMuted,
+                }}
+              >
                 {tab.label}
               </Text>
               {count > 0 ? (
-                <View style={[rs.tabBadge, { backgroundColor: active ? c.primarySoft : c.surfaceTint }]}>
-                  <Text style={{ fontSize: 10, fontWeight: "700", color: active ? c.primary : c.textSubtle }}>{count}</Text>
+                <View
+                  style={[rs.tabBadge, { backgroundColor: active ? c.primarySoft : c.surfaceTint }]}
+                >
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: "700",
+                      color: active ? c.primary : c.textSubtle,
+                    }}
+                  >
+                    {count}
+                  </Text>
                 </View>
               ) : null}
             </Pressable>
@@ -320,12 +480,16 @@ export function TeacherReportsScreenContent({
           reports.model.studentRows.length === 0 ? (
             <View style={{ alignItems: "center", paddingVertical: 32 }}>
               <Ionicons name="people-outline" size={36} color={c.textSubtle} />
-              <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 8 }}>No student data for these filters</Text>
+              <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 8 }}>
+                No student data for these filters
+              </Text>
             </View>
           ) : (
             <>
               {/* Search */}
-              <View style={[rs.searchBar, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}>
+              <View
+                style={[rs.searchBar, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}
+              >
                 <Ionicons name="search-outline" size={16} color={c.textSubtle} />
                 <TextInput
                   style={{ flex: 1, fontSize: 13, color: c.text, paddingVertical: 0 }}
@@ -342,7 +506,14 @@ export function TeacherReportsScreenContent({
               </View>
 
               {filteredStudents.length === 0 ? (
-                <Text style={{ fontSize: 13, color: c.textMuted, textAlign: "center", paddingVertical: 16 }}>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: c.textMuted,
+                    textAlign: "center",
+                    paddingVertical: 16,
+                  }}
+                >
                   No students match "{studentSearch}"
                 </Text>
               ) : (
@@ -356,7 +527,9 @@ export function TeacherReportsScreenContent({
                           Needs Attention ({atRiskStudents.length})
                         </Text>
                       </View>
-                      {(showAllStudents ? atRiskStudents : atRiskStudents.slice(0, 10)).map((row, i) => renderStudentRow(row, i))}
+                      {(showAllStudents ? atRiskStudents : atRiskStudents.slice(0, 10)).map(
+                        (row, i) => renderStudentRow(row, i),
+                      )}
                     </>
                   ) : null}
 
@@ -369,15 +542,18 @@ export function TeacherReportsScreenContent({
                           Healthy ({healthyStudents.length})
                         </Text>
                       </View>
-                      {(showAllStudents ? healthyStudents : healthyStudents.slice(0, 5)).map((row, i) =>
-                        renderStudentRow(row, i + atRiskStudents.length),
+                      {(showAllStudents ? healthyStudents : healthyStudents.slice(0, 5)).map(
+                        (row, i) => renderStudentRow(row, i + atRiskStudents.length),
                       )}
                     </>
                   ) : null}
 
                   {/* Show all toggle */}
                   {!showAllStudents && filteredStudents.length > 10 ? (
-                    <Pressable onPress={() => setShowAllStudents(true)} style={{ alignItems: "center", paddingVertical: 10 }}>
+                    <Pressable
+                      onPress={() => setShowAllStudents(true)}
+                      style={{ alignItems: "center", paddingVertical: 10 }}
+                    >
                       <Text style={{ fontSize: 13, fontWeight: "600", color: c.primary }}>
                         Show all {filteredStudents.length} students
                       </Text>
@@ -394,32 +570,82 @@ export function TeacherReportsScreenContent({
           reports.model.subjectRows.length === 0 ? (
             <View style={{ alignItems: "center", paddingVertical: 32 }}>
               <Ionicons name="library-outline" size={36} color={c.textSubtle} />
-              <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 8 }}>No subject data for these filters</Text>
+              <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 8 }}>
+                No subject data for these filters
+              </Text>
             </View>
           ) : (
             reports.model.subjectRows.map((row, i) => (
-              <Animated.View key={`${row.classroomId}-${row.subjectId}`} entering={FadeInDown.duration(150).delay(i * 30)}>
-                <View style={[rs.subjectCard, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}>
+              <Animated.View
+                key={`${row.classroomId}-${row.subjectId}`}
+                entering={FadeInDown.duration(150).delay(i * 30)}
+              >
+                <View
+                  style={[
+                    rs.subjectCard,
+                    { backgroundColor: c.surfaceRaised, borderColor: c.border },
+                  ]}
+                >
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                     <View style={[rs.avatar, { backgroundColor: toneBg(row.tone, c) }]}>
                       <Ionicons name="library-outline" size={16} color={toneColor(row.tone, c)} />
                     </View>
                     <View style={{ flex: 1, gap: 1 }}>
-                      <Text style={{ fontSize: 14, fontWeight: "700", color: c.text }} numberOfLines={1}>{row.subjectTitle}</Text>
-                      <Text style={{ fontSize: 11, color: c.textMuted }} numberOfLines={1}>{row.classroomTitle}</Text>
+                      <Text
+                        style={{ fontSize: 14, fontWeight: "700", color: c.text }}
+                        numberOfLines={1}
+                      >
+                        {row.subjectTitle}
+                      </Text>
+                      <Text style={{ fontSize: 11, color: c.textMuted }} numberOfLines={1}>
+                        {row.classroomTitle}
+                      </Text>
                     </View>
-                    <Text style={{ fontSize: 18, fontWeight: "800", color: toneColor(row.tone, c) }}>{row.attendancePercentage}%</Text>
+                    <Text
+                      style={{ fontSize: 18, fontWeight: "800", color: toneColor(row.tone, c) }}
+                    >
+                      {row.attendancePercentage}%
+                    </Text>
                   </View>
                   <AttendanceBar percentage={row.attendancePercentage} tone={row.tone} c={c} />
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                    <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, backgroundColor: c.surfaceTint }}>
-                      <Text style={{ fontSize: 10, fontWeight: "600", color: c.textMuted }}>{row.totalSessions} sessions</Text>
+                  <View
+                    style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}
+                  >
+                    <View
+                      style={{
+                        paddingHorizontal: 8,
+                        paddingVertical: 3,
+                        borderRadius: 6,
+                        backgroundColor: c.surfaceTint,
+                      }}
+                    >
+                      <Text style={{ fontSize: 10, fontWeight: "600", color: c.textMuted }}>
+                        {row.totalSessions} sessions
+                      </Text>
                     </View>
-                    <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, backgroundColor: c.successSoft }}>
-                      <Text style={{ fontSize: 10, fontWeight: "600", color: c.success }}>{row.presentCount} present</Text>
+                    <View
+                      style={{
+                        paddingHorizontal: 8,
+                        paddingVertical: 3,
+                        borderRadius: 6,
+                        backgroundColor: c.successSoft,
+                      }}
+                    >
+                      <Text style={{ fontSize: 10, fontWeight: "600", color: c.success }}>
+                        {row.presentCount} present
+                      </Text>
                     </View>
-                    <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, backgroundColor: c.dangerSoft }}>
-                      <Text style={{ fontSize: 10, fontWeight: "600", color: c.danger }}>{row.absentCount} absent</Text>
+                    <View
+                      style={{
+                        paddingHorizontal: 8,
+                        paddingVertical: 3,
+                        borderRadius: 6,
+                        backgroundColor: c.dangerSoft,
+                      }}
+                    >
+                      <Text style={{ fontSize: 10, fontWeight: "600", color: c.danger }}>
+                        {row.absentCount} absent
+                      </Text>
                     </View>
                   </View>
                   <Text style={{ fontSize: 10, color: c.textSubtle }}>{row.lastActivityLabel}</Text>
@@ -434,33 +660,95 @@ export function TeacherReportsScreenContent({
           reports.model.sessionTrendRows.length === 0 ? (
             <View style={{ alignItems: "center", paddingVertical: 32 }}>
               <Ionicons name="trending-up-outline" size={36} color={c.textSubtle} />
-              <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 8 }}>No session data for these filters</Text>
+              <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 8 }}>
+                No session data for these filters
+              </Text>
             </View>
           ) : (
             <>
-              {(showAllTrends ? reports.model.sessionTrendRows : reports.model.sessionTrendRows.slice(0, 15)).map((row, i) => {
+              {(showAllTrends
+                ? reports.model.sessionTrendRows
+                : reports.model.sessionTrendRows.slice(0, 15)
+              ).map((row, i) => {
                 const dt = row.startedAt ? new Date(row.startedAt) : null
-                const timeStr = dt ? dt.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }) : "—"
-                const modeIcon: keyof typeof Ionicons.glyphMap = row.mode === "BLUETOOTH" ? "bluetooth-outline" : "qr-code-outline"
+                const timeStr = dt
+                  ? dt.toLocaleTimeString("en-IN", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })
+                  : "—"
+                const modeIcon: keyof typeof Ionicons.glyphMap =
+                  row.mode === "BLUETOOTH" ? "bluetooth-outline" : "qr-code-outline"
                 return (
-                  <Animated.View key={row.sessionId} entering={FadeInDown.duration(150).delay(i * 20)}>
-                    <View style={[rs.trendRow, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}>
+                  <Animated.View
+                    key={row.sessionId}
+                    entering={FadeInDown.duration(150).delay(i * 20)}
+                  >
+                    <View
+                      style={[
+                        rs.trendRow,
+                        { backgroundColor: c.surfaceRaised, borderColor: c.border },
+                      ]}
+                    >
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                         <View style={[rs.dateBadge, { backgroundColor: toneBg(row.tone, c) }]}>
-                          <Text style={{ fontSize: 10, fontWeight: "800", color: toneColor(row.tone, c) }}>
+                          <Text
+                            style={{
+                              fontSize: 10,
+                              fontWeight: "800",
+                              color: toneColor(row.tone, c),
+                            }}
+                          >
                             {dt ? dt.toLocaleDateString("en-IN", { day: "2-digit" }) : "—"}
                           </Text>
-                          <Text style={{ fontSize: 8, fontWeight: "600", color: toneColor(row.tone, c), opacity: 0.7 }}>
+                          <Text
+                            style={{
+                              fontSize: 8,
+                              fontWeight: "600",
+                              color: toneColor(row.tone, c),
+                              opacity: 0.7,
+                            }}
+                          >
                             {dt ? dt.toLocaleDateString("en-IN", { month: "short" }) : ""}
                           </Text>
                         </View>
                         <View style={{ flex: 1, gap: 3 }}>
-                          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                            <Text style={{ fontSize: 13, fontWeight: "600", color: c.text, flex: 1 }} numberOfLines={1}>{row.subjectTitle}</Text>
-                            <Text style={{ fontSize: 14, fontWeight: "800", color: toneColor(row.tone, c) }}>{row.attendancePercentage}%</Text>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <Text
+                              style={{ fontSize: 13, fontWeight: "600", color: c.text, flex: 1 }}
+                              numberOfLines={1}
+                            >
+                              {row.subjectTitle}
+                            </Text>
+                            <Text
+                              style={{
+                                fontSize: 14,
+                                fontWeight: "800",
+                                color: toneColor(row.tone, c),
+                              }}
+                            >
+                              {row.attendancePercentage}%
+                            </Text>
                           </View>
-                          <AttendanceBar percentage={row.attendancePercentage} tone={row.tone} c={c} />
-                          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                          <AttendanceBar
+                            percentage={row.attendancePercentage}
+                            tone={row.tone}
+                            c={c}
+                          />
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                            }}
+                          >
                             <Text style={{ fontSize: 10, color: c.textMuted }}>
                               {row.presentCount}P / {row.absentCount}A · {row.classroomTitle}
                             </Text>
@@ -476,7 +764,10 @@ export function TeacherReportsScreenContent({
                 )
               })}
               {!showAllTrends && reports.model.sessionTrendRows.length > 15 ? (
-                <Pressable onPress={() => setShowAllTrends(true)} style={{ alignItems: "center", paddingVertical: 10 }}>
+                <Pressable
+                  onPress={() => setShowAllTrends(true)}
+                  style={{ alignItems: "center", paddingVertical: 10 }}
+                >
                   <Text style={{ fontSize: 13, fontWeight: "600", color: c.primary }}>
                     Show all {reports.model.sessionTrendRows.length} sessions
                   </Text>
@@ -494,51 +785,97 @@ const rs = StyleSheet.create({
   header: { paddingHorizontal: 20, paddingBottom: 6 },
   heading: { fontSize: 22, fontWeight: "800" },
   dropdownTrigger: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
   dropdownMenu: {
-    borderWidth: 1, borderTopWidth: 0, borderBottomLeftRadius: 12, borderBottomRightRadius: 12,
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
     overflow: "hidden",
   },
   dropdownItem: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 14, paddingVertical: 11,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 11,
   },
   statsRow: {
-    flexDirection: "row", gap: 8,
-    paddingHorizontal: 16, paddingVertical: 6,
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
   },
   statCell: {
-    flex: 1, borderWidth: 1, borderRadius: 12,
-    paddingHorizontal: 14, paddingVertical: 10, gap: 2,
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    gap: 2,
   },
   tabBar: {
-    flexDirection: "row", borderBottomWidth: 1,
-    marginTop: 8, marginHorizontal: 16,
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    marginTop: 8,
+    marginHorizontal: 16,
   },
   tab: {
-    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center",
-    gap: 5, paddingVertical: 10, borderBottomWidth: 2, borderBottomColor: "transparent",
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    paddingVertical: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
   },
   tabBadge: {
-    minWidth: 18, height: 18, borderRadius: 9,
-    alignItems: "center", justifyContent: "center", paddingHorizontal: 4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
   },
   searchBar: {
-    flexDirection: "row", alignItems: "center", gap: 8,
-    borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   sectionHeader: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginTop: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginTop: 4,
   },
   studentRow: {
-    borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, gap: 6,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 6,
   },
   avatar: {
-    width: 32, height: 32, borderRadius: 16,
-    alignItems: "center", justifyContent: "center",
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
   },
   riskBadge: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 },
   barTrack: { height: 4, borderRadius: 2, overflow: "hidden" },
@@ -546,7 +883,10 @@ const rs = StyleSheet.create({
   subjectCard: { borderWidth: 1, borderRadius: 12, padding: 14, gap: 8 },
   trendRow: { borderWidth: 1, borderRadius: 12, padding: 12, gap: 4 },
   dateBadge: {
-    width: 36, height: 36, borderRadius: 8,
-    alignItems: "center", justifyContent: "center",
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
 })

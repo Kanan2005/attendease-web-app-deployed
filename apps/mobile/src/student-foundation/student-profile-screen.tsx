@@ -161,10 +161,7 @@ export function StudentProfileScreen() {
     classroomsQuery.data?.filter((classroom) => classroom.enrollmentStatus === "ACTIVE").length ?? 0
 
   return (
-    <StudentScreen
-      title="Profile"
-      subtitle="Your account and display preferences."
-    >
+    <StudentScreen title="Profile" subtitle="Your account and display preferences.">
       {!session ? (
         <StudentSessionSetupCard />
       ) : meQuery.isLoading || classroomsQuery.isLoading ? (
@@ -196,7 +193,7 @@ export function StudentProfileScreen() {
                 alignItems: "center",
                 justifyContent: "center",
                 borderWidth: 3,
-                borderColor: c.primary + "30",
+                borderColor: `${c.primary}30`,
               }}
             >
               <Text style={{ fontSize: 28, fontWeight: "800", color: c.primary }}>
@@ -255,13 +252,14 @@ export function StudentProfileScreen() {
                 </Text>
               </View>
             </View>
-            <StudentNavAction href={studentRoutes.deviceStatus} label="Device Status" icon="phone-portrait-outline" />
+            <StudentNavAction
+              href={studentRoutes.deviceStatus}
+              label="Device Status"
+              icon="phone-portrait-outline"
+            />
           </View>
 
-          <StudentCard
-            title="Academic Info"
-            subtitle="Your degree, branch, and roll number."
-          >
+          <StudentCard title="Academic Info" subtitle="Your degree, branch, and roll number.">
             <ProfileFieldLabel icon="school-outline" label="Degree" />
             <View style={{ flexDirection: "row", gap: 8 }}>
               {(["B.Tech", "M.Tech"] as const).map((deg) => {
@@ -282,7 +280,15 @@ export function StudentProfileScreen() {
                       backgroundColor: isActive ? c.primarySoft : c.surface,
                     }}
                   >
-                    <Text style={{ fontSize: 14, fontWeight: isActive ? "700" : "500", color: isActive ? c.primary : c.textMuted }}>{deg}</Text>
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: isActive ? "700" : "500",
+                        color: isActive ? c.primary : c.textMuted,
+                      }}
+                    >
+                      {deg}
+                    </Text>
                   </Pressable>
                 )
               })}
@@ -308,7 +314,15 @@ export function StudentProfileScreen() {
                       backgroundColor: isActive ? c.primarySoft : c.surface,
                     }}
                   >
-                    <Text style={{ fontSize: 14, fontWeight: isActive ? "700" : "500", color: isActive ? c.primary : c.textMuted }}>{br}</Text>
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: isActive ? "700" : "500",
+                        color: isActive ? c.primary : c.textMuted,
+                      }}
+                    >
+                      {br}
+                    </Text>
                   </Pressable>
                 )
               })}
@@ -328,10 +342,7 @@ export function StudentProfileScreen() {
             />
           </StudentCard>
 
-          <StudentCard
-            title="Display Preferences"
-            subtitle="How your name appears in AttendEase."
-          >
+          <StudentCard title="Display Preferences" subtitle="How your name appears in AttendEase.">
             <ProfileFieldLabel icon="person-outline" label="Full display name" />
             <TextInput
               value={draft.displayName}
@@ -360,13 +371,35 @@ export function StudentProfileScreen() {
           </StudentCard>
 
           {saveError ? (
-            <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, backgroundColor: c.dangerSoft, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: c.dangerBorder }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "flex-start",
+                gap: 8,
+                backgroundColor: c.dangerSoft,
+                borderRadius: 10,
+                padding: 12,
+                borderWidth: 1,
+                borderColor: c.dangerBorder,
+              }}
+            >
               <Ionicons name="alert-circle" size={16} color={c.danger} />
               <Text style={[styles.bodyText, { color: c.danger, flex: 1 }]}>{saveError}</Text>
             </View>
           ) : null}
           {saveMessage ? (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: c.successSoft, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: c.success + "30" }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                backgroundColor: c.successSoft,
+                borderRadius: 10,
+                padding: 12,
+                borderWidth: 1,
+                borderColor: `${c.success}30`,
+              }}
+            >
               <Ionicons name="checkmark-circle" size={16} color={c.success} />
               <Text style={styles.successText}>{saveMessage}</Text>
             </View>
@@ -374,7 +407,11 @@ export function StudentProfileScreen() {
 
           <View style={{ flexDirection: "row", gap: 10 }}>
             <Pressable
-              style={[styles.primaryButton, { flex: 1, flexDirection: "row", justifyContent: "center", gap: 8 }, !canSave ? { opacity: 0.5 } : null]}
+              style={[
+                styles.primaryButton,
+                { flex: 1, flexDirection: "row", justifyContent: "center", gap: 8 },
+                !canSave ? { opacity: 0.5 } : null,
+              ]}
               disabled={!canSave}
               onPress={() => {
                 setSaveError(null)
@@ -416,7 +453,10 @@ export function StudentProfileScreen() {
               </Text>
             </Pressable>
             <Pressable
-              style={[styles.secondaryButton, { flex: 0.5, flexDirection: "row", justifyContent: "center", gap: 6 }]}
+              style={[
+                styles.secondaryButton,
+                { flex: 0.5, flexDirection: "row", justifyContent: "center", gap: 6 },
+              ]}
               disabled={updateProfileMutation.isPending}
               onPress={() => {
                 setSaveMessage(null)
@@ -447,7 +487,15 @@ export function StudentProfileScreen() {
               <Ionicons name="log-out-outline" size={18} color={c.danger} />
               <Text style={{ color: c.danger, fontSize: 15, fontWeight: "700" }}>Sign out</Text>
             </Pressable>
-            <Text style={{ color: c.textSubtle, fontSize: 12, textAlign: "center", lineHeight: 18, paddingHorizontal: 8 }}>
+            <Text
+              style={{
+                color: c.textSubtle,
+                fontSize: 12,
+                textAlign: "center",
+                lineHeight: 18,
+                paddingHorizontal: 8,
+              }}
+            >
               Your email and attendance-device registration are managed by admin.
             </Text>
           </View>
@@ -461,7 +509,9 @@ function ProfileFieldLabel(props: { icon: string; label: string }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
       <Ionicons name={props.icon as "school-outline"} size={14} color={getColors().textSubtle} />
-      <Text style={{ color: getColors().textMuted, fontSize: 13, fontWeight: "600" }}>{props.label}</Text>
+      <Text style={{ color: getColors().textMuted, fontSize: 13, fontWeight: "600" }}>
+        {props.label}
+      </Text>
     </View>
   )
 }

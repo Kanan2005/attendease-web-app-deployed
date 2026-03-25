@@ -148,10 +148,7 @@ export function StudentReportsScreen() {
     : null
 
   return (
-    <StudentScreen
-      title="Reports"
-      subtitle="Attendance breakdown by subject."
-    >
+    <StudentScreen title="Reports" subtitle="Attendance breakdown by subject.">
       <StudentStatusBanner status={reportStatus} />
       {!session ? (
         <StudentSessionSetupCard />
@@ -173,15 +170,35 @@ export function StudentReportsScreen() {
           >
             {/* Progress Bar */}
             <View style={{ gap: 6 }}>
-              <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" }}>
-                <Text style={{ fontSize: 32, fontWeight: "800", color: toneColorStyle(reportOverviewInsight?.tone ?? "primary").color }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "baseline",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 32,
+                    fontWeight: "800",
+                    color: toneColorStyle(reportOverviewInsight?.tone ?? "primary").color,
+                  }}
+                >
                   {reports.reportOverview.attendancePercentage}%
                 </Text>
                 <Text style={{ fontSize: 13, color: c.textMuted }}>
-                  {reports.reportOverview.totalSessions} session{reports.reportOverview.totalSessions === 1 ? "" : "s"}
+                  {reports.reportOverview.totalSessions} session
+                  {reports.reportOverview.totalSessions === 1 ? "" : "s"}
                 </Text>
               </View>
-              <View style={{ height: 10, borderRadius: 5, backgroundColor: c.surfaceMuted, overflow: "hidden" }}>
+              <View
+                style={{
+                  height: 10,
+                  borderRadius: 5,
+                  backgroundColor: c.surfaceMuted,
+                  overflow: "hidden",
+                }}
+              >
                 <View
                   style={{
                     height: 10,
@@ -222,7 +239,13 @@ export function StudentReportsScreen() {
 
           {reports.subjectReports.length ? (
             <>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }}>
                   Subjects ({reports.subjectReports.length})
                 </Text>
@@ -272,7 +295,14 @@ export function StudentReportsScreen() {
                         </View>
                       </View>
                       {/* Mini progress bar */}
-                      <View style={{ height: 6, borderRadius: 3, backgroundColor: c.surfaceMuted, overflow: "hidden" }}>
+                      <View
+                        style={{
+                          height: 6,
+                          borderRadius: 3,
+                          backgroundColor: c.surfaceMuted,
+                          overflow: "hidden",
+                        }}
+                      >
                         <View
                           style={{
                             height: 6,

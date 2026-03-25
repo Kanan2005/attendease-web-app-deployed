@@ -4,5 +4,9 @@ import { StudentBluetoothAttendanceScreen } from "../../../src/student-foundatio
 
 export default function StudentBluetoothAttendanceRoute() {
   const params = useLocalSearchParams<{ classroomId?: string }>()
-  return <StudentBluetoothAttendanceScreen {...(params.classroomId ? { classroomId: params.classroomId } : {})} />
+  return (
+    <StudentBluetoothAttendanceScreen
+      {...(params.classroomId ? { classroomId: params.classroomId } : {})}
+    />
+  )
 }

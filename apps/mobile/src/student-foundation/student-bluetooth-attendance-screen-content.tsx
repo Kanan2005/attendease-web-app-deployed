@@ -55,10 +55,10 @@ export function StudentBluetoothAttendanceScreenContent(props: Props) {
           >
             <Ionicons name="bluetooth" size={40} color={c.primary} />
           </View>
-          <Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>
-            Bluetooth is Off
-          </Text>
-          <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}>
+          <Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>Bluetooth is Off</Text>
+          <Text
+            style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}
+          >
             Turn on Bluetooth in your device settings to detect your teacher's signal.
           </Text>
           <Pressable
@@ -74,9 +74,7 @@ export function StudentBluetoothAttendanceScreenContent(props: Props) {
             onPress={() => void Linking.openSettings()}
           >
             <Ionicons name="settings-outline" size={18} color="#fff" />
-            <Text style={{ fontSize: 15, fontWeight: "700", color: "#fff" }}>
-              Open Settings
-            </Text>
+            <Text style={{ fontSize: 15, fontWeight: "700", color: "#fff" }}>Open Settings</Text>
           </Pressable>
           <Pressable style={styles.secondaryButton} onPress={props.onRetry}>
             <Text style={styles.secondaryButtonLabel}>Retry</Text>
@@ -99,8 +97,11 @@ export function StudentBluetoothAttendanceScreenContent(props: Props) {
           <Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>
             Bluetooth Permission Needed
           </Text>
-          <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}>
-            {props.errorMessage ?? "Allow Nearby Devices or Bluetooth scan access so AttendEase can detect your teacher's signal."}
+          <Text
+            style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}
+          >
+            {props.errorMessage ??
+              "Allow Nearby Devices or Bluetooth scan access so AttendEase can detect your teacher's signal."}
           </Text>
           <Pressable
             style={{
@@ -115,9 +116,7 @@ export function StudentBluetoothAttendanceScreenContent(props: Props) {
             onPress={() => void Linking.openSettings()}
           >
             <Ionicons name="settings-outline" size={18} color="#fff" />
-            <Text style={{ fontSize: 15, fontWeight: "700", color: "#fff" }}>
-              Open Settings
-            </Text>
+            <Text style={{ fontSize: 15, fontWeight: "700", color: "#fff" }}>Open Settings</Text>
           </Pressable>
           <Pressable style={styles.secondaryButton} onPress={props.onRetry}>
             <Text style={styles.secondaryButtonLabel}>Retry</Text>
@@ -137,11 +136,12 @@ export function StudentBluetoothAttendanceScreenContent(props: Props) {
           >
             <Ionicons name="bluetooth-outline" size={40} color={c.textSubtle} />
           </View>
-          <Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>
-            No Active Sessions
-          </Text>
-          <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}>
-            There are no Bluetooth attendance sessions open right now. Ask your teacher to start one.
+          <Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>No Active Sessions</Text>
+          <Text
+            style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}
+          >
+            There are no Bluetooth attendance sessions open right now. Ask your teacher to start
+            one.
           </Text>
           <Pressable style={styles.secondaryButton} onPress={props.onRetry}>
             <Text style={styles.secondaryButtonLabel}>Refresh</Text>
@@ -187,10 +187,10 @@ export function StudentBluetoothAttendanceScreenContent(props: Props) {
           >
             <Ionicons name="close-circle" size={48} color={c.danger} />
           </View>
-          <Text style={{ fontSize: 18, fontWeight: "700", color: c.danger }}>
-            Failed
-          </Text>
-          <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}>
+          <Text style={{ fontSize: 18, fontWeight: "700", color: c.danger }}>Failed</Text>
+          <Text
+            style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}
+          >
             {props.errorMessage ?? "Could not mark attendance. Please try again."}
           </Text>
           <Pressable
@@ -221,7 +221,9 @@ export function StudentBluetoothAttendanceScreenContent(props: Props) {
           <Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>
             {props.phase === "marking" ? "Marking Attendance…" : "Scanning for Teacher…"}
           </Text>
-          <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}>
+          <Text
+            style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}
+          >
             {props.phase === "marking"
               ? "Teacher signal detected. Submitting your attendance now."
               : "Keep your phone near your teacher. Attendance will be marked automatically."}

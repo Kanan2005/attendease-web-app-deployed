@@ -7,9 +7,7 @@ import Animated, { FadeInDown } from "react-native-reanimated"
 import { mapStudentApiErrorToMessage } from "../student-models"
 import { studentRoutes } from "../student-routes"
 import { useStudentSession } from "../student-session"
-import {
-  useStudentCourseDiscoveryData,
-} from "./queries"
+import { useStudentCourseDiscoveryData } from "./queries"
 import {
   StudentEmptyCard,
   StudentErrorCard,
@@ -42,7 +40,11 @@ export function StudentClassroomsScreen() {
   const liveCount = sortedCourses.filter((c) => c.hasOpenAttendance).length
 
   return (
-    <StudentScreen title="My Courses" subtitle={`${discovery.courseCards.length} enrolled`} headerRight={<StudentProfileButton />}>
+    <StudentScreen
+      title="My Courses"
+      subtitle={`${discovery.courseCards.length} enrolled`}
+      headerRight={<StudentProfileButton />}
+    >
       {!session ? (
         <StudentSessionSetupCard />
       ) : discovery.meQuery.isLoading ||
@@ -68,7 +70,9 @@ export function StudentClassroomsScreen() {
                   borderColor: c.dangerBorder,
                 }}
               >
-                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: c.danger }} />
+                <View
+                  style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: c.danger }}
+                />
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 15, fontWeight: "700", color: c.text }}>
                     {liveCount} live session{liveCount === 1 ? "" : "s"}
@@ -87,7 +91,10 @@ export function StudentClassroomsScreen() {
             const codeLabel = course.subtitle.split("·")[0]?.trim() ?? ""
             const isLive = course.hasOpenAttendance
             return (
-              <Animated.View key={course.classroomId} entering={FadeInDown.duration(300).delay((liveCount > 0 ? 60 : 0) + i * 60)}>
+              <Animated.View
+                key={course.classroomId}
+                entering={FadeInDown.duration(300).delay((liveCount > 0 ? 60 : 0) + i * 60)}
+              >
                 <Pressable
                   onPress={() => router.push(studentRoutes.classroomDetail(course.classroomId))}
                   style={{
@@ -111,8 +118,17 @@ export function StudentClassroomsScreen() {
                         paddingVertical: 6,
                       }}
                     >
-                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#fff" }} />
-                      <Text style={{ fontSize: 12, fontWeight: "800", color: "#fff", letterSpacing: 0.5 }}>
+                      <View
+                        style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#fff" }}
+                      />
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontWeight: "800",
+                          color: "#fff",
+                          letterSpacing: 0.5,
+                        }}
+                      >
                         ATTENDANCE LIVE — TAP TO MARK
                       </Text>
                     </View>
@@ -125,24 +141,38 @@ export function StudentClassroomsScreen() {
                           width: 48,
                           height: 48,
                           borderRadius: 14,
-                          backgroundColor: isLive ? c.danger + "20" : c.primarySoft,
+                          backgroundColor: isLive ? `${c.danger}20` : c.primarySoft,
                           alignItems: "center",
                           justifyContent: "center",
                         }}
                       >
-                        <Text style={{ fontSize: 14, fontWeight: "800", color: isLive ? c.danger : c.primary }}>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontWeight: "800",
+                            color: isLive ? c.danger : c.primary,
+                          }}
+                        >
                           {codeLabel.slice(0, 3).toUpperCase()}
                         </Text>
                       </View>
                       <View style={{ flex: 1, gap: 2 }}>
-                        <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }} numberOfLines={1}>
+                        <Text
+                          style={{ fontSize: 16, fontWeight: "700", color: c.text }}
+                          numberOfLines={1}
+                        >
                           {course.title}
                         </Text>
                         <Text style={{ fontSize: 13, color: c.textMuted }} numberOfLines={1}>
-                          {codeLabel}{course.teacherName ? ` · ${course.teacherName}` : ""}
+                          {codeLabel}
+                          {course.teacherName ? ` · ${course.teacherName}` : ""}
                         </Text>
                       </View>
-                      <Ionicons name="chevron-forward" size={20} color={isLive ? c.danger : c.textSubtle} />
+                      <Ionicons
+                        name="chevron-forward"
+                        size={20}
+                        color={isLive ? c.danger : c.textSubtle}
+                      />
                     </View>
                   </View>
                 </Pressable>
@@ -153,13 +183,19 @@ export function StudentClassroomsScreen() {
         </>
       ) : (
         <Animated.View entering={FadeInDown.duration(400)}>
-          <View style={{ alignItems: "center", gap: 14, paddingVertical: 32, paddingHorizontal: 24 }}>
+          <View
+            style={{ alignItems: "center", gap: 14, paddingVertical: 32, paddingHorizontal: 24 }}
+          >
             <Ionicons name="school-outline" size={44} color={c.textSubtle} />
             <Text style={{ fontSize: 17, fontWeight: "600", color: c.text }}>No courses yet</Text>
             <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", lineHeight: 21 }}>
               Ask your teacher for a join code and tap the button below to enroll.
             </Text>
-            <StudentNavAction href={studentRoutes.join} label="Join Classroom" icon="enter-outline" />
+            <StudentNavAction
+              href={studentRoutes.join}
+              label="Join Classroom"
+              icon="enter-outline"
+            />
           </View>
         </Animated.View>
       )}

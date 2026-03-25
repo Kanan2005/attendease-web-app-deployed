@@ -13,8 +13,8 @@ import {
   YAxis,
 } from "recharts"
 
-import { useChartColors, type ChartColors } from "../theme-context"
 import type { TeacherWebSummaryCard } from "../teacher-review-workflows-types"
+import { type ChartColors, useChartColors } from "../theme-context"
 
 export function ReportSummaryRings(props: { cards: TeacherWebSummaryCard[] }) {
   const cc = useChartColors()
@@ -35,35 +35,63 @@ export function ReportSummaryRings(props: { cards: TeacherWebSummaryCard[] }) {
     props.cards.find((c) => c.label === "Sessions")
   const sessionsCount = sessionsCard ? Number.parseInt(sessionsCard.value, 10) || 0 : 0
   const sessionsCap = Math.max(sessionsCount, 30)
-  const sessionsData = sessionsCount > 0
-    ? [
-        { name: "Taken", value: sessionsCount, fill: cc.success },
-        { name: "Remaining", value: Math.max(0, sessionsCap - sessionsCount), fill: cc.border },
-      ]
-    : []
+  const sessionsData =
+    sessionsCount > 0
+      ? [
+          { name: "Taken", value: sessionsCount, fill: cc.success },
+          { name: "Remaining", value: Math.max(0, sessionsCap - sessionsCount), fill: cc.border },
+        ]
+      : []
 
-  const studentsCard = props.cards.find((c) => c.label === "Students enrolled" || c.label === "Students")
+  const studentsCard = props.cards.find(
+    (c) => c.label === "Students enrolled" || c.label === "Students",
+  )
   const studentsCount = studentsCard ? Number.parseInt(studentsCard.value, 10) || 0 : 0
   const studentsCap = Math.max(studentsCount, 60)
-  const studentsData = studentsCount > 0
-    ? [
-        { name: "Enrolled", value: studentsCount, fill: cc.warning },
-        { name: "Remaining", value: Math.max(0, studentsCap - studentsCount), fill: cc.border },
-      ]
-    : []
+  const studentsData =
+    studentsCount > 0
+      ? [
+          { name: "Enrolled", value: studentsCount, fill: cc.warning },
+          { name: "Remaining", value: Math.max(0, studentsCap - studentsCount), fill: cc.border },
+        ]
+      : []
 
-  if (attendanceData.length === 0 && sessionsData.length === 0 && studentsData.length === 0) return null
+  if (attendanceData.length === 0 && sessionsData.length === 0 && studentsData.length === 0)
+    return null
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", gap: 40, flexWrap: "wrap", marginBottom: 24 }}>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        gap: 40,
+        flexWrap: "wrap",
+        marginBottom: 24,
+      }}
+    >
       {attendanceData.length > 0 ? (
-        <RingItem label="Average attendance" value={`${attendancePct}%`} data={attendanceData} colors={cc} />
+        <RingItem
+          label="Average attendance"
+          value={`${attendancePct}%`}
+          data={attendanceData}
+          colors={cc}
+        />
       ) : null}
       {sessionsData.length > 0 ? (
-        <RingItem label="Sessions taken" value={String(sessionsCount)} data={sessionsData} colors={cc} />
+        <RingItem
+          label="Sessions taken"
+          value={String(sessionsCount)}
+          data={sessionsData}
+          colors={cc}
+        />
       ) : null}
       {studentsData.length > 0 ? (
-        <RingItem label="Students enrolled" value={String(studentsCount)} data={studentsData} colors={cc} />
+        <RingItem
+          label="Students enrolled"
+          value={String(studentsCount)}
+          data={studentsData}
+          colors={cc}
+        />
       ) : null}
     </div>
   )
@@ -89,8 +117,8 @@ function RingItem(props: {
             outerRadius={60}
             paddingAngle={2}
           >
-            {props.data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.fill} />
+            {props.data.map((entry) => (
+              <Cell key={`${entry.name}-${entry.fill}`} fill={entry.fill} />
             ))}
           </Pie>
         </PieChart>
@@ -130,10 +158,7 @@ export function ReportSessionTrendChart(props: { data: SessionChartPoint[] }) {
   return (
     <div style={{ height: 280, marginTop: 8 }}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          data={props.data}
-          margin={{ top: 8, right: 8, left: 0, bottom: 8 }}
-        >
+        <LineChart data={props.data} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
           <XAxis
             dataKey="dateLabel"
             tick={{ fontSize: 12, fill: cc.textMuted }}

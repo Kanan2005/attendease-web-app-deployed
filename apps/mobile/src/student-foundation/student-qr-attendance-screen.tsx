@@ -19,7 +19,15 @@ type CameraViewType = ComponentType<{
   onBarcodeScanned?: (event: { data?: string }) => void
 }>
 
-type QrPhase = "loading" | "camera_denied" | "location_denied" | "location_unavailable" | "camera" | "verifying" | "success" | "error"
+type QrPhase =
+  | "loading"
+  | "camera_denied"
+  | "location_denied"
+  | "location_unavailable"
+  | "camera"
+  | "verifying"
+  | "success"
+  | "error"
 
 type GpsStatus = "pending" | "acquiring" | "ready" | "denied" | "unavailable"
 
@@ -41,11 +49,7 @@ export function StudentQrAttendanceScreen(props: { classroomId?: string }) {
     if (props.classroomId) {
       navigation.setOptions({
         headerLeft: () => (
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={12}
-            style={{ marginLeft: 4 }}
-          >
+          <Pressable onPress={() => router.back()} hitSlop={12} style={{ marginLeft: 4 }}>
             <Ionicons name="chevron-back" size={26} color={getColors().primary} />
           </Pressable>
         ),
@@ -104,7 +108,8 @@ export function StudentQrAttendanceScreen(props: { classroomId?: string }) {
 
         // 4. Dynamically load CameraView from expo-camera
         const camModule = await import("expo-camera")
-        const CameraViewComp = camModule.CameraView ?? (camModule as Record<string, unknown>)["default"]
+        const CameraViewComp =
+          camModule.CameraView ?? (camModule as Record<string, unknown>).default
         if (!CameraViewComp) {
           setPhase("error")
           setErrorMsg("Camera component is not available in this build.")
@@ -158,7 +163,9 @@ export function StudentQrAttendanceScreen(props: { classroomId?: string }) {
             const locationServicesEnabled = await locationModule.hasServicesEnabledAsync()
             if (!locationServicesEnabled) {
               setPhase("error")
-              setErrorMsg("Location services are turned off. Enable GPS in your device settings to mark QR attendance.")
+              setErrorMsg(
+                "Location services are turned off. Enable GPS in your device settings to mark QR attendance.",
+              )
               isLocationError.current = true
               isSubmitting.current = false
               return
@@ -166,7 +173,9 @@ export function StudentQrAttendanceScreen(props: { classroomId?: string }) {
             const locPerm = await locationModule.requestForegroundPermissionsAsync()
             if (!locPerm.granted) {
               setPhase("error")
-              setErrorMsg("Location permission denied. Enable location access in your device settings to mark QR attendance.")
+              setErrorMsg(
+                "Location permission denied. Enable location access in your device settings to mark QR attendance.",
+              )
               isLocationError.current = true
               isSubmitting.current = false
               return

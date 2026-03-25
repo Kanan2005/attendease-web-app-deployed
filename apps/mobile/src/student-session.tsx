@@ -123,17 +123,21 @@ export function StudentSessionProvider(props: { children: ReactNode }) {
       return
     }
     let cancelled = false
-    import("./device-identity").then((mod) => mod.resolveDeviceIdentity()).then((identity) => {
-      if (cancelled) return
-      setDraft((prev) => ({
-        ...prev,
-        installId: identity.installId,
-        publicKey: identity.publicKey,
-        devicePlatform: identity.platform === "WEB" ? prev.devicePlatform : identity.platform,
-      }))
-      setDeviceReady(true)
-    })
-    return () => { cancelled = true }
+    import("./device-identity")
+      .then((mod) => mod.resolveDeviceIdentity())
+      .then((identity) => {
+        if (cancelled) return
+        setDraft((prev) => ({
+          ...prev,
+          installId: identity.installId,
+          publicKey: identity.publicKey,
+          devicePlatform: identity.platform === "WEB" ? prev.devicePlatform : identity.platform,
+        }))
+        setDeviceReady(true)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [bootstrap.hasDevelopmentCredentials])
 
   async function signIn(nextDraft: StudentSessionDraft = draft) {

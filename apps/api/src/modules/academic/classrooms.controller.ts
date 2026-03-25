@@ -350,10 +350,7 @@ export class ClassroomsController {
 
   @Delete(":classroomId/lectures/:lectureId")
   @Roles("TEACHER", "ADMIN")
-  async deleteLecture(
-    @CurrentAuth() auth: AuthRequestContext,
-    @Param() params: unknown,
-  ) {
+  async deleteLecture(@CurrentAuth() auth: AuthRequestContext, @Param() params: unknown) {
     const parsed = parseWithSchema(classroomLectureParamsSchema, params)
     return this.lecturesService.deleteLecture(auth, parsed.classroomId, parsed.lectureId)
   }

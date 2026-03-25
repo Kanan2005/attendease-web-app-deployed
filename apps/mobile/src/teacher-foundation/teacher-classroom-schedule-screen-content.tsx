@@ -1,11 +1,26 @@
 import { getColors } from "@attendease/ui-mobile"
 import { StatusPill } from "@attendease/ui-mobile/animated"
 import { Ionicons } from "@expo/vector-icons"
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native"
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native"
 import type { TeacherScheduleDraft } from "../teacher-schedule-draft"
 
 import { mapTeacherApiErrorToMessage } from "../teacher-models"
-import { clampInteger, formatDateTime, formatEnum, formatMinutes, formatWeekday, styles } from "./shared-ui"
+import {
+  clampInteger,
+  formatDateTime,
+  formatEnum,
+  formatMinutes,
+  formatWeekday,
+  styles,
+} from "./shared-ui"
 
 type RoutePath = string | { pathname: string; params?: Record<string, string> }
 
@@ -144,9 +159,7 @@ function slotStatusTone(status: string): "primary" | "success" | "warning" | "da
   return "warning"
 }
 
-function exceptionTypeTone(
-  type: string,
-): "primary" | "success" | "warning" | "danger" {
+function exceptionTypeTone(type: string): "primary" | "success" | "warning" | "danger" {
   if (type === "CANCELLED") return "danger"
   if (type === "RESCHEDULED") return "warning"
   return "primary"
@@ -166,11 +179,7 @@ function IconButton(props: {
       onPress={props.onPress}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-        <Ionicons
-          name={props.icon}
-          size={15}
-          color={isDanger ? c.primaryContrast : c.primary}
-        />
+        <Ionicons name={props.icon} size={15} color={isDanger ? c.primaryContrast : c.primary} />
         <Text style={isDanger ? styles.primaryButtonLabel : styles.secondaryButtonLabel}>
           {props.label}
         </Text>
@@ -209,16 +218,33 @@ export function TeacherClassroomScheduleScreenContent({
 
   if (!hasSession) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 32,
+        }}
+      >
         <Ionicons name="lock-closed-outline" size={40} color={c.textSubtle} />
-        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>Sign in required</Text>
+        <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>
+          Sign in required
+        </Text>
       </View>
     )
   }
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center" }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <ActivityIndicator size="large" color={c.primary} />
         <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 12 }}>Loading schedule…</Text>
       </View>
@@ -227,9 +253,19 @@ export function TeacherClassroomScheduleScreenContent({
 
   if (loadErrorMessage) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", padding: 32 }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 32,
+        }}
+      >
         <Ionicons name="alert-circle" size={40} color={c.danger} />
-        <Text style={{ fontSize: 14, color: c.danger, marginTop: 12, textAlign: "center" }}>{loadErrorMessage}</Text>
+        <Text style={{ fontSize: 14, color: c.danger, marginTop: 12, textAlign: "center" }}>
+          {loadErrorMessage}
+        </Text>
       </View>
     )
   }
@@ -260,22 +296,43 @@ export function TeacherClassroomScheduleScreenContent({
         <Text style={[ss.sectionTitle, { color: c.text }]}>Weekly Slots</Text>
         {draft?.slots.length ? (
           draft.slots.map((slot) => (
-            <View key={slot.localId} style={[ss.card, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}>
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+            <View
+              key={slot.localId}
+              style={[ss.card, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
                 <Text style={{ fontSize: 14, fontWeight: "700", color: c.text }}>
                   {slot.existingId ? formatWeekday(slot.weekday) : "New slot"}
                 </Text>
-                <StatusPill label={slot.status ?? "DRAFT"} tone={slotStatusTone(slot.status ?? "DRAFT")} />
+                <StatusPill
+                  label={slot.status ?? "DRAFT"}
+                  tone={slotStatusTone(slot.status ?? "DRAFT")}
+                />
               </View>
-              <DayChips selected={slot.weekday} onSelect={(day) => onUpdateSlot(slot.localId, { weekday: day })} />
+              <DayChips
+                selected={slot.weekday}
+                onSelect={(day) => onUpdateSlot(slot.localId, { weekday: day })}
+              />
               <TimeInputRow
-                startMinutes={slot.startMinutes} endMinutes={slot.endMinutes}
+                startMinutes={slot.startMinutes}
+                endMinutes={slot.endMinutes}
                 onStartChange={(v) => onUpdateSlot(slot.localId, { startMinutes: v })}
                 onEndChange={(v) => onUpdateSlot(slot.localId, { endMinutes: v })}
               />
               <TextInput
-                value={slot.locationLabel} autoCapitalize="sentences" placeholder="Location (e.g. Room 301)" placeholderTextColor={c.textSubtle}
-                onChangeText={(value) => onUpdateSlot(slot.localId, { locationLabel: value })} style={styles.input}
+                value={slot.locationLabel}
+                autoCapitalize="sentences"
+                placeholder="Location (e.g. Room 301)"
+                placeholderTextColor={c.textSubtle}
+                onChangeText={(value) => onUpdateSlot(slot.localId, { locationLabel: value })}
+                style={styles.input}
               />
               <IconButton
                 icon={slot.existingId ? "archive-outline" : "trash-outline"}
@@ -299,14 +356,32 @@ export function TeacherClassroomScheduleScreenContent({
         {draft?.exceptions.length ? (
           draft.exceptions.map((exception) => {
             const tone = exceptionTypeTone(exception.exceptionType)
-            const toneColor = tone === "danger" ? c.danger : tone === "warning" ? c.warning : c.primary
+            const toneColor =
+              tone === "danger" ? c.danger : tone === "warning" ? c.warning : c.primary
             return (
-              <View key={exception.localId} style={[ss.card, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}>
-                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+              <View
+                key={exception.localId}
+                style={[ss.card, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: 8,
+                  }}
+                >
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                     <Ionicons
-                      name={exception.exceptionType === "CANCELLED" ? "close-circle-outline" : exception.exceptionType === "RESCHEDULED" ? "swap-horizontal-outline" : "add-circle-outline"}
-                      size={18} color={toneColor}
+                      name={
+                        exception.exceptionType === "CANCELLED"
+                          ? "close-circle-outline"
+                          : exception.exceptionType === "RESCHEDULED"
+                            ? "swap-horizontal-outline"
+                            : "add-circle-outline"
+                      }
+                      size={18}
+                      color={toneColor}
                     />
                     <Text style={{ fontSize: 14, fontWeight: "700", color: c.text }}>
                       {exception.existingId ? formatEnum(exception.exceptionType) : "New exception"}
@@ -319,14 +394,29 @@ export function TeacherClassroomScheduleScreenContent({
                   {(["ONE_OFF", "CANCELLED", "RESCHEDULED"] as const).map((t) => (
                     <Pressable
                       key={t}
-                      onPress={() => onUpdateException(exception.localId, {
-                        exceptionType: t,
-                        ...(t === "ONE_OFF" ? { scheduleSlotId: null } : {}),
-                        ...(t === "CANCELLED" ? { startMinutes: null, endMinutes: null } : {}),
-                      })}
-                      style={[ss.typeChip, { borderColor: exception.exceptionType === t ? c.primary : c.border, backgroundColor: exception.exceptionType === t ? c.primarySoft : c.surfaceMuted }]}
+                      onPress={() =>
+                        onUpdateException(exception.localId, {
+                          exceptionType: t,
+                          ...(t === "ONE_OFF" ? { scheduleSlotId: null } : {}),
+                          ...(t === "CANCELLED" ? { startMinutes: null, endMinutes: null } : {}),
+                        })
+                      }
+                      style={[
+                        ss.typeChip,
+                        {
+                          borderColor: exception.exceptionType === t ? c.primary : c.border,
+                          backgroundColor:
+                            exception.exceptionType === t ? c.primarySoft : c.surfaceMuted,
+                        },
+                      ]}
                     >
-                      <Text style={{ fontSize: 12, fontWeight: "600", color: exception.exceptionType === t ? c.primary : c.textMuted }}>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontWeight: "600",
+                          color: exception.exceptionType === t ? c.primary : c.textMuted,
+                        }}
+                      >
                         {formatEnum(t)}
                       </Text>
                     </Pressable>
@@ -334,25 +424,42 @@ export function TeacherClassroomScheduleScreenContent({
                 </View>
 
                 <TextInput
-                  value={exception.effectiveDate} autoCapitalize="none" placeholder="Date (YYYY-MM-DD)" placeholderTextColor={c.textSubtle}
-                  onChangeText={(value) => onUpdateException(exception.localId, { effectiveDate: value })} style={styles.input}
+                  value={exception.effectiveDate}
+                  autoCapitalize="none"
+                  placeholder="Date (YYYY-MM-DD)"
+                  placeholderTextColor={c.textSubtle}
+                  onChangeText={(value) =>
+                    onUpdateException(exception.localId, { effectiveDate: value })
+                  }
+                  style={styles.input}
                 />
 
                 {exception.exceptionType !== "CANCELLED" ? (
                   <TimeInputRow
-                    startMinutes={exception.startMinutes ?? 540} endMinutes={exception.endMinutes ?? 600}
+                    startMinutes={exception.startMinutes ?? 540}
+                    endMinutes={exception.endMinutes ?? 600}
                     onStartChange={(v) => onUpdateException(exception.localId, { startMinutes: v })}
                     onEndChange={(v) => onUpdateException(exception.localId, { endMinutes: v })}
                   />
                 ) : null}
 
                 <TextInput
-                  value={exception.locationLabel} autoCapitalize="sentences" placeholder="Location" placeholderTextColor={c.textSubtle}
-                  onChangeText={(value) => onUpdateException(exception.localId, { locationLabel: value })} style={styles.input}
+                  value={exception.locationLabel}
+                  autoCapitalize="sentences"
+                  placeholder="Location"
+                  placeholderTextColor={c.textSubtle}
+                  onChangeText={(value) =>
+                    onUpdateException(exception.localId, { locationLabel: value })
+                  }
+                  style={styles.input}
                 />
                 <TextInput
-                  value={exception.reason} autoCapitalize="sentences" placeholder="Reason (optional)" placeholderTextColor={c.textSubtle}
-                  onChangeText={(value) => onUpdateException(exception.localId, { reason: value })} style={styles.input}
+                  value={exception.reason}
+                  autoCapitalize="sentences"
+                  placeholder="Reason (optional)"
+                  placeholderTextColor={c.textSubtle}
+                  onChangeText={(value) => onUpdateException(exception.localId, { reason: value })}
+                  style={styles.input}
                 />
 
                 <Text style={{ fontSize: 11, color: c.textMuted }}>
@@ -377,25 +484,43 @@ export function TeacherClassroomScheduleScreenContent({
         <Text style={[ss.sectionTitle, { color: c.text }]}>Save & Notify</Text>
         <View style={[ss.card, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}>
           <TextInput
-            value={saveNote} autoCapitalize="sentences" multiline placeholder="Change note (optional)" placeholderTextColor={c.textSubtle}
-            onChangeText={onSetSaveNote} style={[styles.input, styles.multilineInput]}
+            value={saveNote}
+            autoCapitalize="sentences"
+            multiline
+            placeholder="Change note (optional)"
+            placeholderTextColor={c.textSubtle}
+            onChangeText={onSetSaveNote}
+            style={[styles.input, styles.multilineInput]}
           />
           <Pressable
             style={[styles.primaryButton, isSavePending || !canSave ? { opacity: 0.5 } : null]}
-            disabled={isSavePending || !canSave} onPress={onSave}
+            disabled={isSavePending || !canSave}
+            onPress={onSave}
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <Ionicons name="cloud-upload-outline" size={18} color={c.primaryContrast} />
-              <Text style={styles.primaryButtonLabel}>{isSavePending ? "Saving…" : "Save & notify"}</Text>
+              <Text style={styles.primaryButtonLabel}>
+                {isSavePending ? "Saving…" : "Save & notify"}
+              </Text>
             </View>
           </Pressable>
-          {!canSave ? <Text style={{ fontSize: 12, color: c.textMuted }}>No unsaved changes.</Text> : null}
-          {saveErrorMessage ? <Text style={{ fontSize: 12, color: c.danger }}>{mapTeacherApiErrorToMessage(saveErrorMessage)}</Text> : null}
-          {saveMessage ? <Text style={{ fontSize: 12, color: c.success, fontWeight: "600" }}>{saveMessage}</Text> : null}
+          {!canSave ? (
+            <Text style={{ fontSize: 12, color: c.textMuted }}>No unsaved changes.</Text>
+          ) : null}
+          {saveErrorMessage ? (
+            <Text style={{ fontSize: 12, color: c.danger }}>
+              {mapTeacherApiErrorToMessage(saveErrorMessage)}
+            </Text>
+          ) : null}
+          {saveMessage ? (
+            <Text style={{ fontSize: 12, color: c.success, fontWeight: "600" }}>{saveMessage}</Text>
+          ) : null}
         </View>
 
         <Pressable onPress={onDiscardDraft} style={{ alignSelf: "center", paddingVertical: 8 }}>
-          <Text style={{ fontSize: 13, color: c.textMuted, fontWeight: "600" }}>Discard draft changes</Text>
+          <Text style={{ fontSize: 13, color: c.textMuted, fontWeight: "600" }}>
+            Discard draft changes
+          </Text>
         </Pressable>
       </View>
     </ScrollView>
@@ -405,7 +530,13 @@ export function TeacherClassroomScheduleScreenContent({
 const ss = StyleSheet.create({
   header: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4, gap: 2 },
   heading: { fontSize: 18, fontWeight: "700" },
-  actionsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 16, paddingVertical: 10 },
+  actionsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
   section: { paddingHorizontal: 16, marginTop: 12, gap: 10 },
   sectionTitle: { fontSize: 16, fontWeight: "700" },
   card: { borderWidth: 1, borderRadius: 14, padding: 14, gap: 10 },

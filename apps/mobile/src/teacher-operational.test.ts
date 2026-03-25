@@ -688,8 +688,8 @@ bad line, still bad, because, too, many
       actionTargetStatus: "PRESENT",
       statusTone: "warning",
     })
-    expect(roster.presentSummary).toBe("1 student currently marked present.")
-    expect(roster.absentSummary).toBe("2 students currently marked absent.")
+    expect(roster.presentSummary).toBe("1 present")
+    expect(roster.absentSummary).toBe("2 absent")
   })
 
   it("builds session-detail status guidance for live, open, and locked correction states", () => {
@@ -705,7 +705,7 @@ bad line, still bad, because, too, many
         pendingChangeCount: 0,
       }),
     ).toMatchObject({
-      title: "Attendance is still live",
+      title: "Session is live",
       stateTone: "warning",
     })
 
@@ -721,7 +721,7 @@ bad line, still bad, because, too, many
         pendingChangeCount: 2,
       }),
     ).toMatchObject({
-      title: "2 corrections ready to save",
+      title: "2 unsaved corrections",
       stateTone: "warning",
     })
 
@@ -737,7 +737,7 @@ bad line, still bad, because, too, many
         pendingChangeCount: 0,
       }),
     ).toMatchObject({
-      title: "Session is read-only",
+      title: "Session finalized",
       stateTone: "warning",
     })
   })
@@ -770,10 +770,10 @@ bad line, still bad, because, too, many
         tone: "warning",
       },
     ])
-    expect(overview.rosterSummary).toBe("22 of 30 students are currently marked present.")
-    expect(overview.correctionSummary).toContain("2 corrections")
-    expect(overview.presentSectionSubtitle).toContain("saved result")
-    expect(overview.absentSectionSubtitle).toContain("still counted absent")
+    expect(overview.rosterSummary).toBe("22 of 30 present")
+    expect(overview.correctionSummary).toBe("2 unsaved corrections")
+    expect(overview.presentSectionSubtitle).toBe("")
+    expect(overview.absentSectionSubtitle).toBe("")
   })
 
   it("builds classroom join-code and export request states for the teacher workflow shell", () => {

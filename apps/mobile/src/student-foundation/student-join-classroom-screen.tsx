@@ -110,6 +110,7 @@ import {
 import {
   AnnouncementRow,
   AttendanceCandidateRow,
+  StudentBackButton,
   StudentCard,
   StudentDashboardSpotlightCard,
   StudentEmptyCard,
@@ -117,7 +118,6 @@ import {
   StudentLoadingCard,
   StudentNavAction,
   StudentQuickActions,
-  StudentBackButton,
   StudentScreen,
   StudentSessionSetupCard,
   StudentStatusBanner,
@@ -153,10 +153,7 @@ export function StudentJoinClassroomScreen() {
   })
 
   return (
-    <StudentScreen
-      title="Join Classroom"
-      subtitle="Enter your teacher's code to join."
-    >
+    <StudentScreen title="Join Classroom" subtitle="Enter your teacher's code to join.">
       <StudentBackButton label="Back to Home" />
       {!session ? (
         <StudentSessionSetupCard />
@@ -187,7 +184,9 @@ export function StudentJoinClassroomScreen() {
               >
                 <Ionicons name="key-outline" size={28} color={c.primary} />
               </View>
-              <Text style={{ fontSize: 17, fontWeight: "700", color: c.text }}>Enter Join Code</Text>
+              <Text style={{ fontSize: 17, fontWeight: "700", color: c.text }}>
+                Enter Join Code
+              </Text>
               <Text style={{ fontSize: 13, color: c.textMuted, textAlign: "center" }}>
                 Ask your teacher for the classroom join code
               </Text>
@@ -262,7 +261,11 @@ export function StudentJoinClassroomScreen() {
                 return (
                   <Pressable
                     key={classroom.enrollmentId}
-                    onPress={() => router.push(studentRoutes.classroomDetail(classroom.classroomId ?? classroom.id))}
+                    onPress={() =>
+                      router.push(
+                        studentRoutes.classroomDetail(classroom.classroomId ?? classroom.id),
+                      )
+                    }
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
@@ -289,10 +292,15 @@ export function StudentJoinClassroomScreen() {
                       />
                     </View>
                     <View style={{ flex: 1, gap: 2 }}>
-                      <Text style={{ fontSize: 15, fontWeight: "600", color: c.text }} numberOfLines={1}>
+                      <Text
+                        style={{ fontSize: 15, fontWeight: "600", color: c.text }}
+                        numberOfLines={1}
+                      >
                         {classroom.displayTitle}
                       </Text>
-                      <Text style={{ fontSize: 12, color: c.textMuted }}>{formatEnum(classroom.enrollmentStatus)}</Text>
+                      <Text style={{ fontSize: 12, color: c.textMuted }}>
+                        {formatEnum(classroom.enrollmentStatus)}
+                      </Text>
                     </View>
                     <Ionicons name="chevron-forward" size={16} color={c.textSubtle} />
                   </Pressable>

@@ -3,23 +3,23 @@ import { useRouter } from "expo-router"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Alert, BackHandler, PermissionsAndroid, Platform } from "react-native"
 
+import { createAuthApiClient } from "@attendease/auth"
 import type { BluetoothSessionCreateResponse } from "@attendease/contracts"
+import { getMobileAttendanceSessionPollInterval } from "../attendance-live"
 import {
   useTeacherBluetoothAdvertiser,
   useTeacherBluetoothSessionCreateMutation,
   useTeacherBluetoothSessionQuery,
 } from "../bluetooth-attendance-hooks"
 import { canStartBluetoothAdvertising } from "../bluetooth-attendance-models"
+import { mobileEnv } from "../mobile-env"
 import { AttendEaseBluetooth } from "../native/bluetooth"
-import { getMobileAttendanceSessionPollInterval } from "../attendance-live"
 import { mapTeacherApiErrorToMessage } from "../teacher-models"
 import { invalidateTeacherExperienceQueries, teacherQueryKeys } from "../teacher-query"
 import { getTeacherAccessToken, useTeacherSession } from "../teacher-session"
 import { useTeacherClassroomDetailQuery } from "./queries-core"
 import { useTeacherAttendanceSessionStudentsQuery } from "./queries-sessions"
 import { TeacherBluetoothSessionCreateScreenContent } from "./teacher-bluetooth-session-create-screen-content"
-import { createAuthApiClient } from "@attendease/auth"
-import { mobileEnv } from "../mobile-env"
 
 const authClient = createAuthApiClient({
   baseUrl: mobileEnv.EXPO_PUBLIC_API_URL,
@@ -38,15 +38,17 @@ export function TeacherBluetoothSessionCreateScreen(props: {
 
   const [createdSessionId, setCreatedSessionId] = useState<string | null>(null)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
-  const [phase, setPhase] = useState<"preflight" | "creating" | "broadcasting" | "error">("preflight")
+  const [phase, setPhase] = useState<"preflight" | "creating" | "broadcasting" | "error">(
+    "preflight",
+  )
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const didCreate = useRef(false)
   const isEnding = useRef(false)
 
   const runtime = createdSessionId
-    ? queryClient.getQueryData<BluetoothSessionCreateResponse>(
+    ? (queryClient.getQueryData<BluetoothSessionCreateResponse>(
         teacherQueryKeys.bluetoothRuntime(createdSessionId),
-      ) ?? null
+      ) ?? null)
     : null
   const advertiser = useTeacherBluetoothAdvertiser(runtime)
 
@@ -78,32 +80,31 @@ export function TeacherBluetoothSessionCreateScreen(props: {
     },
   })
 
-  function handleBackPress() {
-    if (phase === "broadcasting" && createdSessionId) {
-      Alert.alert(
-        "End Attendance Session?",
-        "If you leave, the session will end and students won't be able to mark attendance.",
-        [
-          { text: "Stay", style: "cancel" },
-          {
-            text: "End & Leave",
-            style: "destructive",
-            onPress: () => {
-              if (isEnding.current) return
-              isEnding.current = true
-              void endSessionMutation.mutateAsync().finally(() => {
-                isEnding.current = false
-              })
-            },
-          },
-        ],
+  const requestBluetoothPermissions = useCallback(async (): Promise<boolean> => {
+    if (Platform.OS !== "android" || (Platform.Version ?? 0) < 31) return true
+    try {
+      const results = await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADVERTISE,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+      ])
+      const allGranted = Object.values(results).every(
+        (r) => r === PermissionsAndroid.RESULTS.GRANTED,
       )
-    } else {
-      router.back()
+      console.log(
+        "[BLE-PERM] Permission results:",
+        JSON.stringify(results),
+        "allGranted:",
+        allGranted,
+      )
+      return allGranted
+    } catch (e) {
+      console.error("[BLE-PERM] Permission request failed:", e)
+      return false
     }
-  }
+  }, [])
 
-  async function createSession() {
+  const createSession = useCallback(async () => {
     const token = getTeacherAccessToken(session)
     try {
       const created = await createSessionMutation.mutateAsync({
@@ -130,7 +131,8 @@ export function TeacherBluetoothSessionCreateScreen(props: {
         msg = err.message
       }
       console.error("[BLE-CREATE] Extracted error message:", msg)
-      const isAlreadyActive = msg.toLowerCase().includes("already active") || msg.toLowerCase().includes("already exists")
+      const isAlreadyActive =
+        msg.toLowerCase().includes("already active") || msg.toLowerCase().includes("already exists")
 
       if (isAlreadyActive) {
         try {
@@ -155,7 +157,11 @@ export function TeacherBluetoothSessionCreateScreen(props: {
           setPhase("broadcasting")
         } catch (retryErr) {
           setPhase("error")
-          setErrorMsg(retryErr instanceof Error ? retryErr.message : "Failed to create session after ending previous one.")
+          setErrorMsg(
+            retryErr instanceof Error
+              ? retryErr.message
+              : "Failed to create session after ending previous one.",
+          )
           didCreate.current = false
         }
       } else {
@@ -164,28 +170,34 @@ export function TeacherBluetoothSessionCreateScreen(props: {
         didCreate.current = false
       }
     }
-  }
+  }, [session, props.classroomId, props.lectureId, createSessionMutation, queryClient])
 
-  async function requestBluetoothPermissions(): Promise<boolean> {
-    if (Platform.OS !== "android" || (Platform.Version ?? 0) < 31) return true
-    try {
-      const results = await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADVERTISE,
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-      ])
-      const allGranted = Object.values(results).every(
-        (r) => r === PermissionsAndroid.RESULTS.GRANTED,
+  const handleBackPress = useCallback(() => {
+    if (phase === "broadcasting" && createdSessionId) {
+      Alert.alert(
+        "End Attendance Session?",
+        "If you leave, the session will end and students won't be able to mark attendance.",
+        [
+          { text: "Stay", style: "cancel" },
+          {
+            text: "End & Leave",
+            style: "destructive",
+            onPress: () => {
+              if (isEnding.current) return
+              isEnding.current = true
+              void endSessionMutation.mutateAsync().finally(() => {
+                isEnding.current = false
+              })
+            },
+          },
+        ],
       )
-      console.log("[BLE-PERM] Permission results:", JSON.stringify(results), "allGranted:", allGranted)
-      return allGranted
-    } catch (e) {
-      console.error("[BLE-PERM] Permission request failed:", e)
-      return false
+    } else {
+      router.back()
     }
-  }
+  }, [phase, createdSessionId, router, endSessionMutation])
 
-  function runPreflight() {
+  const runPreflight = useCallback(() => {
     if (!session || !props.classroomId) return
     didCreate.current = true
     setPhase("preflight")
@@ -195,7 +207,9 @@ export function TeacherBluetoothSessionCreateScreen(props: {
       .then((granted) => {
         if (!granted) {
           setPhase("error")
-          setErrorMsg("Bluetooth permissions are required. Grant 'Nearby devices' permission in Settings.")
+          setErrorMsg(
+            "Bluetooth permissions are required. Grant 'Nearby devices' permission in Settings.",
+          )
           didCreate.current = false
           return
         }
@@ -223,13 +237,13 @@ export function TeacherBluetoothSessionCreateScreen(props: {
         setErrorMsg(err instanceof Error ? err.message : "Could not check Bluetooth availability.")
         didCreate.current = false
       })
-  }
+  }, [session, props.classroomId, requestBluetoothPermissions, createSession])
 
   // Auto-run preflight on mount
   useEffect(() => {
     if (!session || !props.classroomId || didCreate.current) return
     runPreflight()
-  }, [session, props.classroomId])
+  }, [session, props.classroomId, runPreflight])
 
   // Intercept Android hardware back button during broadcasting
   useEffect(() => {
@@ -240,7 +254,7 @@ export function TeacherBluetoothSessionCreateScreen(props: {
     }
     const subscription = BackHandler.addEventListener("hardwareBackPress", onHardwareBack)
     return () => subscription.remove()
-  }, [phase, createdSessionId])
+  }, [phase, createdSessionId, handleBackPress])
 
   // Timer
   useEffect(() => {
@@ -280,9 +294,15 @@ export function TeacherBluetoothSessionCreateScreen(props: {
       totalStudents={totalStudents}
       advertiserState={advertiser.state}
       errorMessage={errorMsg ?? (advertiser.errorMessage ? advertiser.errorMessage : null)}
-      createError={createSessionMutation.error ? mapTeacherApiErrorToMessage(createSessionMutation.error) : null}
+      createError={
+        createSessionMutation.error
+          ? mapTeacherApiErrorToMessage(createSessionMutation.error)
+          : null
+      }
       endSessionPending={endSessionMutation.isPending}
-      endSessionError={endSessionMutation.error ? mapTeacherApiErrorToMessage(endSessionMutation.error) : null}
+      endSessionError={
+        endSessionMutation.error ? mapTeacherApiErrorToMessage(endSessionMutation.error) : null
+      }
       onEndSession={() => void endSessionMutation.mutateAsync()}
       onRetry={() => {
         void advertiser.start()

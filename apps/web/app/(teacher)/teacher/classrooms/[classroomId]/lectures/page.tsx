@@ -1,6 +1,4 @@
-import {
-  TeacherClassroomLecturesWorkspace,
-} from "../../../../../../src/teacher-workflows-client"
+import { TeacherClassroomLecturesWorkspace } from "../../../../../../src/teacher-workflows-client"
 import { getWebPortalSession } from "../../../../../../src/web-session"
 
 export default async function TeacherClassroomLecturesPage(props: {

@@ -134,10 +134,7 @@ export function StudentClassroomStreamScreen(props: { classroomId: string }) {
   const streamQuery = useStudentClassroomAnnouncementsQuery(props.classroomId, 20)
 
   return (
-    <StudentScreen
-      title="Classroom Stream"
-      subtitle="Latest updates from your teacher."
-    >
+    <StudentScreen title="Classroom Stream" subtitle="Latest updates from your teacher.">
       {!session ? (
         <StudentSessionSetupCard />
       ) : classroom.detailQuery.isLoading || streamQuery.isLoading ? (
@@ -148,9 +145,7 @@ export function StudentClassroomStreamScreen(props: { classroomId: string }) {
         />
       ) : (
         <>
-          <StudentCard
-            title={classroom.detailQuery.data?.displayTitle ?? "Classroom"}
-          >
+          <StudentCard title={classroom.detailQuery.data?.displayTitle ?? "Classroom"}>
             <View style={styles.actionGrid}>
               <StudentNavAction
                 href={studentRoutes.classroomDetail(props.classroomId)}
@@ -165,10 +160,7 @@ export function StudentClassroomStreamScreen(props: { classroomId: string }) {
             </View>
           </StudentCard>
           {streamQuery.data?.length ? (
-            <StudentCard
-              title="Announcement Feed"
-              subtitle="Announcements and class updates."
-            >
+            <StudentCard title="Announcement Feed" subtitle="Announcements and class updates.">
               {streamQuery.data.map((announcement) => (
                 <AnnouncementRow key={announcement.id} announcement={announcement} />
               ))}

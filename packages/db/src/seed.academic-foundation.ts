@@ -241,7 +241,10 @@ export async function seedAcademicFoundation(
   })
 
   for (const { subjectId, assignmentId } of [
-    { subjectId: chemistrySubject.id, assignmentId: developmentSeedIds.teacherAssignments.chemistry },
+    {
+      subjectId: chemistrySubject.id,
+      assignmentId: developmentSeedIds.teacherAssignments.chemistry,
+    },
     { subjectId: dsSubject.id, assignmentId: developmentSeedIds.teacherAssignments.ds },
     { subjectId: osSubject.id, assignmentId: developmentSeedIds.teacherAssignments.os },
   ]) {

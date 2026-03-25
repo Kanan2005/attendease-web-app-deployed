@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest"
 
+vi.mock("react-native", () => ({
+  Platform: { OS: "ios", select: vi.fn((obj: Record<string, unknown>) => obj.ios) },
+  PermissionsAndroid: { request: vi.fn(), RESULTS: { GRANTED: "granted" }, PERMISSIONS: {} },
+}))
+
 vi.mock("./native/bluetooth", () => ({
   AttendEaseBluetooth: {
     getAvailability: vi.fn(),

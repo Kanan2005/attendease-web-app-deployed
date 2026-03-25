@@ -23,9 +23,7 @@ export function TeacherClassroomRosterHeaderCard({
   routeLinks,
 }: Props) {
   return (
-    <TeacherCard
-      title={classroomTitle}
-    >
+    <TeacherCard title={classroomTitle}>
       <Text style={styles.listMeta}>{classroomSummaryText}</Text>
       <View style={styles.cardGrid}>
         <View style={styles.metricCard}>
@@ -46,9 +44,17 @@ export function TeacherClassroomRosterHeaderCard({
         </View>
       </View>
       <View style={styles.actionGrid}>
-        <TeacherNavAction href={routeLinks.detail} label="Back To Course" icon="arrow-back-outline" />
+        <TeacherNavAction
+          href={routeLinks.detail}
+          label="Back To Course"
+          icon="arrow-back-outline"
+        />
         <TeacherNavAction href={routeLinks.schedule} label="Schedule" icon="calendar-outline" />
-        <TeacherNavAction href={routeLinks.announcements} label="Updates" icon="megaphone-outline" />
+        <TeacherNavAction
+          href={routeLinks.announcements}
+          label="Updates"
+          icon="megaphone-outline"
+        />
       </View>
     </TeacherCard>
   )

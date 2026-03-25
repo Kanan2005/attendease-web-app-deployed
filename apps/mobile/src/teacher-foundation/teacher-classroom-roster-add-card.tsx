@@ -35,7 +35,9 @@ export function TeacherClassroomRosterAddCard({
       <View style={{ gap: 4 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <Ionicons name="search-outline" size={14} color={c.textSubtle} />
-          <Text style={{ color: c.textMuted, fontSize: 13, fontWeight: "600" }}>Student lookup</Text>
+          <Text style={{ color: c.textMuted, fontSize: 13, fontWeight: "600" }}>
+            Student lookup
+          </Text>
         </View>
         <TextInput
           value={studentLookup}
@@ -50,7 +52,9 @@ export function TeacherClassroomRosterAddCard({
       <View style={{ gap: 4 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <Ionicons name="flag-outline" size={14} color={c.textSubtle} />
-          <Text style={{ color: c.textMuted, fontSize: 13, fontWeight: "600" }}>Enrollment state</Text>
+          <Text style={{ color: c.textMuted, fontSize: 13, fontWeight: "600" }}>
+            Enrollment state
+          </Text>
         </View>
         <View style={styles.actionGrid}>
           <Pressable

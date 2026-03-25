@@ -10,9 +10,7 @@ export interface DeviceIdentity {
   resolved: true
 }
 
-export type DeviceIdentityState =
-  | { resolved: false }
-  | DeviceIdentity
+export type DeviceIdentityState = { resolved: false } | DeviceIdentity
 
 /**
  * Build a deterministic placeholder identity for tests or SSR
@@ -48,7 +46,10 @@ export type DeviceBindingErrorKind =
 
 export function classifyDeviceBindingError(message: string): DeviceBindingErrorKind {
   const lower = message.toLowerCase()
-  if (lower.includes("already registered to another") || lower.includes("already bound to another")) {
+  if (
+    lower.includes("already registered to another") ||
+    lower.includes("already bound to another")
+  ) {
     return "DEVICE_BOUND_TO_ANOTHER"
   }
   if (lower.includes("waiting for admin approval") || lower.includes("replacement")) {
@@ -57,7 +58,10 @@ export function classifyDeviceBindingError(message: string): DeviceBindingErrorK
   if (lower.includes("no longer the trusted")) {
     return "DEVICE_REPLACED"
   }
-  if (lower.includes("requires device registration") || lower.includes("requires a trusted registered")) {
+  if (
+    lower.includes("requires device registration") ||
+    lower.includes("requires a trusted registered")
+  ) {
     return "DEVICE_UNREGISTERED"
   }
   if (lower.includes("not trusted") || lower.includes("could not be verified")) {
@@ -83,7 +87,8 @@ export function buildDeviceBindingErrorModel(errorMessage: string): DeviceBindin
         kind,
         title: "Phone already linked",
         message: "This device is already registered to another student's account.",
-        supportHint: "Each phone can only be linked to one student. Use your own phone or contact admin support.",
+        supportHint:
+          "Each phone can only be linked to one student. Use your own phone or contact admin support.",
       }
     case "REPLACEMENT_PENDING":
       return {

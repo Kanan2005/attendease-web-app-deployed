@@ -2,9 +2,7 @@ import { createAuthApiClient } from "@attendease/auth"
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 
-import {
-  resolveWebAuthApiBaseUrl,
-} from "../../src/web-auth-session"
+import { resolveWebAuthApiBaseUrl } from "../../src/web-auth-session"
 import { webSessionCookieNames } from "../../src/web-portal"
 
 export async function GET(request: Request) {

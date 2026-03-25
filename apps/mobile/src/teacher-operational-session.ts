@@ -125,15 +125,12 @@ export function buildTeacherSessionDetailOverviewModel(input: {
       },
     ],
     rosterSummary:
-      totalStudents > 0
-        ? `${input.session?.presentCount ?? 0} of ${totalStudents} present`
+      totalStudents > 0 ? `${input.session?.presentCount ?? 0} of ${totalStudents} present` : "",
+    timingSummary: input.session?.endedAt
+      ? `Ended ${formatTeacherDateTime(input.session.endedAt)}`
+      : input.session?.startedAt
+        ? `Started ${formatTeacherDateTime(input.session.startedAt)}`
         : "",
-    timingSummary:
-      input.session?.endedAt
-        ? `Ended ${formatTeacherDateTime(input.session.endedAt)}`
-        : input.session?.startedAt
-          ? `Started ${formatTeacherDateTime(input.session.startedAt)}`
-          : "",
     correctionSummary: input.session?.editability.isEditable
       ? input.pendingChangeCount > 0
         ? `${input.pendingChangeCount} unsaved correction${input.pendingChangeCount === 1 ? "" : "s"}`

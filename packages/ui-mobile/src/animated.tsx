@@ -93,7 +93,10 @@ export function GradientHeader(props: {
       style={s.gradientHeader}
     >
       {props.eyebrow ? (
-        <Animated.View entering={FadeInUp.delay(100).duration(400)} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Animated.View
+          entering={FadeInUp.delay(100).duration(400)}
+          style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+        >
           {props.icon ?? null}
           <Text style={s.eyebrow}>{props.eyebrow}</Text>
         </Animated.View>

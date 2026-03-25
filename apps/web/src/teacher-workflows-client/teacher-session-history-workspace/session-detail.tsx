@@ -5,7 +5,7 @@ import type {
   AttendanceSessionStudentSummary,
 } from "@attendease/contracts"
 import { webTheme } from "@attendease/ui-web"
-import { useState, type CSSProperties } from "react"
+import { type CSSProperties, useState } from "react"
 
 import { formatTeacherWebAttendanceModeLabel } from "../../teacher-classroom-management"
 import type {
@@ -14,11 +14,7 @@ import type {
   TeacherWebSessionRosterModel,
 } from "../../teacher-review-workflows"
 import { formatPortalDateTime } from "../../web-workflows"
-import {
-  WorkflowBanner,
-  WorkflowStateCard,
-  workflowStyles,
-} from "../shared"
+import { WorkflowBanner, WorkflowStateCard, workflowStyles } from "../shared"
 
 export function TeacherSessionHistoryDetail(props: {
   selectedSessionId: string
@@ -55,19 +51,15 @@ export function TeacherSessionHistoryDetail(props: {
   }
   if (props.detailError || props.studentsError) {
     return (
-      <WorkflowBanner
-        tone="danger"
-        message={props.statusMessage ?? "Could not load session."}
-      />
+      <WorkflowBanner tone="danger" message={props.statusMessage ?? "Could not load session."} />
     )
   }
   if (!props.detail) return null
 
   const d = props.detail
   const totalStudents = props.rosterModel.presentRows.length + props.rosterModel.absentRows.length
-  const presentPct = totalStudents > 0
-    ? Math.round((props.rosterModel.presentRows.length / totalStudents) * 100)
-    : 0
+  const presentPct =
+    totalStudents > 0 ? Math.round((props.rosterModel.presentRows.length / totalStudents) * 100) : 0
   const [searchQuery, setSearchQuery] = useState("")
   const lowerSearch = searchQuery.toLowerCase()
   const filteredPresent = lowerSearch
@@ -89,9 +81,23 @@ export function TeacherSessionHistoryDetail(props: {
   return (
     <div style={{ display: "grid", gap: 20 }}>
       {/* Summary row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
-        <MetricCard label="Present" value={String(props.rosterModel.presentRows.length)} color={webTheme.colors.success} />
-        <MetricCard label="Absent" value={String(props.rosterModel.absentRows.length)} color={webTheme.colors.danger} />
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+          gap: 12,
+        }}
+      >
+        <MetricCard
+          label="Present"
+          value={String(props.rosterModel.presentRows.length)}
+          color={webTheme.colors.success}
+        />
+        <MetricCard
+          label="Absent"
+          value={String(props.rosterModel.absentRows.length)}
+          color={webTheme.colors.danger}
+        />
         <MetricCard label="Attendance" value={`${presentPct}%`} color={webTheme.colors.accent} />
         <MetricCard
           label="Duration"
@@ -116,8 +122,14 @@ export function TeacherSessionHistoryDetail(props: {
           lineHeight: 1.6,
         }}
       >
-        <StatusPill label={formatTeacherWebAttendanceModeLabel(d.mode)} color={webTheme.colors.accent} />
-        <StatusPill label={d.status} color={d.status === "ENDED" ? webTheme.colors.success : webTheme.colors.warning} />
+        <StatusPill
+          label={formatTeacherWebAttendanceModeLabel(d.mode)}
+          color={webTheme.colors.accent}
+        />
+        <StatusPill
+          label={d.status}
+          color={d.status === "ENDED" ? webTheme.colors.success : webTheme.colors.warning}
+        />
         <StatusPill
           label={d.editability.isEditable ? "Editable" : d.editability.state}
           color={d.editability.isEditable ? webTheme.colors.success : webTheme.colors.textSubtle}
@@ -141,7 +153,10 @@ export function TeacherSessionHistoryDetail(props: {
             gap: 10,
             padding: "10px 16px",
             borderRadius: 10,
-            background: props.pendingChangesLength > 0 ? webTheme.colors.accentSoft : webTheme.colors.surfaceMuted,
+            background:
+              props.pendingChangesLength > 0
+                ? webTheme.colors.accentSoft
+                : webTheme.colors.surfaceMuted,
             border: `1px solid ${props.pendingChangesLength > 0 ? webTheme.colors.accentBorder : webTheme.colors.border}`,
             transition: "all 0.2s ease",
           }}
@@ -208,7 +223,9 @@ export function TeacherSessionHistoryDetail(props: {
               <th style={workflowStyles.th}>Status</th>
               <th style={workflowStyles.th}>Marked at</th>
               {d.editability.isEditable ? (
-                <th style={{ ...workflowStyles.th, width: 100, textAlign: "right" as const }}>Action</th>
+                <th style={{ ...workflowStyles.th, width: 100, textAlign: "right" as const }}>
+                  Action
+                </th>
               ) : null}
             </tr>
           </thead>
@@ -217,18 +234,33 @@ export function TeacherSessionHistoryDetail(props: {
               <>
                 {filteredPresent.map((row, idx) => {
                   const markedAtMs = row.markedAt ? new Date(row.markedAt).getTime() : null
-                  const relativeLabel = markedAtMs && sessionStartMs
-                    ? `+${Math.max(0, Math.round((markedAtMs - sessionStartMs) / 60_000))} min`
-                    : null
+                  const relativeLabel =
+                    markedAtMs && sessionStartMs
+                      ? `+${Math.max(0, Math.round((markedAtMs - sessionStartMs) / 60_000))} min`
+                      : null
                   return (
                     <tr key={row.attendanceRecordId}>
-                      <td style={{ ...workflowStyles.td, color: webTheme.colors.textSubtle, fontSize: 13 }}>
+                      <td
+                        style={{
+                          ...workflowStyles.td,
+                          color: webTheme.colors.textSubtle,
+                          fontSize: 13,
+                        }}
+                      >
                         {idx + 1}
                       </td>
                       <td style={workflowStyles.td}>
-                        <span style={{ fontWeight: 500, fontSize: 14 }}>{row.studentDisplayName}</span>
+                        <span style={{ fontWeight: 500, fontSize: 14 }}>
+                          {row.studentDisplayName}
+                        </span>
                       </td>
-                      <td style={{ ...workflowStyles.td, color: webTheme.colors.textMuted, fontSize: 13 }}>
+                      <td
+                        style={{
+                          ...workflowStyles.td,
+                          color: webTheme.colors.textMuted,
+                          fontSize: 13,
+                        }}
+                      >
                         {row.identityLabel}
                       </td>
                       <td style={workflowStyles.td}>
@@ -247,15 +279,34 @@ export function TeacherSessionHistoryDetail(props: {
                           Present
                         </span>
                         {row.pendingChangeLabel ? (
-                          <span style={{ marginLeft: 8, fontSize: 11, color: webTheme.colors.accent, fontWeight: 600 }}>
+                          <span
+                            style={{
+                              marginLeft: 8,
+                              fontSize: 11,
+                              color: webTheme.colors.accent,
+                              fontWeight: 600,
+                            }}
+                          >
                             {row.pendingChangeLabel}
                           </span>
                         ) : null}
                       </td>
-                      <td style={{ ...workflowStyles.td, color: webTheme.colors.textMuted, fontSize: 13 }}>
+                      <td
+                        style={{
+                          ...workflowStyles.td,
+                          color: webTheme.colors.textMuted,
+                          fontSize: 13,
+                        }}
+                      >
                         <div>{row.markedAt ? formatPortalDateTime(row.markedAt) : "—"}</div>
                         {relativeLabel ? (
-                          <div style={{ fontSize: 11, color: webTheme.colors.textSubtle, marginTop: 1 }}>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: webTheme.colors.textSubtle,
+                              marginTop: 1,
+                            }}
+                          >
                             {relativeLabel} after start
                           </div>
                         ) : null}
@@ -264,7 +315,12 @@ export function TeacherSessionHistoryDetail(props: {
                         <td style={{ ...workflowStyles.td, textAlign: "right" as const }}>
                           <button
                             type="button"
-                            onClick={() => props.onToggleStatus(row.attendanceRecordId, row.actionTargetStatus!)}
+                            onClick={() => {
+                              const target = row.actionTargetStatus
+                              if (target) {
+                                props.onToggleStatus(row.attendanceRecordId, target)
+                              }
+                            }}
                             disabled={!d.editability.isEditable}
                             className="ui-danger-action"
                             style={{
@@ -313,13 +369,17 @@ export function TeacherSessionHistoryDetail(props: {
 
             {filteredAbsent.map((row, idx) => (
               <tr key={row.attendanceRecordId}>
-                <td style={{ ...workflowStyles.td, color: webTheme.colors.textSubtle, fontSize: 13 }}>
+                <td
+                  style={{ ...workflowStyles.td, color: webTheme.colors.textSubtle, fontSize: 13 }}
+                >
                   {filteredPresent.length + idx + 1}
                 </td>
                 <td style={workflowStyles.td}>
                   <span style={{ fontWeight: 500, fontSize: 14 }}>{row.studentDisplayName}</span>
                 </td>
-                <td style={{ ...workflowStyles.td, color: webTheme.colors.textMuted, fontSize: 13 }}>
+                <td
+                  style={{ ...workflowStyles.td, color: webTheme.colors.textMuted, fontSize: 13 }}
+                >
                   {row.identityLabel}
                 </td>
                 <td style={workflowStyles.td}>
@@ -338,19 +398,33 @@ export function TeacherSessionHistoryDetail(props: {
                     Absent
                   </span>
                   {row.pendingChangeLabel ? (
-                    <span style={{ marginLeft: 8, fontSize: 11, color: webTheme.colors.accent, fontWeight: 600 }}>
+                    <span
+                      style={{
+                        marginLeft: 8,
+                        fontSize: 11,
+                        color: webTheme.colors.accent,
+                        fontWeight: 600,
+                      }}
+                    >
                       {row.pendingChangeLabel}
                     </span>
                   ) : null}
                 </td>
-                <td style={{ ...workflowStyles.td, color: webTheme.colors.textMuted, fontSize: 13 }}>
+                <td
+                  style={{ ...workflowStyles.td, color: webTheme.colors.textMuted, fontSize: 13 }}
+                >
                   —
                 </td>
                 {d.editability.isEditable && row.actionTargetStatus ? (
                   <td style={{ ...workflowStyles.td, textAlign: "right" as const }}>
                     <button
                       type="button"
-                      onClick={() => props.onToggleStatus(row.attendanceRecordId, row.actionTargetStatus!)}
+                      onClick={() => {
+                        const target = row.actionTargetStatus
+                        if (target) {
+                          props.onToggleStatus(row.attendanceRecordId, target)
+                        }
+                      }}
                       disabled={!d.editability.isEditable}
                       className="ui-success-action"
                       style={{
@@ -389,10 +463,27 @@ function MetricCard(props: { label: string; value: string; color: string }) {
         border: `1px solid ${webTheme.colors.border}`,
       }}
     >
-      <p style={{ margin: 0, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: webTheme.colors.textSubtle }}>
+      <p
+        style={{
+          margin: 0,
+          fontSize: 11,
+          fontWeight: 600,
+          textTransform: "uppercase",
+          letterSpacing: "0.06em",
+          color: webTheme.colors.textSubtle,
+        }}
+      >
         {props.label}
       </p>
-      <p style={{ margin: "6px 0 0", fontSize: 24, fontWeight: 700, color: props.color, letterSpacing: "-0.02em" }}>
+      <p
+        style={{
+          margin: "6px 0 0",
+          fontSize: 24,
+          fontWeight: 700,
+          color: props.color,
+          letterSpacing: "-0.02em",
+        }}
+      >
         {props.value}
       </p>
     </div>

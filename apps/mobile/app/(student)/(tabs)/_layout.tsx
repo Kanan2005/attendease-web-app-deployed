@@ -57,11 +57,7 @@ export default function StudentTabsLayout() {
         options={{
           title: "Reports",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "bar-chart" : "bar-chart-outline"}
-              size={22}
-              color={color}
-            />
+            <Ionicons name={focused ? "bar-chart" : "bar-chart-outline"} size={22} color={color} />
           ),
         }}
       />

@@ -60,13 +60,22 @@ export default function StudentLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="classroom/[classroomId]" />
-      <Stack.Screen name="attendance/index" options={{ ...detailHeader, title: "Mark Attendance" }} />
+      <Stack.Screen
+        name="attendance/index"
+        options={{ ...detailHeader, title: "Mark Attendance" }}
+      />
       <Stack.Screen name="attendance/qr-scan" options={{ ...detailHeader, title: "QR Scan" }} />
-      <Stack.Screen name="attendance/bluetooth-scan" options={{ ...detailHeader, title: "Bluetooth Scan" }} />
+      <Stack.Screen
+        name="attendance/bluetooth-scan"
+        options={{ ...detailHeader, title: "Bluetooth Scan" }}
+      />
       <Stack.Screen name="join" options={{ ...detailHeader, title: "Join Classroom" }} />
       <Stack.Screen name="history" options={{ ...detailHeader, title: "History" }} />
       <Stack.Screen name="device-status" options={{ ...detailHeader, title: "Device Status" }} />
-      <Stack.Screen name="reports/subject/[subjectId]" options={{ ...detailHeader, title: "Subject Report" }} />
+      <Stack.Screen
+        name="reports/subject/[subjectId]"
+        options={{ ...detailHeader, title: "Subject Report" }}
+      />
     </Stack>
   )
 }

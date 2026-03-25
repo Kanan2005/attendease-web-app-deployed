@@ -142,7 +142,11 @@ export function TeacherReportsWorkspace(props: {
           const session = sessions.find((s) => s.lectureId === lecture.id)
           const total = session ? session.presentCount + session.absentCount : 0
           const pct = total > 0 && session ? Math.round((session.presentCount / total) * 100) : 0
-          const point: SessionChartPoint = { date: lecture.lectureDate, dateLabel: utcDateLabel(lecture.lectureDate), pct }
+          const point: SessionChartPoint = {
+            date: lecture.lectureDate,
+            dateLabel: utcDateLabel(lecture.lectureDate),
+            pct,
+          }
           if (lecture.title) point.title = lecture.title
           return point
         })
@@ -201,18 +205,26 @@ export function TeacherReportsWorkspace(props: {
     ? [
         {
           label: "Students enrolled",
-          value: String(reportOverview.summaryCards.find((c) => c.label === "Students")?.value ?? "0"),
-          tone: (reportOverview.summaryCards.find((c) => c.label === "Students")?.tone ?? "warning") as "primary" | "success" | "warning" | "danger",
+          value: String(
+            reportOverview.summaryCards.find((c) => c.label === "Students")?.value ?? "0",
+          ),
+          tone: (reportOverview.summaryCards.find((c) => c.label === "Students")?.tone ??
+            "warning") as "primary" | "success" | "warning" | "danger",
         },
         {
           label: "Lecture sessions",
           value: String(lectureCount),
-          tone: (lectureCount > 0 ? "primary" : "warning") as "primary" | "success" | "warning" | "danger",
+          tone: (lectureCount > 0 ? "primary" : "warning") as
+            | "primary"
+            | "success"
+            | "warning"
+            | "danger",
         },
         {
           label: "Average attendance",
           value: avgAttendancePct,
-          tone: (reportOverview.summaryCards.find((c) => c.label === "Attendance")?.tone ?? "warning") as "primary" | "success" | "warning" | "danger",
+          tone: (reportOverview.summaryCards.find((c) => c.label === "Attendance")?.tone ??
+            "warning") as "primary" | "success" | "warning" | "danger",
         },
       ]
     : reportOverview.summaryCards
@@ -223,7 +235,15 @@ export function TeacherReportsWorkspace(props: {
         <WorkflowStateCard message="Sign in to review attendance reports." />
       ) : (
         <>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 12,
+            }}
+          >
             <h2 style={{ fontSize: 22, fontWeight: 700, color: webTheme.colors.text, margin: 0 }}>
               Reports
             </h2>
@@ -242,17 +262,13 @@ export function TeacherReportsWorkspace(props: {
               <WorkflowField
                 label="From"
                 value={filters.fromDate}
-                onChange={(value) =>
-                  setFilters((current) => ({ ...current, fromDate: value }))
-                }
+                onChange={(value) => setFilters((current) => ({ ...current, fromDate: value }))}
                 type="date"
               />
               <WorkflowField
                 label="To"
                 value={filters.toDate}
-                onChange={(value) =>
-                  setFilters((current) => ({ ...current, toDate: value }))
-                }
+                onChange={(value) => setFilters((current) => ({ ...current, toDate: value }))}
                 type="date"
               />
             </div>
@@ -261,9 +277,7 @@ export function TeacherReportsWorkspace(props: {
               <WorkflowSelectField
                 label="Classroom"
                 value={filters.classroomId}
-                onChange={(value) =>
-                  setFilters((current) => ({ ...current, classroomId: value }))
-                }
+                onChange={(value) => setFilters((current) => ({ ...current, classroomId: value }))}
                 options={[
                   { value: "", label: "All classrooms" },
                   ...academicFilterOptions.classroomOptions,
@@ -272,17 +286,16 @@ export function TeacherReportsWorkspace(props: {
               <WorkflowSelectField
                 label="Class"
                 value={filters.classId}
-                onChange={(value) =>
-                  setFilters((current) => ({ ...current, classId: value }))
-                }
-                options={[{ value: "", label: "All classes" }, ...academicFilterOptions.classOptions]}
+                onChange={(value) => setFilters((current) => ({ ...current, classId: value }))}
+                options={[
+                  { value: "", label: "All classes" },
+                  ...academicFilterOptions.classOptions,
+                ]}
               />
               <WorkflowSelectField
                 label="Section"
                 value={filters.sectionId}
-                onChange={(value) =>
-                  setFilters((current) => ({ ...current, sectionId: value }))
-                }
+                onChange={(value) => setFilters((current) => ({ ...current, sectionId: value }))}
                 options={[
                   { value: "", label: "All sections" },
                   ...academicFilterOptions.sectionOptions,
@@ -291,9 +304,7 @@ export function TeacherReportsWorkspace(props: {
               <WorkflowSelectField
                 label="Subject"
                 value={filters.subjectId}
-                onChange={(value) =>
-                  setFilters((current) => ({ ...current, subjectId: value }))
-                }
+                onChange={(value) => setFilters((current) => ({ ...current, subjectId: value }))}
                 options={[
                   { value: "", label: "All subjects" },
                   ...academicFilterOptions.subjectOptions,
@@ -302,17 +313,13 @@ export function TeacherReportsWorkspace(props: {
               <WorkflowField
                 label="From"
                 value={filters.fromDate}
-                onChange={(value) =>
-                  setFilters((current) => ({ ...current, fromDate: value }))
-                }
+                onChange={(value) => setFilters((current) => ({ ...current, fromDate: value }))}
                 type="date"
               />
               <WorkflowField
                 label="To"
                 value={filters.toDate}
-                onChange={(value) =>
-                  setFilters((current) => ({ ...current, toDate: value }))
-                }
+                onChange={(value) => setFilters((current) => ({ ...current, toDate: value }))}
                 type="date"
               />
             </div>
@@ -361,124 +368,171 @@ export function TeacherReportsWorkspace(props: {
           ) : null}
 
           <section style={{ marginBottom: 32 }} aria-labelledby="report-trend-heading">
-            <h3 id="report-trend-heading" style={{ fontSize: 18, fontWeight: 600, color: webTheme.colors.text, margin: "0 0 12px" }}>
+            <h3
+              id="report-trend-heading"
+              style={{
+                fontSize: 18,
+                fontWeight: 600,
+                color: webTheme.colors.text,
+                margin: "0 0 12px",
+              }}
+            >
               Attendance by session
             </h3>
             <ReportSessionTrendChart data={sessionChartData} />
           </section>
 
           <section style={{ marginBottom: 32 }} aria-labelledby="report-threshold-heading">
-          <div style={workflowStyles.twoColumn}>
-            <div style={workflowStyles.grid}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
-                <h3 id="report-threshold-heading" style={{ fontSize: 18, fontWeight: 600, color: webTheme.colors.text, margin: 0, display: "inline-flex", alignItems: "center", gap: 8 }}>
-                  Students below threshold
-                  {studentsBelowThreshold.length > 0 ? (
-                    <span style={{
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: webTheme.colors.danger,
-                      background: webTheme.colors.dangerSoft,
-                      border: `1px solid ${webTheme.colors.dangerBorder}`,
-                      borderRadius: 999,
-                      padding: "2px 8px",
-                      lineHeight: 1.4,
-                    }}>
-                      {studentsBelowThreshold.length}
-                    </span>
-                  ) : null}
-                </h3>
-                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14 }}>
-                  <span style={{ color: webTheme.colors.textMuted }}>Threshold (%)</span>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={attendanceThreshold}
-                    onChange={(e) => {
-                      const n = Number(e.target.value)
-                      if (!Number.isNaN(n)) setAttendanceThreshold(Math.max(0, Math.min(100, n)))
-                    }}
+            <div style={workflowStyles.twoColumn}>
+              <div style={workflowStyles.grid}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    flexWrap: "wrap",
+                    marginBottom: 12,
+                  }}
+                >
+                  <h3
+                    id="report-threshold-heading"
                     style={{
-                      width: 64,
-                      padding: "6px 8px",
-                      border: `1px solid ${webTheme.colors.border}`,
-                      borderRadius: 4,
-                      fontSize: 14,
+                      fontSize: 18,
+                      fontWeight: 600,
                       color: webTheme.colors.text,
-                      background: webTheme.colors.surfaceRaised,
+                      margin: 0,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
                     }}
-                  />
-                </label>
-              </div>
-              <div style={{ overflowX: "auto" }}>
-                <table style={workflowStyles.table}>
-                  <thead>
-                    <tr>
-                      <th style={workflowStyles.th}>Student</th>
-                      <th style={workflowStyles.th}>Roll No.</th>
-                      <th style={workflowStyles.th}>Attendance</th>
-                      <th style={workflowStyles.th}>Follow-up</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {studentsBelowThreshold.length === 0 ? (
+                  >
+                    Students below threshold
+                    {studentsBelowThreshold.length > 0 ? (
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: webTheme.colors.danger,
+                          background: webTheme.colors.dangerSoft,
+                          border: `1px solid ${webTheme.colors.dangerBorder}`,
+                          borderRadius: 999,
+                          padding: "2px 8px",
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {studentsBelowThreshold.length}
+                      </span>
+                    ) : null}
+                  </h3>
+                  <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14 }}>
+                    <span style={{ color: webTheme.colors.textMuted }}>Threshold (%)</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={attendanceThreshold}
+                      onChange={(e) => {
+                        const n = Number(e.target.value)
+                        if (!Number.isNaN(n)) setAttendanceThreshold(Math.max(0, Math.min(100, n)))
+                      }}
+                      style={{
+                        width: 64,
+                        padding: "6px 8px",
+                        border: `1px solid ${webTheme.colors.border}`,
+                        borderRadius: 4,
+                        fontSize: 14,
+                        color: webTheme.colors.text,
+                        background: webTheme.colors.surfaceRaised,
+                      }}
+                    />
+                  </label>
+                </div>
+                <div style={{ overflowX: "auto" }}>
+                  <table style={workflowStyles.table}>
+                    <thead>
                       <tr>
-                        <td colSpan={4} style={{ ...workflowStyles.td, color: webTheme.colors.textMuted }}>
-                          No students below {attendanceThreshold}% with current filters.
-                        </td>
+                        <th style={workflowStyles.th}>Student</th>
+                        <th style={workflowStyles.th}>Roll No.</th>
+                        <th style={workflowStyles.th}>Attendance</th>
+                        <th style={workflowStyles.th}>Follow-up</th>
                       </tr>
-                    ) : (
-                      studentsBelowThreshold.map((row) => (
-                        <tr key={row.studentId}>
-                          <td style={workflowStyles.td}>
-                            <strong>{row.title}</strong>
-                          </td>
-                          <td style={{ ...workflowStyles.td, color: webTheme.colors.textMuted, fontSize: 13 }}>
-                            {row.supportingLabel || "—"}
-                          </td>
-                          <td style={workflowStyles.td}>
-                            <div>{row.attendanceLabel}</div>
-                            <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
-                              {row.sessionSummary}
-                            </div>
-                          </td>
-                          <td style={workflowStyles.td}>
-                            <WorkflowTonePill label={row.followUpLabel} tone={row.tone} />
+                    </thead>
+                    <tbody>
+                      {studentsBelowThreshold.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={4}
+                            style={{ ...workflowStyles.td, color: webTheme.colors.textMuted }}
+                          >
+                            No students below {attendanceThreshold}% with current filters.
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ) : (
+                        studentsBelowThreshold.map((row) => (
+                          <tr key={row.studentId}>
+                            <td style={workflowStyles.td}>
+                              <strong>{row.title}</strong>
+                            </td>
+                            <td
+                              style={{
+                                ...workflowStyles.td,
+                                color: webTheme.colors.textMuted,
+                                fontSize: 13,
+                              }}
+                            >
+                              {row.supportingLabel || "—"}
+                            </td>
+                            <td style={workflowStyles.td}>
+                              <div>{row.attendanceLabel}</div>
+                              <div style={{ color: webTheme.colors.textSubtle, marginTop: 4 }}>
+                                {row.sessionSummary}
+                              </div>
+                            </td>
+                            <td style={workflowStyles.td}>
+                              <WorkflowTonePill label={row.followUpLabel} tone={row.tone} />
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div style={workflowStyles.grid}>
+                <h3
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 600,
+                    color: webTheme.colors.text,
+                    margin: "0 0 12px",
+                  }}
+                >
+                  Day-wise trend
+                </h3>
+                {reportOverview.daywiseRows.map((row) => (
+                  <div
+                    key={`${row.classroomId}:${row.attendanceDate}`}
+                    style={workflowStyles.rowCard}
+                  >
+                    <div style={workflowStyles.buttonRow}>
+                      <WorkflowTonePill label={row.attendanceLabel} tone={row.tone} />
+                    </div>
+                    <strong
+                      style={{ display: "block", marginTop: 10, color: webTheme.colors.text }}
+                    >
+                      {row.title}
+                    </strong>
+                    <div style={{ color: webTheme.colors.textMuted, marginTop: 6 }}>
+                      {row.sessionSummary}
+                    </div>
+                    <div style={{ color: webTheme.colors.textSubtle, marginTop: 8 }}>
+                      {row.dateLabel}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-
-            <div style={workflowStyles.grid}>
-              <h3 style={{ fontSize: 18, fontWeight: 600, color: webTheme.colors.text, margin: "0 0 12px" }}>
-                Day-wise trend
-              </h3>
-              {reportOverview.daywiseRows.map((row) => (
-                <div
-                  key={`${row.classroomId}:${row.attendanceDate}`}
-                  style={workflowStyles.rowCard}
-                >
-                  <div style={workflowStyles.buttonRow}>
-                    <WorkflowTonePill label={row.attendanceLabel} tone={row.tone} />
-                  </div>
-                  <strong style={{ display: "block", marginTop: 10, color: webTheme.colors.text }}>
-                    {row.title}
-                  </strong>
-                  <div style={{ color: webTheme.colors.textMuted, marginTop: 6 }}>
-                    {row.sessionSummary}
-                  </div>
-                  <div style={{ color: webTheme.colors.textSubtle, marginTop: 8 }}>
-                    {row.dateLabel}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
           </section>
 
           {exportSuccess ? (

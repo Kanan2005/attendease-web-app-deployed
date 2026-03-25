@@ -21,10 +21,7 @@ export function TeacherClassroomRosterFindCard({
   onSetStatusFilter,
 }: Props) {
   return (
-    <TeacherCard
-      title="Find Students"
-      subtitle="Search students."
-    >
+    <TeacherCard title="Find Students" subtitle="Search students.">
       <TextInput
         value={searchText}
         autoCapitalize="none"

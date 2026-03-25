@@ -156,7 +156,7 @@ export function TeacherSessionStartWorkspace(props: {
         text: "That classroom is not ready for QR + GPS launch on web. Choose an active QR + GPS classroom instead.",
       })
     }
-  }, [classroomsQuery.data, props.initialClassroomId])
+  }, [classroomsQuery.data, props.initialClassroomId, props.initialLectureId])
 
   const selectedClassroom = draft
     ? (classroomOptions.find((entry) => entry.classroomId === draft.classroomId) ?? null)
@@ -283,9 +283,17 @@ export function TeacherSessionStartWorkspace(props: {
       <Link
         href={backHref}
         className="ui-back-link"
-        style={{ fontSize: 13, color: webTheme.colors.textMuted, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+        style={{
+          fontSize: 13,
+          color: webTheme.colors.textMuted,
+          textDecoration: "none",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+        }}
       >
-        <span aria-hidden>←</span> {props.initialClassroomId ? "Back to sessions" : "Back to classrooms"}
+        <span aria-hidden>←</span>{" "}
+        {props.initialClassroomId ? "Back to sessions" : "Back to classrooms"}
       </Link>
 
       <WebSectionCard
@@ -345,12 +353,14 @@ export function TeacherSessionStartWorkspace(props: {
           <div
             style={{
               ...workflowStyles.rowCard,
-              borderColor: draft.anchorLatitude && draft.anchorLongitude
-                ? webTheme.colors.successBorder
-                : webTheme.colors.warningBorder,
-              background: draft.anchorLatitude && draft.anchorLongitude
-                ? webTheme.colors.successSoft
-                : webTheme.colors.warningSoft,
+              borderColor:
+                draft.anchorLatitude && draft.anchorLongitude
+                  ? webTheme.colors.successBorder
+                  : webTheme.colors.warningBorder,
+              background:
+                draft.anchorLatitude && draft.anchorLongitude
+                  ? webTheme.colors.successSoft
+                  : webTheme.colors.warningSoft,
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
@@ -359,9 +369,10 @@ export function TeacherSessionStartWorkspace(props: {
                   width: 10,
                   height: 10,
                   borderRadius: "50%",
-                  background: draft.anchorLatitude && draft.anchorLongitude
-                    ? webTheme.colors.success
-                    : webTheme.colors.warning,
+                  background:
+                    draft.anchorLatitude && draft.anchorLongitude
+                      ? webTheme.colors.success
+                      : webTheme.colors.warning,
                   flexShrink: 0,
                 }}
               />
@@ -373,7 +384,14 @@ export function TeacherSessionStartWorkspace(props: {
                 : "Capture your browser location before starting. Students will be validated against this anchor point."}
             </p>
             {locationMessage ? (
-              <p style={{ margin: "8px 0 0", color: webTheme.colors.success, fontWeight: 500, lineHeight: 1.6 }}>
+              <p
+                style={{
+                  margin: "8px 0 0",
+                  color: webTheme.colors.success,
+                  fontWeight: 500,
+                  lineHeight: 1.6,
+                }}
+              >
                 {locationMessage}
               </p>
             ) : null}

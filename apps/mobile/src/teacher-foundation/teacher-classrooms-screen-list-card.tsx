@@ -1,6 +1,6 @@
-import { Text, View } from "react-native"
-import { Ionicons } from "@expo/vector-icons"
 import { getColors } from "@attendease/ui-mobile"
+import { Ionicons } from "@expo/vector-icons"
+import { Text, View } from "react-native"
 
 import type { ClassroomSummary } from "@attendease/contracts"
 import { buildTeacherClassroomSupportingText } from "../teacher-classroom-management"
@@ -13,9 +13,7 @@ type ClassroomListCardProps = {
 
 export function TeacherClassroomsListCard({ classrooms }: ClassroomListCardProps) {
   return (
-    <TeacherCard
-      title="Classroom List"
-    >
+    <TeacherCard title="Classroom List">
       {classrooms?.length ? (
         classrooms.map((classroom) => {
           const classroomContext = teacherRoutes.classroomContext(classroom.id)
@@ -24,7 +22,9 @@ export function TeacherClassroomsListCard({ classrooms }: ClassroomListCardProps
 
           return (
             <View key={classroom.id} style={styles.highlightCard}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 4 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 4 }}
+              >
                 <View
                   style={{
                     width: 38,
@@ -42,7 +42,8 @@ export function TeacherClassroomsListCard({ classrooms }: ClassroomListCardProps
                     {classroom.classroomTitle ?? classroom.displayTitle}
                   </Text>
                   <Text style={styles.listMeta}>
-                    {(classroom.courseCode ?? classroom.code).toUpperCase()} · {formatEnum(classroom.status)}
+                    {(classroom.courseCode ?? classroom.code).toUpperCase()} ·{" "}
+                    {formatEnum(classroom.status)}
                   </Text>
                 </View>
               </View>
@@ -50,12 +51,28 @@ export function TeacherClassroomsListCard({ classrooms }: ClassroomListCardProps
                 Join code: {classroom.activeJoinCode?.code ?? "No live join code"}
               </Text>
               <View style={styles.actionGrid}>
-                <TeacherNavAction href={classroomContext.detail} label="Open Course" icon="open-outline" />
+                <TeacherNavAction
+                  href={classroomContext.detail}
+                  label="Open Course"
+                  icon="open-outline"
+                />
                 {canLaunchBluetooth ? (
-                  <TeacherNavAction href={classroomContext.bluetoothCreate} label="Bluetooth" icon="bluetooth-outline" />
+                  <TeacherNavAction
+                    href={classroomContext.bluetoothCreate}
+                    label="Bluetooth"
+                    icon="bluetooth-outline"
+                  />
                 ) : null}
-                <TeacherNavAction href={classroomContext.roster} label="Students" icon="people-outline" />
-                <TeacherNavAction href={classroomContext.schedule} label="Schedule" icon="calendar-outline" />
+                <TeacherNavAction
+                  href={classroomContext.roster}
+                  label="Students"
+                  icon="people-outline"
+                />
+                <TeacherNavAction
+                  href={classroomContext.schedule}
+                  label="Schedule"
+                  icon="calendar-outline"
+                />
               </View>
             </View>
           )

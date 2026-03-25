@@ -1,13 +1,6 @@
 "use client"
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react"
+import { type ReactNode, createContext, useCallback, useContext, useEffect, useState } from "react"
 
 type Theme = "dark" | "light"
 
@@ -57,9 +50,7 @@ export function ThemeProvider(props: { children: ReactNode }) {
   }
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {props.children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>{props.children}</ThemeContext.Provider>
   )
 }
 
