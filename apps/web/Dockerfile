@@ -19,7 +19,8 @@ ARG NEXT_PUBLIC_FEATURE_BLUETOOTH_ATTENDANCE_ENABLED="true"
 ARG NEXT_PUBLIC_FEATURE_EMAIL_AUTOMATION_ENABLED="true"
 ARG NEXT_PUBLIC_GOOGLE_OIDC_CLIENT_ID
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json .npmrc ./
+COPY patches ./patches
 COPY apps ./apps
 COPY packages ./packages
 

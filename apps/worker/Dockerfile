@@ -14,7 +14,8 @@ WORKDIR /app
 
 FROM base AS build
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json .npmrc ./
+COPY patches ./patches
 COPY apps ./apps
 COPY packages ./packages
 
