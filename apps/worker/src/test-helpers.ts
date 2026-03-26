@@ -5,6 +5,7 @@ import {
   academicManagementMigrationPath,
   authRoleContextMigrationPath,
   bluetoothAttendanceCoreMigrationPath,
+  courseOfferingLabelColumnsMigrationPath,
   createPrismaClient,
   defaultDatabaseUrl,
   destructiveActionAuditSemanticsMigrationPath,
@@ -18,6 +19,7 @@ import {
   reportsReadModelsMigrationPath,
   scheduleManagementMigrationPath,
   seedDevelopmentData,
+  studentProfileDegreeBranchMigrationPath,
 } from "@attendease/db"
 import { Client } from "pg"
 
@@ -65,6 +67,8 @@ function getCombinedMigrationSql(): string {
     fs.readFileSync(reportsReadModelsMigrationPath, "utf8"),
     fs.readFileSync(emailAutomationRuntimeSupportMigrationPath, "utf8"),
     fs.readFileSync(destructiveActionAuditSemanticsMigrationPath, "utf8"),
+    fs.readFileSync(studentProfileDegreeBranchMigrationPath, "utf8"),
+    fs.readFileSync(courseOfferingLabelColumnsMigrationPath, "utf8"),
   ].join("\n\n")
 }
 

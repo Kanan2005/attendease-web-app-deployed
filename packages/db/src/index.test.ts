@@ -6,6 +6,7 @@ import {
   authRoleContextMigrationPath,
   bluetoothAttendanceCoreMigrationPath,
   buildDevelopmentStudentRegistrationFixture,
+  courseOfferingLabelColumnsMigrationPath,
   destructiveActionAuditSemanticsMigrationPath,
   developmentAcademicFixtures,
   developmentAuthFixtures,
@@ -20,6 +21,7 @@ import {
   prismaSchemaPath,
   qrGpsSecurityHardeningMigrationPath,
   reportsReadModelsMigrationPath,
+  studentProfileDegreeBranchMigrationPath,
 } from "./index"
 
 describe("db package paths", () => {
@@ -75,6 +77,16 @@ describe("db package paths", () => {
         "packages/db/prisma/migrations/20260315001200_destructive_action_audit_semantics/migration.sql",
       ),
     ).toBe(true)
+    expect(
+      studentProfileDegreeBranchMigrationPath.endsWith(
+        "packages/db/prisma/migrations/20260315001300_add_student_profile_degree_branch/migration.sql",
+      ),
+    ).toBe(true)
+    expect(
+      courseOfferingLabelColumnsMigrationPath.endsWith(
+        "packages/db/prisma/migrations/20260315001400_add_course_offering_label_columns/migration.sql",
+      ),
+    ).toBe(true)
 
     expect(fs.existsSync(prismaSchemaPath)).toBe(true)
     expect(fs.existsSync(prismaConfigPath)).toBe(true)
@@ -89,6 +101,8 @@ describe("db package paths", () => {
     expect(fs.existsSync(reportsReadModelsMigrationPath)).toBe(true)
     expect(fs.existsSync(emailAutomationRuntimeSupportMigrationPath)).toBe(true)
     expect(fs.existsSync(destructiveActionAuditSemanticsMigrationPath)).toBe(true)
+    expect(fs.existsSync(studentProfileDegreeBranchMigrationPath)).toBe(true)
+    expect(fs.existsSync(courseOfferingLabelColumnsMigrationPath)).toBe(true)
   })
 
   it("exports deterministic development auth and academic fixtures", () => {

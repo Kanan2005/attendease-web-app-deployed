@@ -21,6 +21,7 @@ import {
   authRoleContextMigrationPath,
   bluetoothAttendanceCoreMigrationPath,
   buildOutboxEventData,
+  courseOfferingLabelColumnsMigrationPath,
   createPrismaClient,
   defaultDatabaseUrl,
   destructiveActionAuditSemanticsMigrationPath,
@@ -49,6 +50,7 @@ import {
   runSerializableTransaction,
   scheduleManagementMigrationPath,
   seedDevelopmentData,
+  studentProfileDegreeBranchMigrationPath,
 } from "./index"
 
 type PostgresError = Error & {
@@ -78,6 +80,8 @@ const combinedMigrationSql = [
   fs.readFileSync(reportsReadModelsMigrationPath, "utf8"),
   fs.readFileSync(emailAutomationRuntimeSupportMigrationPath, "utf8"),
   fs.readFileSync(destructiveActionAuditSemanticsMigrationPath, "utf8"),
+  fs.readFileSync(studentProfileDegreeBranchMigrationPath, "utf8"),
+  fs.readFileSync(courseOfferingLabelColumnsMigrationPath, "utf8"),
 ].join("\n\n")
 
 const fixtureIds = {

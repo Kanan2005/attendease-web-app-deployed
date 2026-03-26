@@ -59,3 +59,11 @@ export const destructiveActionAuditSemanticsMigrationPath = path.resolve(
   currentDirectory,
   "../prisma/migrations/20260315001200_destructive_action_audit_semantics/migration.sql",
 )
+export const studentProfileDegreeBranchMigrationPath = path.resolve(
+  currentDirectory,
+  "../prisma/migrations/20260315001300_add_student_profile_degree_branch/migration.sql",
+)
+export const courseOfferingLabelColumnsMigrationPath = path.resolve(
+  currentDirectory,
+  "../prisma/migrations/20260315001400_add_course_offering_label_columns/migration.sql",
+)
