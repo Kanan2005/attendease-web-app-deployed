@@ -172,7 +172,7 @@ export async function seedE2EData(
       email: fixture.email,
       password: fixture.password,
       displayName: fixture.displayName,
-      token: session.accessToken,
+      token: session.tokens.accessToken,
       classrooms: [],
     })
   }
@@ -230,7 +230,7 @@ export async function seedE2EData(
             email: fixture.email,
             password: fixture.password,
             displayName: fixture.displayName,
-            token: session.accessToken,
+            token: session.tokens.accessToken,
             installId: fixture.device.installId,
             classroomIds: [] as string[],
             degree,

@@ -208,12 +208,15 @@ describe("E2E flows (20 teachers, 800 students)", () => {
         email: fixture.email,
         password: fixture.password,
         displayName: fixture.displayName,
-        installId: fixture.device.installId,
-        platform: fixture.device.platform,
-        publicKey: fixture.device.publicKey,
-        appVersion: fixture.device.appVersion,
-        deviceModel: fixture.device.deviceModel,
-        osVersion: fixture.device.osVersion,
+        platform: "MOBILE",
+        device: {
+          installId: fixture.device.installId,
+          platform: fixture.device.platform,
+          publicKey: fixture.device.publicKey,
+          appVersion: fixture.device.appVersion,
+          deviceModel: fixture.device.deviceModel,
+          osVersion: fixture.device.osVersion,
+        },
         degree: "B.Tech",
         branch: "CSE",
       })
@@ -228,6 +231,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
         email: fixture.email,
         password: fixture.password,
         displayName: fixture.displayName,
+        platform: fixture.platform,
       })
       expect(res.statusCode).toBe(201)
     })
@@ -239,12 +243,15 @@ describe("E2E flows (20 teachers, 800 students)", () => {
         email: existingStudent.email,
         password: fixture.password,
         displayName: fixture.displayName,
-        installId: fixture.device.installId,
-        platform: fixture.device.platform,
-        publicKey: fixture.device.publicKey,
-        appVersion: fixture.device.appVersion,
-        deviceModel: fixture.device.deviceModel,
-        osVersion: fixture.device.osVersion,
+        platform: "MOBILE",
+        device: {
+          installId: fixture.device.installId,
+          platform: fixture.device.platform,
+          publicKey: fixture.device.publicKey,
+          appVersion: fixture.device.appVersion,
+          deviceModel: fixture.device.deviceModel,
+          osVersion: fixture.device.osVersion,
+        },
       })
       expect(res.statusCode).toBeGreaterThanOrEqual(400)
       expect(res.statusCode).toBeLessThan(500)
@@ -268,10 +275,12 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       const res = await post("/auth/login", {
         email: teacher.email,
         password: teacher.password,
+        platform: "WEB",
+        requestedRole: "TEACHER",
       })
       expect(res.statusCode).toBe(200)
-      expect(res.body.accessToken).toBeTruthy()
-      expect(typeof res.body.accessToken).toBe("string")
+      expect(res.body.tokens.accessToken).toBeTruthy()
+      expect(typeof res.body.tokens.accessToken).toBe("string")
     })
 
     it("logs in a seeded student and returns an access token", async () => {
@@ -279,9 +288,17 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       const res = await post("/auth/login", {
         email: student.email,
         password: student.password,
+        platform: "MOBILE",
+        requestedRole: "STUDENT",
+        device: {
+          installId: student.installId,
+          platform: "ANDROID",
+          publicKey: "e2e-student-public-key",
+          appVersion: "1.0.0",
+        },
       })
       expect(res.statusCode).toBe(200)
-      expect(res.body.accessToken).toBeTruthy()
+      expect(res.body.tokens.accessToken).toBeTruthy()
     })
 
     it("rejects login with wrong password", async () => {
@@ -289,6 +306,8 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       const res = await post("/auth/login", {
         email: teacher.email,
         password: "wrong-password-absolutely",
+        platform: "WEB",
+        requestedRole: "TEACHER",
       })
       expect(res.statusCode).toBeGreaterThanOrEqual(400)
     })
@@ -297,6 +316,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       const res = await post("/auth/login", {
         email: "nobody-here@attendease.dev",
         password: "doesnotmatter",
+        platform: "WEB",
       })
       expect(res.statusCode).toBeGreaterThanOrEqual(400)
     })
@@ -327,20 +347,33 @@ describe("E2E flows (20 teachers, 800 students)", () => {
         email: fixture.email,
         password: fixture.password,
         displayName: fixture.displayName,
-        installId: fixture.device.installId,
-        platform: fixture.device.platform,
-        publicKey: fixture.device.publicKey,
-        appVersion: fixture.device.appVersion,
-        deviceModel: fixture.device.deviceModel,
-        osVersion: fixture.device.osVersion,
+        platform: "MOBILE",
+        device: {
+          installId: fixture.device.installId,
+          platform: fixture.device.platform,
+          publicKey: fixture.device.publicKey,
+          appVersion: fixture.device.appVersion,
+          deviceModel: fixture.device.deviceModel,
+          osVersion: fixture.device.osVersion,
+        },
       })
       const login = await post("/auth/login", {
         email: fixture.email,
         password: fixture.password,
+        platform: "MOBILE",
+        requestedRole: "STUDENT",
+        device: {
+          installId: fixture.device.installId,
+          platform: fixture.device.platform,
+          publicKey: fixture.device.publicKey,
+          appVersion: fixture.device.appVersion,
+          deviceModel: fixture.device.deviceModel,
+          osVersion: fixture.device.osVersion,
+        },
       })
       expect(login.statusCode).toBe(200)
 
-      const logout = await post("/auth/logout", {}, login.body.accessToken)
+      const logout = await post("/auth/logout", {}, login.body.tokens.accessToken)
       expect(logout.statusCode).toBeLessThan(300)
     })
   })
@@ -804,9 +837,11 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       const res = await post("/auth/login", {
         email: authIntegrationFixtures.admin.email,
         password: authIntegrationFixtures.admin.password,
+        platform: "WEB",
+        requestedRole: "ADMIN",
       })
       expect(res.statusCode).toBe(200)
-      adminToken = res.body.accessToken
+      adminToken = res.body.tokens.accessToken
     })
 
     it("admin lists all students", async () => {
@@ -839,8 +874,10 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       const res = await post("/auth/login", {
         email: authIntegrationFixtures.admin.email,
         password: authIntegrationFixtures.admin.password,
+        platform: "WEB",
+        requestedRole: "ADMIN",
       })
-      adminToken = res.body.accessToken
+      adminToken = res.body.tokens.accessToken
     })
 
     it("admin lists all classrooms", async () => {
@@ -861,8 +898,10 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       const res = await post("/auth/login", {
         email: authIntegrationFixtures.admin.email,
         password: authIntegrationFixtures.admin.password,
+        platform: "WEB",
+        requestedRole: "ADMIN",
       })
-      adminToken = res.body.accessToken
+      adminToken = res.body.tokens.accessToken
     })
 
     it("admin lists device bindings", async () => {
@@ -1200,12 +1239,15 @@ describe("E2E flows (20 teachers, 800 students)", () => {
         email: fixture.email,
         password: fixture.password,
         displayName: fixture.displayName,
-        installId: fixture.device.installId,
-        platform: fixture.device.platform,
-        publicKey: fixture.device.publicKey,
-        appVersion: fixture.device.appVersion,
-        deviceModel: fixture.device.deviceModel,
-        osVersion: fixture.device.osVersion,
+        platform: "MOBILE",
+        device: {
+          installId: fixture.device.installId,
+          platform: fixture.device.platform,
+          publicKey: fixture.device.publicKey,
+          appVersion: fixture.device.appVersion,
+          deviceModel: fixture.device.deviceModel,
+          osVersion: fixture.device.osVersion,
+        },
         degree: "B.Tech",
         branch: "CSE",
       })
@@ -1214,9 +1256,19 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       const login = await post("/auth/login", {
         email: fixture.email,
         password: fixture.password,
+        platform: "MOBILE",
+        requestedRole: "STUDENT",
+        device: {
+          installId: fixture.device.installId,
+          platform: fixture.device.platform,
+          publicKey: fixture.device.publicKey,
+          appVersion: fixture.device.appVersion,
+          deviceModel: fixture.device.deviceModel,
+          osVersion: fixture.device.osVersion,
+        },
       })
       expect(login.statusCode).toBe(200)
-      const token = login.body.accessToken
+      const token = login.body.tokens.accessToken
 
       const me = await get("/auth/me", token)
       expect(me.statusCode).toBe(200)
@@ -1282,15 +1334,18 @@ describe("E2E flows (20 teachers, 800 students)", () => {
         email: fixture.email,
         password: fixture.password,
         displayName: fixture.displayName,
+        platform: fixture.platform,
       })
       expect(reg.statusCode).toBe(201)
 
       const login = await post("/auth/login", {
         email: fixture.email,
         password: fixture.password,
+        platform: fixture.platform,
+        requestedRole: "TEACHER",
       })
       expect(login.statusCode).toBe(200)
-      const token = login.body.accessToken
+      const token = login.body.tokens.accessToken
 
       const classroom = await post(
         "/classrooms",
