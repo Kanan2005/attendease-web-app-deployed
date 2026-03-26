@@ -150,7 +150,7 @@ describe("Exports integration", () => {
             sizeBytes: 2048,
             checksumSha256: "checksum-value",
             readyAt: new Date("2026-03-15T09:00:08.000Z"),
-            expiresAt: new Date("2026-03-18T09:00:08.000Z"),
+            expiresAt: new Date("2027-03-15T09:00:08.000Z"),
           },
         },
       },

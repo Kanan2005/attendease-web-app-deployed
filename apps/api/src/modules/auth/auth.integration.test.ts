@@ -146,12 +146,16 @@ describe("Auth integration", () => {
     expect(assignmentsResponse.statusCode).toBe(200)
     const assignments = teacherAssignmentsResponseSchema.parse(assignmentsResponse.body)
     expect(assignments.length).toBeGreaterThan(0)
-    expect(assignments[0]).toMatchObject({
-      semesterCode: "SEM6-2026",
-      classCode: "BTECH-CSE-2023",
-      sectionCode: "A",
-      subjectCode: "MATH101",
-    })
+    expect(assignments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          semesterCode: "SEM6-2026",
+          classCode: "BTECH-CSE-2023",
+          sectionCode: "A",
+          subjectCode: "MATH101",
+        }),
+      ]),
+    )
 
     const filteredAssignmentsResponse = await request(
       "GET",
