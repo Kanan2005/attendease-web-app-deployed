@@ -475,7 +475,7 @@ describe("Bluetooth attendance integration", () => {
       },
     })
 
-    expect(blockedResponse.statusCode).toBe(409)
+    expect(blockedResponse.statusCode).toBe(400)
   }, 15_000)
 
   async function createBluetoothSession(teacherToken: string) {

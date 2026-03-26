@@ -158,11 +158,14 @@ export async function seedE2EData(
       email: fixture.email,
       password: fixture.password,
       displayName: fixture.displayName,
+      platform: fixture.platform,
     })
 
     const session = await apiPost(inject, "/auth/login", {
       email: fixture.email,
       password: fixture.password,
+      platform: fixture.platform,
+      requestedRole: "TEACHER",
     })
 
     teachers.push({
@@ -208,6 +211,15 @@ export async function seedE2EData(
           const session = await apiPost(inject, "/auth/login", {
             email: fixture.email,
             password: fixture.password,
+            platform: fixture.device.platform,
+            requestedRole: "STUDENT",
+            device: {
+              installId: fixture.device.installId,
+              publicKey: fixture.device.publicKey,
+              appVersion: fixture.device.appVersion,
+              deviceModel: fixture.device.deviceModel,
+              osVersion: fixture.device.osVersion,
+            },
           })
 
           return {

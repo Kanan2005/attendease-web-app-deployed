@@ -203,23 +203,8 @@ describe("Academic management integration", () => {
       requestedRole: "TEACHER",
     })
 
-    const chemistrySubject = await getPrisma().subject.create({
-      data: {
-        code: "CHEM101",
-        title: "Chemistry",
-        status: "ACTIVE",
-      },
-    })
-    await getPrisma().teacherAssignment.create({
-      data: {
-        teacherId: authIntegrationFixtures.teacher.userId,
-        semesterId: developmentSeedIds.academic.semester,
-        classId: developmentSeedIds.academic.class,
-        sectionId: developmentSeedIds.academic.section,
-        subjectId: chemistrySubject.id,
-        status: "ACTIVE",
-        canSelfCreateCourseOffering: true,
-      },
+    const chemistrySubject = await getPrisma().subject.findUniqueOrThrow({
+      where: { code: "CHEM101" },
     })
 
     const beforeOutboxCount = await getPrisma().outboxEvent.count({
