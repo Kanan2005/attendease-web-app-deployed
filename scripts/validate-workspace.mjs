@@ -164,139 +164,145 @@ if (!fs.existsSync(path.join(rootDirectory, "docker-compose.runtime.yml"))) {
   errors.push("root: missing docker-compose.runtime.yml")
 }
 
-if (!fs.existsSync(path.join(rootDirectory, "Structure", "ux-redesign-audit.md"))) {
-  errors.push("Structure: missing ux-redesign-audit.md")
+if (!fs.existsSync(path.join(rootDirectory, "docs", "planning", "ux-redesign-audit.md"))) {
+  errors.push("docs: missing planning/ux-redesign-audit.md")
 }
 
-if (!fs.existsSync(path.join(rootDirectory, "Structure", "full-product-screenshot-audit.md"))) {
-  errors.push("Structure: missing full-product-screenshot-audit.md")
+if (
+  !fs.existsSync(path.join(rootDirectory, "docs", "planning", "full-product-screenshot-audit.md"))
+) {
+  errors.push("docs: missing planning/full-product-screenshot-audit.md")
 }
 
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "ux-redesign-audit.md"),
+  path.join(rootDirectory, "docs", "planning", "ux-redesign-audit.md"),
   "Locked Product Decisions For The Reset Track",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "ux-redesign-audit.md"),
+  path.join(rootDirectory, "docs", "planning", "ux-redesign-audit.md"),
   "Final Reset IA Decisions",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "ux-redesign-audit.md"),
+  path.join(rootDirectory, "docs", "planning", "ux-redesign-audit.md"),
   "Canonical Product Naming",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "ux-redesign-audit.md"),
+  path.join(rootDirectory, "docs", "planning", "ux-redesign-audit.md"),
   "Reset Implementation Status",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "ux-redesign-audit.md"),
+  path.join(rootDirectory, "docs", "planning", "ux-redesign-audit.md"),
   "Remaining Reset Gaps",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "context.md"),
+  path.join(rootDirectory, "docs", "architecture", "context.md"),
   "Reset Track Status",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "full-product-screenshot-audit.md"),
+  path.join(rootDirectory, "docs", "planning", "full-product-screenshot-audit.md"),
   "Full Product Screenshot Audit",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "requirements", "01-system-overview.md"),
+  path.join(rootDirectory, "docs", "requirements", "01-system-overview.md"),
   "Reset Baseline Clarifications",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "architecture", "01-system-overview.md"),
+  path.join(rootDirectory, "docs", "architecture", "01-system-overview.md"),
   "Reset Baseline Constraints",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "requirements", "02-auth-roles-enrollment.md"),
+  path.join(rootDirectory, "docs", "requirements", "02-auth-roles-enrollment.md"),
   "Final Reset Auth Flows",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "requirements", "02-auth-roles-enrollment.md"),
+  path.join(rootDirectory, "docs", "requirements", "02-auth-roles-enrollment.md"),
   "Reset Contract Boundary Requirements",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "requirements", "03-student-mobile-app.md"),
+  path.join(rootDirectory, "docs", "requirements", "03-student-mobile-app.md"),
   "Final Reset Student IA",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "requirements", "04-teacher-mobile-app.md"),
+  path.join(rootDirectory, "docs", "requirements", "04-teacher-mobile-app.md"),
   "Final Reset Teacher-Mobile IA",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "requirements", "05-teacher-web-app.md"),
+  path.join(rootDirectory, "docs", "requirements", "05-teacher-web-app.md"),
   "Final Reset Web IA",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "architecture", "02-auth-roles-enrollment.md"),
+  path.join(rootDirectory, "docs", "architecture", "02-auth-roles-enrollment.md"),
   "Reset Role Entry Map",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "architecture", "02-auth-roles-enrollment.md"),
+  path.join(rootDirectory, "docs", "architecture", "02-auth-roles-enrollment.md"),
   "Reset Contract Migration Foundation",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "architecture", "03-student-mobile-app.md"),
+  path.join(rootDirectory, "docs", "architecture", "03-student-mobile-app.md"),
   "Final Student Route Map",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "architecture", "04-teacher-mobile-app.md"),
+  path.join(rootDirectory, "docs", "architecture", "04-teacher-mobile-app.md"),
   "Final Teacher-Mobile Route Map",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "architecture", "05-teacher-web-app.md"),
+  path.join(rootDirectory, "docs", "architecture", "05-teacher-web-app.md"),
   "Final Web Route Map",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "context.md"),
+  path.join(rootDirectory, "docs", "architecture", "context.md"),
   "Prompt 4 Summary",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "context.md"),
+  path.join(rootDirectory, "docs", "architecture", "context.md"),
   "Prompt 5 Summary",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "testing-strategy.md"),
+  path.join(rootDirectory, "docs", "planning", "testing-strategy.md"),
   "Reset Track Targeted Validation Baseline",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "testing-strategy.md"),
+  path.join(rootDirectory, "docs", "planning", "testing-strategy.md"),
   "Reset Documentation Validation Baseline",
-  "Structure",
+  "docs",
 )
 ensureFileIncludes(
   path.join(rootDirectory, "README.md"),
-  "Current Reset Product State",
-  "Structure",
+  "Smart Attendance Management Platform",
+  "docs",
 )
-ensureFileIncludes(path.join(rootDirectory, "guide.md"), "Reset Product Reality Check", "Structure")
 ensureFileIncludes(
-  path.join(rootDirectory, "Structure", "context.md"),
+  path.join(rootDirectory, "docs", "guides", "getting-started.md"),
+  "Reset Product Reality Check",
+  "docs",
+)
+ensureFileIncludes(
+  path.join(rootDirectory, "docs", "architecture", "context.md"),
   "Prompt 39 Summary",
-  "Structure",
+  "docs",
 )
 
 for (const requirementFileName of [
@@ -312,9 +318,9 @@ for (const requirementFileName of [
   "11-data-rules-audit.md",
 ]) {
   ensureFileIncludes(
-    path.join(rootDirectory, "Structure", "requirements", requirementFileName),
+    path.join(rootDirectory, "docs", "requirements", requirementFileName),
     "Reset Implementation Status",
-    "Structure",
+    "docs",
   )
 }
 
@@ -334,9 +340,9 @@ for (const architectureFileName of [
   "15-device-trust-and-admin-controls.md",
 ]) {
   ensureFileIncludes(
-    path.join(rootDirectory, "Structure", "architecture", architectureFileName),
+    path.join(rootDirectory, "docs", "architecture", architectureFileName),
     "Reset Implementation Snapshot",
-    "Structure",
+    "docs",
   )
 }
 
