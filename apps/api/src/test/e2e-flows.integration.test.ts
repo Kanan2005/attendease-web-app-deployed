@@ -279,7 +279,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
         platform: "WEB",
         requestedRole: "TEACHER",
       })
-      expect(res.statusCode).toBe(200)
+      expect(res.statusCode).toBe(201)
       expect(res.body.tokens.accessToken).toBeTruthy()
       expect(typeof res.body.tokens.accessToken).toBe("string")
     })
@@ -298,7 +298,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
           appVersion: "1.0.0",
         },
       })
-      expect(res.statusCode).toBe(200)
+      expect(res.statusCode).toBe(201)
       expect(res.body.tokens.accessToken).toBeTruthy()
     })
 
@@ -326,15 +326,15 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       const teacher = getSeed().teachers[0] as SeedTeacher
       const me = await get("/auth/me", teacher.token)
       expect(me.statusCode).toBe(200)
-      expect(me.body.email).toBe(teacher.email)
-      expect(me.body.displayName).toBe(teacher.displayName)
+      expect(me.body.user.email).toBe(teacher.email)
+      expect(me.body.user.displayName).toBe(teacher.displayName)
     })
 
     it("returns student user data via /auth/me", async () => {
       const student = getSeed().students[0] as SeedStudent
       const me = await get("/auth/me", student.token)
       expect(me.statusCode).toBe(200)
-      expect(me.body.email).toBe(student.email)
+      expect(me.body.user.email).toBe(student.email)
     })
 
     it("rejects requests with invalid token", async () => {
@@ -372,7 +372,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
           osVersion: fixture.device.osVersion,
         },
       })
-      expect(login.statusCode).toBe(200)
+      expect(login.statusCode).toBe(201)
 
       const logout = await post("/auth/logout", {}, login.body.tokens.accessToken)
       expect(logout.statusCode).toBeLessThan(300)
@@ -441,6 +441,12 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
     it("teacher creates a new classroom", async () => {
       const teacher = getSeed().teachers[0] as SeedTeacher
+      await ensureAcademicScopeForTeacher(prisma!, teacher.email, {
+        semesterId: "lifecycle-sem",
+        classId: "lifecycle-cls",
+        sectionId: "lifecycle-sec",
+        subjectId: "lifecycle-sub",
+      })
       const res = await post(
         "/classrooms",
         {
@@ -511,6 +517,12 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       const teacher = getSeed().teachers[5] as SeedTeacher
       const student = getSeed().students[799] as SeedStudent
 
+      await ensureAcademicScopeForTeacher(prisma!, teacher.email, {
+        semesterId: "enroll-sem",
+        classId: "enroll-cls",
+        sectionId: "enroll-sec",
+        subjectId: "enroll-sub",
+      })
       const classroom = await post(
         "/classrooms",
         {
@@ -841,7 +853,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
         platform: "WEB",
         requestedRole: "ADMIN",
       })
-      expect(res.statusCode).toBe(200)
+      expect(res.statusCode).toBe(201)
       adminToken = res.body.tokens.accessToken
     })
 
@@ -1005,27 +1017,36 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
   describe("Concurrent: Multi-Teacher Operations", () => {
     it("multiple teachers can create classrooms simultaneously", async () => {
-      const promises = getSeed()
-        .teachers.slice(0, 5)
-        .map((teacher, idx) =>
-          post(
-            "/classrooms",
-            {
-              semesterId: `concurrent-sem-${idx}`,
-              classId: `concurrent-cls-${idx}`,
-              sectionId: `concurrent-sec-${idx}`,
-              subjectId: `concurrent-sub-${idx}`,
-              courseCode: `CONC-${idx}A`,
-              classroomTitle: `Concurrent ${idx}`,
-              defaultAttendanceMode: "QR_GPS",
-              defaultGpsRadiusMeters: 100,
-              defaultSessionDurationMinutes: 30,
-              qrRotationWindowSeconds: 15,
-              requiresTrustedDevice: false,
-            },
-            teacher.token,
-          ),
-        )
+      const teachers = getSeed().teachers.slice(0, 5)
+      for (let idx = 0; idx < teachers.length; idx++) {
+        const teacher = teachers[idx] as SeedTeacher
+        await ensureAcademicScopeForTeacher(prisma!, teacher.email, {
+          semesterId: `concurrent-sem-${idx}`,
+          classId: `concurrent-cls-${idx}`,
+          sectionId: `concurrent-sec-${idx}`,
+          subjectId: `concurrent-sub-${idx}`,
+        })
+      }
+
+      const promises = teachers.map((teacher, idx) =>
+        post(
+          "/classrooms",
+          {
+            semesterId: `concurrent-sem-${idx}`,
+            classId: `concurrent-cls-${idx}`,
+            sectionId: `concurrent-sec-${idx}`,
+            subjectId: `concurrent-sub-${idx}`,
+            courseCode: `CONC-${idx}A`,
+            classroomTitle: `Concurrent ${idx}`,
+            defaultAttendanceMode: "QR_GPS",
+            defaultGpsRadiusMeters: 100,
+            defaultSessionDurationMinutes: 30,
+            qrRotationWindowSeconds: 15,
+            requiresTrustedDevice: false,
+          },
+          teacher.token,
+        ),
+      )
 
       const results = await Promise.all(promises)
       for (const res of results) {
@@ -1035,6 +1056,12 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
     it("multiple students can join classrooms concurrently", async () => {
       const teacher = getSeed().teachers[10] as SeedTeacher
+      await ensureAcademicScopeForTeacher(prisma!, teacher.email, {
+        semesterId: "conc-join-sem",
+        classId: "conc-join-cls",
+        sectionId: "conc-join-sec",
+        subjectId: "conc-join-sub",
+      })
       const classroom = await post(
         "/classrooms",
         {
@@ -1154,6 +1181,12 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       const teacher = getSeed().teachers[0] as SeedTeacher
       const existingClassroom = teacher.classrooms[0] as SeedClassroom
 
+      await ensureAcademicScopeForTeacher(prisma!, teacher.email, {
+        semesterId: "dup-sem",
+        classId: "dup-cls",
+        sectionId: "dup-sec",
+        subjectId: "dup-sub",
+      })
       const res = await post(
         "/classrooms",
         {
@@ -1268,12 +1301,12 @@ describe("E2E flows (20 teachers, 800 students)", () => {
           osVersion: fixture.device.osVersion,
         },
       })
-      expect(login.statusCode).toBe(200)
+      expect(login.statusCode).toBe(201)
       const token = login.body.tokens.accessToken
 
       const me = await get("/auth/me", token)
       expect(me.statusCode).toBe(200)
-      expect(me.body.email).toBe(fixture.email)
+      expect(me.body.user.email).toBe(fixture.email)
 
       const teacher = getSeed().teachers[18] as SeedTeacher
       await ensureAcademicScopeForTeacher(prisma!, teacher.email, {
@@ -1351,7 +1384,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
         platform: fixture.platform,
         requestedRole: "TEACHER",
       })
-      expect(login.statusCode).toBe(200)
+      expect(login.statusCode).toBe(201)
       const token = login.body.tokens.accessToken
 
       await ensureAcademicScopeForTeacher(prisma!, fixture.email, {
