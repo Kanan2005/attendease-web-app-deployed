@@ -198,12 +198,14 @@ export async function seedE2EData(
             email: fixture.email,
             password: fixture.password,
             displayName: fixture.displayName,
-            installId: fixture.device.installId,
-            platform: fixture.device.platform,
-            publicKey: fixture.device.publicKey,
-            appVersion: fixture.device.appVersion,
-            deviceModel: fixture.device.deviceModel,
-            osVersion: fixture.device.osVersion,
+            platform: "MOBILE",
+            device: {
+              installId: fixture.device.installId,
+              publicKey: fixture.device.publicKey,
+              appVersion: fixture.device.appVersion,
+              deviceModel: fixture.device.deviceModel,
+              osVersion: fixture.device.osVersion,
+            },
             degree,
             branch,
           })
@@ -211,7 +213,7 @@ export async function seedE2EData(
           const session = await apiPost(inject, "/auth/login", {
             email: fixture.email,
             password: fixture.password,
-            platform: fixture.device.platform,
+            platform: "MOBILE",
             requestedRole: "STUDENT",
             device: {
               installId: fixture.device.installId,
