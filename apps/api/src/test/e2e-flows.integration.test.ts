@@ -22,6 +22,7 @@ import {
   type SeedClassroom,
   type SeedStudent,
   type SeedTeacher,
+  ensureAcademicScopeForTeacher,
   seedE2EData,
 } from "./e2e-seed.js"
 import {
@@ -102,7 +103,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
         .getInstance()
         .inject.bind(app.getHttpAdapter().getInstance()) as InjectFn
 
-      seed = await seedE2EData(inject)
+      seed = await seedE2EData(inject, prisma!)
     },
     15 * 60 * 1000,
   )
@@ -1275,6 +1276,12 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       expect(me.body.email).toBe(fixture.email)
 
       const teacher = getSeed().teachers[18] as SeedTeacher
+      await ensureAcademicScopeForTeacher(prisma!, teacher.email, {
+        semesterId: "journey-sem",
+        classId: "journey-cls",
+        sectionId: "journey-sec",
+        subjectId: "journey-sub",
+      })
       const freshClassroom = await post(
         "/classrooms",
         {
@@ -1346,6 +1353,13 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       })
       expect(login.statusCode).toBe(200)
       const token = login.body.tokens.accessToken
+
+      await ensureAcademicScopeForTeacher(prisma!, fixture.email, {
+        semesterId: "tjourney-sem",
+        classId: "tjourney-cls",
+        sectionId: "tjourney-sec",
+        subjectId: "tjourney-sub",
+      })
 
       const classroom = await post(
         "/classrooms",

@@ -12,6 +12,7 @@
 import {
   buildDevelopmentStudentRegistrationFixture,
   buildDevelopmentTeacherRegistrationFixture,
+  type createPrismaClient,
 } from "@attendease/db"
 
 export type SeedTeacher = {
@@ -141,6 +142,7 @@ const BRANCH_POOL = ["CSE", "ECE", "EE", "ME", "CHE", "Civil", "Meta"] as const
 
 export async function seedE2EData(
   inject: InjectFn,
+  prisma: ReturnType<typeof createPrismaClient>,
   config: E2ESeedConfig = DEFAULT_E2E_SEED_CONFIG,
 ): Promise<E2ESeedResult> {
   const teachers: SeedTeacher[] = []
@@ -244,15 +246,94 @@ export async function seedE2EData(
     students.push(...batchStudents)
   }
 
+  const e2eTermId = "e2e-academic-term"
+  await prisma.academicTerm.upsert({
+    where: { id: e2eTermId },
+    update: {},
+    create: {
+      id: e2eTermId,
+      code: "E2ETERM",
+      title: "E2E Academic Term",
+      academicYearLabel: "2025-2026",
+      status: "ACTIVE",
+      startDate: new Date("2025-08-01"),
+      endDate: new Date("2026-06-30"),
+    },
+  })
+
+  for (let i = 0; i < SUBJECT_POOL.length; i++) {
+    await prisma.subject.upsert({
+      where: { code: `E2ESUBJ${i + 1}` },
+      update: {},
+      create: { id: `e2e-subject-${i + 1}`, code: `E2ESUBJ${i + 1}`, title: SUBJECT_POOL[i] ?? "Subject", status: "ACTIVE" },
+    })
+  }
+
   for (let t = 0; t < teachers.length; t++) {
     const teacher = teachers[t]
     if (teacher === undefined) {
       throw new Error("E2E seed: teacher index out of range")
     }
+
+    const semId = `e2e-sem-${t + 1}`
+    const clsId = `e2e-class-${t + 1}`
+
+    await prisma.semester.upsert({
+      where: { id: semId },
+      update: {},
+      create: {
+        id: semId,
+        code: `E2ESEM${t + 1}`,
+        title: `E2E Semester ${t + 1}`,
+        status: "ACTIVE",
+        academicTermId: e2eTermId,
+        startDate: new Date("2026-01-01"),
+        endDate: new Date("2026-06-30"),
+      },
+    })
+    await prisma.academicClass.upsert({
+      where: { id: clsId },
+      update: {},
+      create: { id: clsId, code: `E2ECLS${t + 1}`, title: `E2E Class ${t + 1}`, status: "ACTIVE" },
+    })
+
+    const teacherUser = await prisma.user.findFirst({ where: { email: teacher.email } })
+    if (!teacherUser) throw new Error(`E2E seed: teacher ${teacher.email} not found in DB`)
+
     const classroomCount = randBetween(...config.classroomsPerTeacher)
 
     for (let c = 0; c < classroomCount; c++) {
+      const secId = `e2e-section-${t + 1}-${c + 1}`
       const subjectIdx = (t * 8 + c) % SUBJECT_POOL.length
+      const subjectId = `e2e-subject-${subjectIdx + 1}`
+
+      await prisma.section.upsert({
+        where: { id: secId },
+        update: {},
+        create: { id: secId, classId: clsId, code: `E2ESEC${t + 1}_${c + 1}`, title: `Section ${String.fromCharCode(65 + c)}`, status: "ACTIVE" },
+      })
+      await prisma.teacherAssignment.upsert({
+        where: {
+          teacherId_semesterId_classId_sectionId_subjectId: {
+            teacherId: teacherUser.id,
+            semesterId: semId,
+            classId: clsId,
+            sectionId: secId,
+            subjectId,
+          },
+        },
+        update: {},
+        create: {
+          teacherId: teacherUser.id,
+          semesterId: semId,
+          classId: clsId,
+          sectionId: secId,
+          subjectId,
+          status: "ACTIVE",
+          canSelfCreateCourseOffering: true,
+        },
+      })
+
       const subject = SUBJECT_POOL.at(subjectIdx) ?? "Mathematics"
       const courseCode = `${subject.replace(/\s+/g, "").slice(0, 4).toUpperCase()}-${t + 1}${String.fromCharCode(65 + c)}`
       const title = `${subject} (Section ${String.fromCharCode(65 + c)})`
@@ -353,4 +434,80 @@ export async function seedE2EData(
   }
 
   return { teachers, students, classrooms: allClassrooms, totalSessions }
+}
+
+/**
+ * Creates academic scope records (semester, class, section, subject) and a teacher assignment
+ * so the teacher can create a classroom with the given IDs.
+ */
+export async function ensureAcademicScopeForTeacher(
+  db: ReturnType<typeof createPrismaClient>,
+  teacherEmail: string,
+  scope: { semesterId: string; classId: string; sectionId: string; subjectId: string },
+) {
+  const academicTermId = "e2e-academic-term"
+  await db.academicTerm.upsert({
+    where: { id: academicTermId },
+    update: {},
+    create: {
+      id: academicTermId,
+      code: "E2ETERM",
+      title: "E2E Academic Term",
+      academicYearLabel: "2025-2026",
+      status: "ACTIVE",
+      startDate: new Date("2025-08-01"),
+      endDate: new Date("2026-06-30"),
+    },
+  })
+  await db.semester.upsert({
+    where: { id: scope.semesterId },
+    update: {},
+    create: {
+      id: scope.semesterId,
+      code: scope.semesterId.toUpperCase(),
+      title: `Semester ${scope.semesterId}`,
+      status: "ACTIVE",
+      academicTermId,
+      startDate: new Date("2026-01-01"),
+      endDate: new Date("2026-06-30"),
+    },
+  })
+  await db.academicClass.upsert({
+    where: { id: scope.classId },
+    update: {},
+    create: { id: scope.classId, code: scope.classId.toUpperCase(), title: `Class ${scope.classId}`, status: "ACTIVE" },
+  })
+  await db.section.upsert({
+    where: { id: scope.sectionId },
+    update: {},
+    create: { id: scope.sectionId, classId: scope.classId, code: scope.sectionId.toUpperCase(), title: `Section ${scope.sectionId}`, status: "ACTIVE" },
+  })
+  await db.subject.upsert({
+    where: { code: scope.subjectId.toUpperCase() },
+    update: {},
+    create: { id: scope.subjectId, code: scope.subjectId.toUpperCase(), title: `Subject ${scope.subjectId}`, status: "ACTIVE" },
+  })
+
+  const teacher = await db.user.findFirstOrThrow({ where: { email: teacherEmail } })
+  await db.teacherAssignment.upsert({
+    where: {
+      teacherId_semesterId_classId_sectionId_subjectId: {
+        teacherId: teacher.id,
+        semesterId: scope.semesterId,
+        classId: scope.classId,
+        sectionId: scope.sectionId,
+        subjectId: scope.subjectId,
+      },
+    },
+    update: {},
+    create: {
+      teacherId: teacher.id,
+      semesterId: scope.semesterId,
+      classId: scope.classId,
+      sectionId: scope.sectionId,
+      subjectId: scope.subjectId,
+      status: "ACTIVE",
+      canSelfCreateCourseOffering: true,
+    },
+  })
 }
