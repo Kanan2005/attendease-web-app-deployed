@@ -201,6 +201,7 @@ export async function seedE2EData(
             platform: "MOBILE",
             device: {
               installId: fixture.device.installId,
+              platform: fixture.device.platform,
               publicKey: fixture.device.publicKey,
               appVersion: fixture.device.appVersion,
               deviceModel: fixture.device.deviceModel,
@@ -217,6 +218,7 @@ export async function seedE2EData(
             requestedRole: "STUDENT",
             device: {
               installId: fixture.device.installId,
+              platform: fixture.device.platform,
               publicKey: fixture.device.publicKey,
               appVersion: fixture.device.appVersion,
               deviceModel: fixture.device.deviceModel,
