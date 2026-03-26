@@ -38,6 +38,7 @@ const allowedOverLimitFiles = new Set([
   "apps/api/src/modules/exports/exports.integration.test.ts",
   "apps/api/src/modules/reports/reports.integration.test.ts",
   "apps/api/src/test/e2e-flows.integration.test.ts",
+  "apps/api/src/test/e2e-seed.ts",
   "apps/mobile/e2e/run-e2e.sh",
   "apps/mobile/ios/AttendEase.xcodeproj/project.pbxproj",
   "apps/mobile/src/bluetooth-attendance-hooks.ts",

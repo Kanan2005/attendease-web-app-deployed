@@ -56,6 +56,13 @@ describe("E2E flows (20 teachers, 800 students)", () => {
     return seed
   }
 
+  function getPrisma(): ReturnType<typeof createPrismaClient> {
+    if (prisma === null) {
+      throw new Error("Prisma client not initialized")
+    }
+    return prisma
+  }
+
   const googleOidcService = { verifyExchange: vi.fn() }
 
   type InjectFn = (opts: {
@@ -103,7 +110,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
         .getInstance()
         .inject.bind(app.getHttpAdapter().getInstance()) as InjectFn
 
-      seed = await seedE2EData(inject, prisma!)
+      seed = await seedE2EData(inject, getPrisma())
     },
     15 * 60 * 1000,
   )
@@ -441,7 +448,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
     it("teacher creates a new classroom", async () => {
       const teacher = getSeed().teachers[0] as SeedTeacher
-      await ensureAcademicScopeForTeacher(prisma!, teacher.email, {
+      await ensureAcademicScopeForTeacher(getPrisma(), teacher.email, {
         semesterId: "lifecycle-sem",
         classId: "lifecycle-cls",
         sectionId: "lifecycle-sec",
@@ -517,7 +524,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       const teacher = getSeed().teachers[5] as SeedTeacher
       const student = getSeed().students[799] as SeedStudent
 
-      await ensureAcademicScopeForTeacher(prisma!, teacher.email, {
+      await ensureAcademicScopeForTeacher(getPrisma(), teacher.email, {
         semesterId: "enroll-sem",
         classId: "enroll-cls",
         sectionId: "enroll-sec",
@@ -1020,7 +1027,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       const teachers = getSeed().teachers.slice(0, 5)
       for (let idx = 0; idx < teachers.length; idx++) {
         const teacher = teachers[idx] as SeedTeacher
-        await ensureAcademicScopeForTeacher(prisma!, teacher.email, {
+        await ensureAcademicScopeForTeacher(getPrisma(), teacher.email, {
           semesterId: `concurrent-sem-${idx}`,
           classId: `concurrent-cls-${idx}`,
           sectionId: `concurrent-sec-${idx}`,
@@ -1056,7 +1063,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
 
     it("multiple students can join classrooms concurrently", async () => {
       const teacher = getSeed().teachers[10] as SeedTeacher
-      await ensureAcademicScopeForTeacher(prisma!, teacher.email, {
+      await ensureAcademicScopeForTeacher(getPrisma(), teacher.email, {
         semesterId: "conc-join-sem",
         classId: "conc-join-cls",
         sectionId: "conc-join-sec",
@@ -1182,7 +1189,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       const teacher = getSeed().teachers[0] as SeedTeacher
       const existingClassroom = teacher.classrooms[0] as SeedClassroom
 
-      await ensureAcademicScopeForTeacher(prisma!, teacher.email, {
+      await ensureAcademicScopeForTeacher(getPrisma(), teacher.email, {
         semesterId: "dup-sem",
         classId: "dup-cls",
         sectionId: "dup-sec",
@@ -1310,7 +1317,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       expect(me.body.user.email).toBe(fixture.email)
 
       const teacher = getSeed().teachers[18] as SeedTeacher
-      await ensureAcademicScopeForTeacher(prisma!, teacher.email, {
+      await ensureAcademicScopeForTeacher(getPrisma(), teacher.email, {
         semesterId: "journey-sem",
         classId: "journey-cls",
         sectionId: "journey-sec",
@@ -1388,7 +1395,7 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       expect(login.statusCode).toBe(201)
       const token = login.body.tokens.accessToken
 
-      await ensureAcademicScopeForTeacher(prisma!, fixture.email, {
+      await ensureAcademicScopeForTeacher(getPrisma(), fixture.email, {
         semesterId: "tjourney-sem",
         classId: "tjourney-cls",
         sectionId: "tjourney-sec",

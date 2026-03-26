@@ -265,7 +265,12 @@ export async function seedE2EData(
     await prisma.subject.upsert({
       where: { code: `E2ESUBJ${i + 1}` },
       update: {},
-      create: { id: `e2e-subject-${i + 1}`, code: `E2ESUBJ${i + 1}`, title: SUBJECT_POOL[i] ?? "Subject", status: "ACTIVE" },
+      create: {
+        id: `e2e-subject-${i + 1}`,
+        code: `E2ESUBJ${i + 1}`,
+        title: SUBJECT_POOL[i] ?? "Subject",
+        status: "ACTIVE",
+      },
     })
   }
 
@@ -310,7 +315,13 @@ export async function seedE2EData(
       await prisma.section.upsert({
         where: { id: secId },
         update: {},
-        create: { id: secId, classId: clsId, code: `E2ESEC${t + 1}_${c + 1}`, title: `Section ${String.fromCharCode(65 + c)}`, status: "ACTIVE" },
+        create: {
+          id: secId,
+          classId: clsId,
+          code: `E2ESEC${t + 1}_${c + 1}`,
+          title: `Section ${String.fromCharCode(65 + c)}`,
+          status: "ACTIVE",
+        },
       })
       await prisma.teacherAssignment.upsert({
         where: {
@@ -475,17 +486,33 @@ export async function ensureAcademicScopeForTeacher(
   await db.academicClass.upsert({
     where: { id: scope.classId },
     update: {},
-    create: { id: scope.classId, code: scope.classId.toUpperCase(), title: `Class ${scope.classId}`, status: "ACTIVE" },
+    create: {
+      id: scope.classId,
+      code: scope.classId.toUpperCase(),
+      title: `Class ${scope.classId}`,
+      status: "ACTIVE",
+    },
   })
   await db.section.upsert({
     where: { id: scope.sectionId },
     update: {},
-    create: { id: scope.sectionId, classId: scope.classId, code: scope.sectionId.toUpperCase(), title: `Section ${scope.sectionId}`, status: "ACTIVE" },
+    create: {
+      id: scope.sectionId,
+      classId: scope.classId,
+      code: scope.sectionId.toUpperCase(),
+      title: `Section ${scope.sectionId}`,
+      status: "ACTIVE",
+    },
   })
   await db.subject.upsert({
     where: { code: scope.subjectId.toUpperCase() },
     update: {},
-    create: { id: scope.subjectId, code: scope.subjectId.toUpperCase(), title: `Subject ${scope.subjectId}`, status: "ACTIVE" },
+    create: {
+      id: scope.subjectId,
+      code: scope.subjectId.toUpperCase(),
+      title: `Subject ${scope.subjectId}`,
+      status: "ACTIVE",
+    },
   })
 
   const teacher = await db.user.findFirstOrThrow({ where: { email: teacherEmail } })
