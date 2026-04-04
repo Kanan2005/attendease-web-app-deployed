@@ -116,6 +116,14 @@ export const apiEnvSchema = baseNodeEnvSchema.extend({
     .min(1)
     .default("postgresql://attendease:attendease@localhost:5432/attendease"),
   REDIS_URL: z.string().min(1).default("redis://localhost:6379"),
+  EMAIL_PROVIDER_MODE: z.enum(["console", "ses"]).default("console"),
+  EMAIL_FROM_ADDRESS: z.string().email().default("noreply@attendease.local"),
+  EMAIL_REPLY_TO_ADDRESS: optionalEmailSchema,
+  AWS_SES_REGION: z.string().min(1).default("us-east-1"),
+  AWS_SES_ACCESS_KEY_ID: z.string().min(1).default("attendease-ses-access-key"),
+  AWS_SES_SECRET_ACCESS_KEY: z.string().min(1).default("attendease-ses-secret-key"),
+  AWS_SES_ENDPOINT: optionalUrlSchema,
+  AWS_SES_CONFIGURATION_SET: optionalStringSchema,
   AUTH_ISSUER: z.string().min(1).default("attendease-api"),
   AUTH_AUDIENCE: z.string().min(1).default("attendease-clients"),
   AUTH_ACCESS_TOKEN_SECRET: z

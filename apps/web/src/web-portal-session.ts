@@ -39,11 +39,11 @@ export function evaluateWebPortalAccess(
   if (!session) {
     return {
       allowed: false,
-      title: scope === "admin" ? "Admin sign in required" : "Sign in required",
+      title: scope === "admin" ? "Admin session expired" : "Your session has expired",
       message:
         scope === "admin"
-          ? "Use an admin account to open student support, device recovery, imports, and semester controls."
-          : "Sign in to open this workspace.",
+          ? "Sign in again to continue with student support and governance tools."
+          : "Sign in again to continue managing classrooms, attendance, and reports.",
       loginHref:
         scope === "admin" ? "/admin/login?next=/admin/dashboard" : "/login?next=/teacher/dashboard",
       loginLabel: scope === "admin" ? "Open admin sign in" : "Open teacher sign in",

@@ -61,37 +61,15 @@ export function buildTeacherRosterAddRequest(input: {
   }
 }
 
+/**
+ * Build available actions for a roster member.
+ * Teachers on mobile can only remove students.
+ * Status changes (Mark Pending, Activate, Block) are admin-only operations.
+ */
 export function buildTeacherRosterMemberActions(
   member: ClassroomRosterMemberSummary,
 ): TeacherRosterActionModel[] {
   const actions: TeacherRosterActionModel[] = []
-
-  if (member.status === "ACTIVE") {
-    actions.push({
-      kind: "UPDATE",
-      label: "Mark Pending",
-      membershipStatus: "PENDING",
-      tone: "secondary",
-    })
-  }
-
-  if (member.actions.canReactivate && member.status !== "ACTIVE") {
-    actions.push({
-      kind: "UPDATE",
-      label: "Activate",
-      membershipStatus: "ACTIVE",
-      tone: "secondary",
-    })
-  }
-
-  if (member.actions.canBlock && member.status !== "BLOCKED") {
-    actions.push({
-      kind: "UPDATE",
-      label: "Block",
-      membershipStatus: "BLOCKED",
-      tone: "danger",
-    })
-  }
 
   if (member.actions.canRemove) {
     actions.push({

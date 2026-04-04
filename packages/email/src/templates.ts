@@ -60,6 +60,16 @@ export const defaultLowAttendanceTemplateBody = [
   "Please improve it above {{thresholdPercent}} and contact your teacher if you need support.",
 ].join("\n")
 
+export const defaultParentEmailTemplateSubject =
+  "Attendance alert for {{studentName}} — {{classroomTitle}}"
+export const defaultParentEmailTemplateBody = [
+  "Dear Parent/Guardian of {{studentName}},",
+  "",
+  "We are writing to inform you that {{studentName}}'s attendance for {{subjectTitle}} in {{classroomTitle}} is currently {{attendancePercentage}}, which is below the required threshold of {{thresholdPercent}}.",
+  "",
+  "Please encourage your ward to attend classes regularly. If you have any concerns, feel free to contact the faculty.",
+].join("\n")
+
 export const lowAttendanceTemplateId = "low-attendance-reminder"
 
 export function buildEmailSubjectPrefix(environment: string): string {

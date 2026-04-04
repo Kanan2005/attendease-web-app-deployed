@@ -1,19 +1,11 @@
+import { cookies } from "next/headers"
+
 import { AdminImportMonitoringWorkspace } from "../../../../src/admin-workflows-client"
-import { buildAdminImportsPageModel } from "../../../../src/web-portal"
-import { getWebPortalSession } from "../../../../src/web-session"
-import { WebPortalPage, WebSectionCard } from "../../../../src/web-shell"
+import { readWebPortalSession } from "../../../../src/web-portal"
 
 export default async function AdminImportsPage() {
-  const session = await getWebPortalSession()
+  const cookieStore = await cookies()
+  const session = readWebPortalSession(cookieStore)
 
-  return (
-    <WebPortalPage model={buildAdminImportsPageModel()}>
-      <WebSectionCard
-        title="Import oversight"
-        description="Keep uploaded files, review-required queues, and failures in one admin view before you escalate."
-      >
-        <AdminImportMonitoringWorkspace accessToken={session?.accessToken ?? null} />
-      </WebSectionCard>
-    </WebPortalPage>
-  )
+  return <AdminImportMonitoringWorkspace accessToken={session?.accessToken ?? null} />
 }

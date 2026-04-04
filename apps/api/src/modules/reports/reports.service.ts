@@ -211,11 +211,13 @@ export class ReportsService {
           student.email AS student_email,
           student."displayName" AS student_name,
           student_profile."rollNumber" AS student_roll_number,
+          student_profile."parentEmail" AS student_parent_email,
           enrollment.status AS enrollment_status,
           COUNT(session.id)::INTEGER AS total_sessions,
           COUNT(session.id) FILTER (WHERE record.status = 'PRESENT')::INTEGER AS present_sessions,
           COUNT(session.id) FILTER (WHERE record.status = 'ABSENT')::INTEGER AS absent_sessions,
-          MAX(COALESCE(session."endedAt", session."startedAt")) AS last_session_at
+          MAX(COALESCE(session."endedAt", session."startedAt")) AS last_session_at,
+          COALESCE(email_counts.sent_count, 0)::INTEGER AS email_sent_count
         FROM "enrollments" AS enrollment
         JOIN "course_offerings" AS course ON course.id = enrollment."courseOfferingId"
         JOIN "classes" AS class ON class.id = enrollment."classId"
@@ -228,6 +230,12 @@ export class ReportsService {
           ON record."enrollmentId" = enrollment.id
         LEFT JOIN "attendance_sessions" AS session
           ON ${Prisma.join(joinConditions, " AND ")}
+        LEFT JOIN LATERAL (
+          SELECT COUNT(*)::INTEGER AS sent_count
+          FROM "email_logs" AS el
+          WHERE el."studentId" = enrollment."studentId"
+            AND el.status = 'SENT'
+        ) AS email_counts ON TRUE
         ${buildWhereClause(whereConditions)}
         GROUP BY
           enrollment."courseOfferingId",
@@ -246,7 +254,9 @@ export class ReportsService {
           student.email,
           student."displayName",
           student_profile."rollNumber",
-          enrollment.status
+          student_profile."parentEmail",
+          enrollment.status,
+          email_counts.sent_count
         ORDER BY subject_code ASC, course_offering_code ASC, student_email ASC
       `,
     )

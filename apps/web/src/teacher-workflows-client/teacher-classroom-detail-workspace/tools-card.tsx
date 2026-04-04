@@ -73,10 +73,10 @@ export function TeacherClassroomQrLaunchCard(props: {
 
         <div style={workflowStyles.buttonRow}>
           <Link
-            href={`${teacherWorkflowRoutes.sessionStart}?classroomId=${props.classroomId}`}
+            href={teacherWorkflowRoutes.classroomLectures(props.classroomId)}
             style={workflowStyles.primaryButton}
           >
-            Open QR setup
+            Open lectures
           </Link>
           <Link href={teacherWorkflowRoutes.sessionHistory} style={workflowStyles.secondaryButton}>
             Open session history

@@ -5,6 +5,7 @@ import { useState } from "react"
 import type { ReactNode } from "react"
 
 import { createWebQueryClient } from "./query-client"
+import { SessionKeepAlive } from "./session-keep-alive"
 import { ThemeProvider } from "./theme-context"
 
 export function WebAppProviders(props: { children: ReactNode }) {
@@ -12,7 +13,10 @@ export function WebAppProviders(props: { children: ReactNode }) {
 
   return (
     <ThemeProvider>
-      <QueryClientProvider client={queryClient}>{props.children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <SessionKeepAlive />
+        {props.children}
+      </QueryClientProvider>
     </ThemeProvider>
   )
 }

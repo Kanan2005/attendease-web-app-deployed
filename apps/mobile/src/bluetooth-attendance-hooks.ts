@@ -5,7 +5,7 @@ import type {
 } from "@attendease/contracts"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { PermissionsAndroid, Platform } from "react-native"
+import { AppState, PermissionsAndroid, Platform } from "react-native"
 import { mobileEnv } from "./mobile-env"
 
 import { getMobileAttendanceSessionPollInterval } from "./attendance-live"
@@ -189,6 +189,21 @@ export function useTeacherBluetoothAdvertiser(runtime: BluetoothSessionCreateRes
 
     // Only cleanup on unmount, not on re-renders
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId])
+
+  // Resume BLE advertising when app returns to foreground (e.g. after switching apps)
+  useEffect(() => {
+    if (!sessionId) return
+
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active" && runtimeRef.current) {
+        // App came back to foreground — restart advertising
+        console.log("[BLE-ADV] App returned to foreground, restarting advertising")
+        void startRef.current()
+      }
+    })
+
+    return () => subscription.remove()
   }, [sessionId])
 
   // Continuous health monitoring: poll BT availability every 3s during active session

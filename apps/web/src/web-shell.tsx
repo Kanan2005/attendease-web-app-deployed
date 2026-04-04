@@ -3,7 +3,7 @@ import type { ReactNode } from "react"
 
 import { WebNavLinks, WebProfileDropdown, WebThemeToggle } from "./web-nav"
 import type { WebPortalAccessState, WebPortalPageModel, WebPortalSession } from "./web-portal"
-import { MetricGrid, WebChartCard, WebPortalAccessCard, WebTableCard } from "./web-shell-parts"
+import { MetricGrid, WebChartCard, WebPortalAccessPage, WebTableCard } from "./web-shell-parts"
 import { sectionStyles, shellStyles } from "./web-shell-styles"
 
 export function WebPortalLayout(props: {
@@ -14,6 +14,10 @@ export function WebPortalLayout(props: {
   navItems: Array<{ href: string; label: string; description: string }>
   scopeDescription?: string
 }) {
+  if (!props.access.allowed) {
+    return <WebPortalAccessPage access={props.access} scopeLabel={props.scopeLabel} />
+  }
+
   return (
     <main style={shellStyles.frame}>
       <nav className="ae-shell-nav" style={shellStyles.topNav}>
@@ -54,15 +58,29 @@ export function WebPortalLayout(props: {
             </span>
           </a>
 
-          <span
-            style={{
-              width: 1,
-              height: 20,
-              background: webTheme.colors.border,
-            }}
-          />
-
-          <WebNavLinks items={props.navItems} />
+          {props.navItems.length > 1 ? (
+            <>
+              <span
+                style={{
+                  width: 1,
+                  height: 20,
+                  background: webTheme.colors.border,
+                }}
+              />
+              <WebNavLinks items={props.navItems} />
+            </>
+          ) : (
+            <span
+              style={{
+                color: webTheme.colors.textSubtle,
+                fontSize: 13,
+                fontWeight: 500,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              {props.scopeLabel} Portal
+            </span>
+          )}
         </div>
 
         <div style={shellStyles.topNavRight}>
@@ -72,7 +90,7 @@ export function WebPortalLayout(props: {
       </nav>
 
       <section className="ae-shell-body" style={shellStyles.body}>
-        {!props.access.allowed ? <WebPortalAccessCard access={props.access} /> : props.children}
+        {props.children}
       </section>
     </main>
   )
@@ -276,13 +294,38 @@ export function WebSectionCard(props: {
 }) {
   return (
     <section style={shellStyles.surface}>
-      <h3 style={{ marginTop: 0, fontSize: 16, fontWeight: 600, color: webTheme.colors.text }}>
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "var(--ae-card-glow)",
+          pointerEvents: "none",
+        }}
+      />
+      <h3
+        style={{
+          marginTop: 0,
+          fontSize: 16,
+          fontWeight: 600,
+          color: webTheme.colors.text,
+          position: "relative",
+        }}
+      >
         {props.title}
       </h3>
       {props.description ? (
-        <p style={{ ...sectionStyles.sectionMetaText, marginBottom: 18 }}>{props.description}</p>
+        <p
+          style={{
+            ...sectionStyles.sectionMetaText,
+            marginBottom: 18,
+            position: "relative",
+          }}
+        >
+          {props.description}
+        </p>
       ) : null}
-      {props.children}
+      <div style={{ position: "relative" }}>{props.children}</div>
     </section>
   )
 }

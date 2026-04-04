@@ -126,6 +126,8 @@ export const adminStudentIdentityDetailSchema = adminStudentIdentitySummarySchem
   createdAt: z.string().datetime(),
   programName: z.string().nullable(),
   currentSemester: z.number().int().nullable(),
+  parentEmail: z.string().email().nullable(),
+  lastActiveSessionAt: z.string().datetime().nullable(),
 })
 export type AdminStudentIdentityDetail = z.infer<typeof adminStudentIdentityDetailSchema>
 
@@ -248,6 +250,9 @@ export const adminStudentClassroomContextSchema = z.object({
   semesterStatus: semesterStatusSchema,
   joinedAt: z.string().datetime(),
   droppedAt: z.string().datetime().nullable(),
+  totalSessions: z.number().int().nonnegative(),
+  attendedSessions: z.number().int().nonnegative(),
+  attendancePercentage: z.number().nonnegative().nullable(),
 })
 export type AdminStudentClassroomContext = z.infer<typeof adminStudentClassroomContextSchema>
 

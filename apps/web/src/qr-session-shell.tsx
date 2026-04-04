@@ -53,10 +53,18 @@ export function QrActiveSessionShell(props: {
   const endSession = useMutation({
     mutationFn: async () => {
       if (!props.accessToken) throw new Error("Sign in required.")
-      return bootstrap.authClient.endQrAttendanceSession(props.accessToken, props.sessionId)
+      const cached = queryClient.getQueryData<{
+        classroomId?: string
+        lectureId?: string | null
+      }>(webWorkflowQueryKeys.attendanceSession(props.sessionId))
+      await bootstrap.authClient.endQrAttendanceSession(props.accessToken, props.sessionId)
+      return {
+        classroomId: cached?.classroomId ?? null,
+        lectureId: cached?.lectureId ?? null,
+      }
     },
-    onSuccess: async (_, __, ___) => {
-      await Promise.all([
+    onSuccess: async (result) => {
+      const invalidations = [
         queryClient.invalidateQueries({
           queryKey: webWorkflowQueryKeys.attendanceSession(props.sessionId),
         }),
@@ -64,17 +72,23 @@ export function QrActiveSessionShell(props: {
           queryKey: webWorkflowQueryKeys.attendanceSessionStudents(props.sessionId),
         }),
         queryClient.invalidateQueries({ queryKey: webWorkflowQueryKeys.sessionHistory() }),
-      ])
-      const sessionData = queryClient.getQueryData<{
-        classroomId?: string
-        lectureId?: string | null
-      }>(webWorkflowQueryKeys.attendanceSession(props.sessionId))
-      if (sessionData?.classroomId && sessionData.lectureId) {
-        router.push(
-          teacherWorkflowRoutes.lectureSession(sessionData.classroomId, sessionData.lectureId),
+      ]
+      if (result.classroomId) {
+        invalidations.push(
+          queryClient.invalidateQueries({
+            queryKey: webWorkflowQueryKeys.classroomLectures(result.classroomId),
+          }),
         )
-      } else if (sessionData?.classroomId) {
-        router.push(teacherWorkflowRoutes.classroomLectures(sessionData.classroomId))
+      }
+      await Promise.all(invalidations)
+      if (result.classroomId && result.lectureId) {
+        router.push(
+          teacherWorkflowRoutes.lectureSession(result.classroomId, result.lectureId),
+        )
+      } else if (result.classroomId) {
+        router.push(teacherWorkflowRoutes.classroomLectures(result.classroomId))
+      } else {
+        router.push(teacherWorkflowRoutes.sessionHistory)
       }
     },
   })
@@ -106,6 +120,22 @@ export function QrActiveSessionShell(props: {
     }
   }, [detailQuery.data?.currentQrPayload])
 
+  const sessionData = detailQuery.data
+  const sessionEnded = Boolean(sessionData && sessionData.status !== "ACTIVE")
+
+  useEffect(() => {
+    if (!sessionEnded || endSession.isPending) return
+    if (sessionData?.classroomId && sessionData?.lectureId) {
+      router.replace(
+        teacherWorkflowRoutes.lectureSession(sessionData.classroomId, sessionData.lectureId),
+      )
+    } else if (sessionData?.classroomId) {
+      router.replace(teacherWorkflowRoutes.classroomLectures(sessionData.classroomId))
+    } else {
+      router.replace(teacherWorkflowRoutes.sessionHistory)
+    }
+  }, [sessionEnded, sessionData?.classroomId, sessionData?.lectureId, endSession.isPending, router])
+
   const session = detailQuery.data
   const liveModel = session ? buildQrSessionLiveModel(session, now) : null
   const rosterModel = studentsQuery.data ? buildQrSessionRosterModel(studentsQuery.data) : null
@@ -134,7 +164,6 @@ export function QrActiveSessionShell(props: {
     )
   }
 
-  const sessionEnded = session.status !== "ACTIVE"
   const projectorMode = props.projector
 
   if (projectorMode) {
@@ -155,7 +184,16 @@ export function QrActiveSessionShell(props: {
       >
         {/* Compact header */}
         <div style={qrShellStyles.projectorHero}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
+          <div
+            aria-hidden
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "var(--ae-card-glow)",
+              pointerEvents: "none",
+            }}
+          />
+          <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0, position: "relative", zIndex: 1 }}>
             <Link
               href={teacherWorkflowRoutes.activeSession(props.sessionId)}
               className="ui-back-link"
@@ -197,11 +235,11 @@ export function QrActiveSessionShell(props: {
               </h2>
             </div>
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", position: "relative", zIndex: 1 }}>
             <StatPill label="Marked" value={liveModel.liveSummaryLabel} />
             <StatPill label="QR refresh" value={liveModel.qrRefreshLabel} />
             {confirmEnd ? (
-              <>
+              <div style={qrShellStyles.confirmEndGroup}>
                 <span style={{ fontSize: 13, color: webTheme.colors.danger, fontWeight: 600 }}>
                   End session?
                 </span>
@@ -212,7 +250,13 @@ export function QrActiveSessionShell(props: {
                     setConfirmEnd(false)
                   }}
                   disabled={endSession.isPending}
-                  style={{ ...qrShellStyles.dangerButton, padding: "10px 20px" }}
+                  style={{
+                    ...qrShellStyles.dangerButton,
+                    padding: "8px 18px",
+                    background: webTheme.colors.danger,
+                    color: "#fff",
+                    border: "none",
+                  }}
                 >
                   {endSession.isPending ? "Ending..." : "Confirm"}
                 </button>
@@ -221,26 +265,21 @@ export function QrActiveSessionShell(props: {
                   onClick={() => setConfirmEnd(false)}
                   className="ui-secondary-btn"
                   style={{
-                    padding: "10px 16px",
-                    border: `1px solid ${webTheme.colors.border}`,
-                    borderRadius: 10,
-                    background: webTheme.colors.surfaceRaised,
-                    color: webTheme.colors.text,
+                    ...qrShellStyles.secondaryButton,
+                    padding: "8px 14px",
                     fontSize: 13,
-                    fontWeight: 600,
-                    cursor: "pointer",
                   }}
                 >
                   Cancel
                 </button>
-              </>
+              </div>
             ) : (
               <button
                 type="button"
                 onClick={() => setConfirmEnd(true)}
                 disabled={sessionEnded || endSession.isPending}
                 aria-label="End attendance session"
-                style={{ ...qrShellStyles.dangerButton, padding: "10px 20px" }}
+                style={qrShellStyles.dangerButton}
               >
                 End session
               </button>
@@ -325,7 +364,16 @@ export function QrActiveSessionShell(props: {
 
       {/* Top status bar */}
       <div style={qrShellStyles.hero}>
-        <div style={{ minWidth: 0 }}>
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "var(--ae-card-glow)",
+            pointerEvents: "none",
+          }}
+        />
+        <div style={{ minWidth: 0, position: "relative", zIndex: 1 }}>
           <p
             style={{
               margin: "0 0 2px",
@@ -350,7 +398,7 @@ export function QrActiveSessionShell(props: {
             {scopeLabel}
           </h2>
         </div>
-        <div style={qrShellStyles.statPillRow}>
+        <div style={{ ...qrShellStyles.statPillRow, position: "relative", zIndex: 1 }}>
           <StatPill label="Elapsed" value={liveModel.countdownLabel} />
           <StatPill label="Marked" value={liveModel.attendanceRatioLabel} />
           <StatPill label="QR refresh" value={`${qrSessionLiveRefreshIntervalMs / 1000}s`} />
@@ -383,7 +431,7 @@ export function QrActiveSessionShell(props: {
             )}
           </div>
 
-          <div style={{ display: "flex", gap: 10, justifyContent: "center", flexShrink: 0 }}>
+          <div style={qrShellStyles.actionRow}>
             <Link
               href={teacherWorkflowRoutes.activeSessionProjector(props.sessionId)}
               className="ui-secondary-btn"
@@ -392,7 +440,7 @@ export function QrActiveSessionShell(props: {
               Projector mode
             </Link>
             {confirmEnd ? (
-              <>
+              <div style={qrShellStyles.confirmEndGroup}>
                 <span style={{ fontSize: 13, color: webTheme.colors.danger, fontWeight: 600 }}>
                   End session?
                 </span>
@@ -403,7 +451,13 @@ export function QrActiveSessionShell(props: {
                     setConfirmEnd(false)
                   }}
                   disabled={endSession.isPending}
-                  style={{ ...qrShellStyles.dangerButton, padding: "12px 28px" }}
+                  style={{
+                    ...qrShellStyles.dangerButton,
+                    padding: "8px 18px",
+                    background: webTheme.colors.danger,
+                    color: "#fff",
+                    border: "none",
+                  }}
                 >
                   {endSession.isPending ? "Ending..." : "Confirm"}
                 </button>
@@ -412,26 +466,21 @@ export function QrActiveSessionShell(props: {
                   onClick={() => setConfirmEnd(false)}
                   className="ui-secondary-btn"
                   style={{
-                    padding: "10px 16px",
-                    border: `1px solid ${webTheme.colors.border}`,
-                    borderRadius: 10,
-                    background: webTheme.colors.surfaceRaised,
-                    color: webTheme.colors.text,
+                    ...qrShellStyles.secondaryButton,
+                    padding: "8px 14px",
                     fontSize: 13,
-                    fontWeight: 600,
-                    cursor: "pointer",
                   }}
                 >
                   Cancel
                 </button>
-              </>
+              </div>
             ) : (
               <button
                 type="button"
                 onClick={() => setConfirmEnd(true)}
                 disabled={sessionEnded || endSession.isPending}
                 aria-label="End attendance session"
-                style={{ ...qrShellStyles.dangerButton, padding: "12px 28px" }}
+                style={qrShellStyles.dangerButton}
               >
                 End session
               </button>
@@ -448,17 +497,28 @@ export function QrActiveSessionShell(props: {
         {/* Roster sidebar */}
         <div
           style={{
-            borderRadius: webTheme.radius.card,
-            border: `1px solid ${webTheme.colors.border}`,
-            background: webTheme.colors.surfaceRaised,
+            borderRadius: 16,
+            border: "1px solid var(--ae-card-border)",
+            background: "var(--ae-card-surface)",
+            boxShadow: "var(--ae-card-shadow)",
             padding: 16,
             display: "flex",
             flexDirection: "column",
             gap: 12,
             minHeight: 0,
             overflow: "hidden",
+            position: "relative",
           }}
         >
+          <div
+            aria-hidden
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "var(--ae-card-glow)",
+              pointerEvents: "none",
+            }}
+          />
           <h3
             style={{
               margin: 0,
@@ -466,11 +526,13 @@ export function QrActiveSessionShell(props: {
               fontWeight: 600,
               color: webTheme.colors.text,
               flexShrink: 0,
+              position: "relative",
+              zIndex: 1,
             }}
           >
             Live roster
           </h3>
-          <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+          <div style={{ flex: 1, minHeight: 0, overflowY: "auto", position: "relative", zIndex: 1 }}>
             <QrSessionRosterPanel
               rosterModel={rosterModel}
               isLoading={studentsQuery.isLoading}

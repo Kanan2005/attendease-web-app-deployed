@@ -112,7 +112,7 @@ export function StudentScreen(props: {
       style={styles.screen}
       contentContainerStyle={[
         styles.screenContent,
-        { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 32 },
+        { paddingTop: insets.top, paddingBottom: insets.bottom + 32 },
       ]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
@@ -455,6 +455,15 @@ export function formatDateTime(value: string) {
   return new Date(value).toLocaleString("en-IN", {
     dateStyle: "medium",
     timeStyle: "short",
+  })
+}
+
+// v2.0: Date-only format — avoids the "5:30 am" bug caused by date-only
+// strings (e.g. "2026-03-27") being parsed as midnight UTC, which shows
+// as 5:30 AM in IST when timeStyle is included.
+export function formatDateOnly(value: string) {
+  return new Date(value).toLocaleDateString("en-IN", {
+    dateStyle: "medium",
   })
 }
 

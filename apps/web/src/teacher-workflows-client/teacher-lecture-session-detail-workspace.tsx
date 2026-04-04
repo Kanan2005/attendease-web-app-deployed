@@ -26,7 +26,12 @@ import {
   buildTeacherWebSessionRosterModel,
   mapTeacherWebReviewErrorToMessage,
 } from "../teacher-review-workflows"
-import { formatPortalDate, teacherWorkflowRoutes, webWorkflowQueryKeys } from "../web-workflows"
+import {
+  formatPortalDate,
+  formatPortalDateTime,
+  teacherWorkflowRoutes,
+  webWorkflowQueryKeys,
+} from "../web-workflows"
 
 import {
   WorkflowBanner,
@@ -50,8 +55,7 @@ export function TeacherLectureSessionDetailWorkspace(props: {
     tone: "info" | "danger"
     text: string
   } | null>(null)
-  const [locationMessage, setLocationMessage] = useState<string | null>(null)
-  const [isResolvingBrowserLocation, setIsResolvingBrowserLocation] = useState(false)
+  const [startingPhase, setStartingPhase] = useState<"idle" | "locating" | "starting">("idle")
   const [draft, setDraft] = useState<ReturnType<typeof createTeacherWebQrSessionStartDraft>>(null)
   const [correctionDraft, setCorrectionDraft] = useState<
     Record<string, AttendanceSessionStudentSummary["status"]>
@@ -83,6 +87,7 @@ export function TeacherLectureSessionDetailWorkspace(props: {
       bootstrap.authClient.listAttendanceSessions(props.accessToken ?? "", {
         classroomId: props.classroomId,
       }),
+    refetchInterval: 5_000,
   })
 
   const classroom = classroomQuery.data ?? null
@@ -93,6 +98,10 @@ export function TeacherLectureSessionDetailWorkspace(props: {
   const lecture = lectures.find((l) => l.id === props.lectureId) ?? null
   const sessions = sessionsQuery.data ?? []
   const sessionForLecture = sessions.find((s) => s.lectureId === props.lectureId) ?? null
+  const activeClassroomSession =
+    sessionForLecture?.status === "ACTIVE"
+      ? sessionForLecture
+      : (sessions.find((s) => s.status === "ACTIVE") ?? null)
 
   useEffect(() => {
     if (!classroom || !classroomOptions.length || draft) return
@@ -109,51 +118,32 @@ export function TeacherLectureSessionDetailWorkspace(props: {
     }
   }, [classroom, classroomOptions, props.classroomId, props.lectureId, draft])
 
-  useEffect(() => {
-    if (sessionForLecture?.status === "ACTIVE") {
-      router.replace(teacherWorkflowRoutes.activeSession(sessionForLecture.id))
-    }
-  }, [sessionForLecture?.id, sessionForLecture?.status, router])
-
   const selectedClassroom = draft
     ? (classroomOptions.find((c) => c.classroomId === draft.classroomId) ?? null)
     : null
-  const readiness = evaluateTeacherWebQrSessionStartReadiness(draft, classroomOptions)
 
-  async function useBrowserLocationAnchor() {
+  function captureLocationCoords(): Promise<{ lat: string; lng: string } | null> {
     if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
       setStatusMessage({
         tone: "danger",
         text: "Browser location is unavailable. Allow geolocation and try again.",
       })
-      return
+      return Promise.resolve(null)
     }
-    setIsResolvingBrowserLocation(true)
-    setStatusMessage(null)
-    setLocationMessage(null)
-    await new Promise<void>((resolve) => {
+    return new Promise((resolve) => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setDraft((current) =>
-            current
-              ? {
-                  ...current,
-                  anchorLatitude: position.coords.latitude.toFixed(6),
-                  anchorLongitude: position.coords.longitude.toFixed(6),
-                }
-              : current,
-          )
-          setLocationMessage("Teacher location confirmed.")
-          setIsResolvingBrowserLocation(false)
-          resolve()
+          resolve({
+            lat: position.coords.latitude.toFixed(6),
+            lng: position.coords.longitude.toFixed(6),
+          })
         },
         () => {
           setStatusMessage({
             tone: "danger",
             text: "Location request was denied. Allow location access and try again.",
           })
-          setIsResolvingBrowserLocation(false)
-          resolve()
+          resolve(null)
         },
         { enableHighAccuracy: true, timeout: 10_000, maximumAge: 0 },
       )
@@ -161,17 +151,17 @@ export function TeacherLectureSessionDetailWorkspace(props: {
   }
 
   const createQrSession = useMutation({
-    mutationFn: async () => {
-      if (!props.accessToken || !draft) {
+    mutationFn: async (draftToUse: NonNullable<typeof draft>) => {
+      if (!props.accessToken) {
         throw new Error("Teacher web access is required before starting QR attendance.")
       }
-      const r = evaluateTeacherWebQrSessionStartReadiness(draft, classroomOptions)
+      const r = evaluateTeacherWebQrSessionStartReadiness(draftToUse, classroomOptions)
       if (!r.canStart) {
         throw new Error(r.blockingMessage ?? "QR attendance setup is incomplete.")
       }
       return bootstrap.authClient.createQrAttendanceSession(
         props.accessToken,
-        buildTeacherWebQrSessionStartRequest(draft),
+        buildTeacherWebQrSessionStartRequest(draftToUse),
       )
     },
     onSuccess: async (session) => {
@@ -196,9 +186,38 @@ export function TeacherLectureSessionDetailWorkspace(props: {
       } else if (error instanceof Error) {
         text = error.message
       }
+      setStartingPhase("idle")
       setStatusMessage({ tone: "danger", text })
     },
   })
+
+  async function handleStartAttendance() {
+    if (!draft) return
+    setStatusMessage(null)
+
+    let finalDraft = draft
+    if (!draft.anchorLatitude || !draft.anchorLongitude) {
+      setStartingPhase("locating")
+      const coords = await captureLocationCoords()
+      if (!coords) {
+        setStartingPhase("idle")
+        return
+      }
+      finalDraft = { ...draft, anchorLatitude: coords.lat, anchorLongitude: coords.lng }
+      setDraft(finalDraft)
+    }
+
+    setStartingPhase("starting")
+    createQrSession.mutate(finalDraft)
+  }
+
+  const canInitiateStart = Boolean(
+    draft &&
+      draft.sessionDurationMinutes &&
+      Number(draft.sessionDurationMinutes) > 0 &&
+      draft.gpsRadiusMeters &&
+      Number(draft.gpsRadiusMeters) > 0,
+  )
 
   if (!props.accessToken) {
     return <WorkflowStateCard message="Sign in to view this lecture session." />
@@ -226,11 +245,7 @@ export function TeacherLectureSessionDetailWorkspace(props: {
     )
   }
 
-  if (sessionForLecture?.status === "ACTIVE") {
-    return <WorkflowStateCard message="Redirecting to live session..." />
-  }
-
-  if (sessionForLecture) {
+  if (sessionForLecture && sessionForLecture.status !== "ACTIVE") {
     return (
       <LectureSessionEndedView
         accessToken={props.accessToken}
@@ -281,190 +296,341 @@ export function TeacherLectureSessionDetailWorkspace(props: {
         </h2>
         <p style={{ margin: 0, fontSize: 13, color: webTheme.colors.textMuted }}>
           {formatPortalDate(lecture.lectureDate)}
+          {lecture.createdAt ? (
+            <span style={{ marginLeft: 12, opacity: 0.7 }}>
+              Created {formatPortalDateTime(lecture.createdAt)}
+            </span>
+          ) : null}
         </p>
       </div>
 
-      {draft && selectedClassroom ? (
+      {sessionForLecture?.status === "ACTIVE" && sessionForLecture.mode === "QR_GPS" ? (
+        <Link
+          href={teacherWorkflowRoutes.activeSession(sessionForLecture.id)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "14px 20px",
+            borderRadius: webTheme.radius.card,
+            background: webTheme.colors.accentSoft,
+            border: `1px solid ${webTheme.colors.accentBorder}`,
+            textDecoration: "none",
+            color: webTheme.colors.text,
+            transition: "all 0.2s ease",
+          }}
+          className="ui-card-link"
+        >
+          <span
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: webTheme.gradients.accentButton,
+              display: "grid",
+              placeItems: "center",
+              fontSize: 14,
+              color: "#fff",
+              flexShrink: 0,
+            }}
+          >
+            📡
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: webTheme.colors.text }}>
+              Attendance session is live
+            </p>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: webTheme.colors.textMuted }}>
+              Tap to open the QR session view
+            </p>
+          </div>
+          <span
+            style={{
+              fontSize: 18,
+              color: webTheme.colors.accent,
+              flexShrink: 0,
+            }}
+            aria-hidden
+          >
+            →
+          </span>
+        </Link>
+      ) : sessionForLecture?.status === "ACTIVE" ? (
         <div
           style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "14px 20px",
             borderRadius: webTheme.radius.card,
-            border: `1px solid ${webTheme.colors.border}`,
-            background: webTheme.colors.surfaceRaised,
-            overflow: "hidden",
+            background: webTheme.colors.accentSoft,
+            border: `1px solid ${webTheme.colors.accentBorder}`,
+            color: webTheme.colors.text,
           }}
         >
+          <span
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: webTheme.gradients.accentButton,
+              display: "grid",
+              placeItems: "center",
+              fontSize: 14,
+              color: "#fff",
+              flexShrink: 0,
+            }}
+          >
+            {sessionForLecture.mode === "BLUETOOTH" ? "📶" : "📡"}
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: webTheme.colors.text }}>
+              {sessionForLecture.mode === "BLUETOOTH" ? "Bluetooth" : "Attendance"} session is live
+            </p>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: webTheme.colors.textMuted }}>
+              {sessionForLecture.mode === "BLUETOOTH"
+                ? "This session was started from the mobile app. Manage it from there."
+                : "An attendance session is active for this lecture."}
+            </p>
+          </div>
+          <span
+            style={{
+              padding: "3px 10px",
+              borderRadius: 999,
+              background: webTheme.colors.success,
+              color: "#fff",
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase",
+              flexShrink: 0,
+            }}
+          >
+            LIVE
+          </span>
+        </div>
+      ) : null}
+
+      {activeClassroomSession && !sessionForLecture ? (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "14px 20px",
+            borderRadius: webTheme.radius.card,
+            background: webTheme.colors.warningSoft,
+            border: `1px solid ${webTheme.colors.warningBorder}`,
+            color: webTheme.colors.text,
+          }}
+        >
+          <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
+          <div>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: webTheme.colors.text }}>
+              Another session is already active in this classroom
+            </p>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: webTheme.colors.textMuted }}>
+              {activeClassroomSession.mode === "BLUETOOTH"
+                ? "A Bluetooth session is running from the mobile app."
+                : "A QR+GPS session is active for another lecture."}{" "}
+              End it first before starting a new one.
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      {!activeClassroomSession ? (
+        draft && selectedClassroom ? (
           <div
             style={{
-              padding: "18px 24px",
-              borderBottom: `1px solid ${webTheme.colors.border}`,
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
+              borderRadius: 16,
+              border: "1px solid var(--ae-card-border)",
+              background: "var(--ae-card-surface)",
+              boxShadow: "var(--ae-card-shadow)",
+              overflow: "hidden",
+              position: "relative",
             }}
           >
             <div
+              aria-hidden
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                background: webTheme.colors.accentSoft,
-                border: `1px solid ${webTheme.colors.accentBorder}`,
-                display: "grid",
-                placeItems: "center",
-                fontSize: 16,
-                flexShrink: 0,
+                position: "absolute",
+                inset: 0,
+                background: "var(--ae-card-glow)",
+                pointerEvents: "none",
               }}
-            >
-              📡
-            </div>
-            <div>
-              <h3
-                style={{
-                  margin: "0 0 2px",
-                  fontSize: 15,
-                  fontWeight: 600,
-                  color: webTheme.colors.text,
-                }}
-              >
-                Start attendance session
-              </h3>
-              <p style={{ margin: 0, fontSize: 13, color: webTheme.colors.textMuted }}>
-                Set the GPS radius and capture your location. Students must be within range to mark
-                attendance.
-              </p>
-            </div>
-          </div>
-
-          <div style={{ padding: "20px 24px", display: "grid", gap: 20 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <div>
-                <WorkflowField
-                  label="GPS radius (meters)"
-                  value={draft.gpsRadiusMeters}
-                  onChange={(value) =>
-                    setDraft((current) =>
-                      current ? { ...current, gpsRadiusMeters: value } : current,
-                    )
-                  }
-                  type="number"
-                />
-                <p style={{ margin: "4px 0 0", fontSize: 11, color: webTheme.colors.textSubtle }}>
-                  Default: 100m. Students outside this radius will be rejected.
-                </p>
-              </div>
-              <WorkflowField
-                label="Duration (minutes)"
-                value={draft.sessionDurationMinutes}
-                onChange={(value) =>
-                  setDraft((current) =>
-                    current ? { ...current, sessionDurationMinutes: value } : current,
-                  )
-                }
-                type="number"
-              />
-            </div>
-
+            />
             <div
               style={{
+                padding: "18px 24px",
+                borderBottom: "1px solid var(--ae-card-border)",
+                position: "relative",
+                zIndex: 1,
                 display: "flex",
                 alignItems: "center",
-                gap: 12,
-                padding: "12px 16px",
-                borderRadius: 10,
-                background: hasLocation
-                  ? webTheme.colors.successSoft
-                  : webTheme.colors.surfaceMuted,
-                border: `1px solid ${hasLocation ? webTheme.colors.successBorder : webTheme.colors.border}`,
-                transition: "all 0.2s ease",
+                gap: 14,
               }}
             >
               <div
                 style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 8,
-                  background: hasLocation ? webTheme.colors.success : webTheme.colors.surfaceTint,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  background: webTheme.colors.accentSoft,
+                  border: `1px solid ${webTheme.colors.accentBorder}`,
                   display: "grid",
                   placeItems: "center",
-                  fontSize: 13,
-                  color: hasLocation ? "#fff" : webTheme.colors.textSubtle,
+                  fontSize: 16,
                   flexShrink: 0,
-                  fontWeight: 700,
-                  transition: "all 0.2s ease",
                 }}
               >
-                {hasLocation ? "✓" : "?"}
+                📡
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                {hasLocation ? (
+              <div>
+                <h3
+                  style={{
+                    margin: "0 0 2px",
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: webTheme.colors.text,
+                  }}
+                >
+                  Start attendance session
+                </h3>
+                <p style={{ margin: 0, fontSize: 13, color: webTheme.colors.textMuted }}>
+                  Configure GPS radius and duration. Your location is captured when you start.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ padding: "20px 24px", display: "grid", gap: 20, position: "relative", zIndex: 1 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
+                <div>
+                  <WorkflowField
+                    label="GPS radius (meters)"
+                    value={draft.gpsRadiusMeters}
+                    onChange={(value) =>
+                      setDraft((current) =>
+                        current ? { ...current, gpsRadiusMeters: value } : current,
+                      )
+                    }
+                    type="number"
+                  />
+                  <p style={{ margin: "6px 0 0", fontSize: 11, color: webTheme.colors.textSubtle }}>
+                    Default: 100m. Students outside this radius will be rejected.
+                  </p>
+                </div>
+                <div>
+                  <WorkflowField
+                    label="Duration (minutes)"
+                    value={draft.sessionDurationMinutes}
+                    onChange={(value) =>
+                      setDraft((current) =>
+                        current ? { ...current, sessionDurationMinutes: value } : current,
+                      )
+                    }
+                    type="number"
+                  />
+                  <p style={{ margin: "6px 0 0", fontSize: 11, color: webTheme.colors.textSubtle }}>
+                    How long the QR code stays active for check-ins.
+                  </p>
+                </div>
+              </div>
+
+              {hasLocation ? (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "10px 14px",
+                    borderRadius: 10,
+                    background: webTheme.colors.successSoft,
+                    border: `1px solid ${webTheme.colors.successBorder}`,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: 6,
+                      background: webTheme.colors.success,
+                      color: "#fff",
+                      display: "grid",
+                      placeItems: "center",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      flexShrink: 0,
+                    }}
+                  >
+                    ✓
+                  </span>
                   <span style={{ fontSize: 13, color: webTheme.colors.success, fontWeight: 500 }}>
                     Location locked — {draft.anchorLatitude}, {draft.anchorLongitude}
                   </span>
-                ) : (
-                  <span style={{ fontSize: 13, color: webTheme.colors.textMuted }}>
-                    Capture your location so students check in nearby.
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "10px 14px",
+                    borderRadius: 10,
+                    background: webTheme.colors.surfaceMuted,
+                    border: `1px solid ${webTheme.colors.border}`,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: 6,
+                      background: webTheme.colors.surfaceTint,
+                      color: webTheme.colors.textSubtle,
+                      display: "grid",
+                      placeItems: "center",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      flexShrink: 0,
+                    }}
+                  >
+                    📍
                   </span>
-                )}
-              </div>
+                  <span style={{ fontSize: 13, color: webTheme.colors.textMuted }}>
+                    Your location is captured automatically when you start.
+                  </span>
+                </div>
+              )}
+
+              {statusMessage ? (
+                <WorkflowBanner tone={statusMessage.tone} message={statusMessage.text} />
+              ) : null}
+
               <button
                 type="button"
-                className="ui-secondary-btn"
-                onClick={() => void useBrowserLocationAnchor()}
-                disabled={isResolvingBrowserLocation}
+                className="ui-primary-btn"
+                onClick={() => void handleStartAttendance()}
+                disabled={startingPhase !== "idle" || !canInitiateStart}
                 style={{
-                  ...workflowStyles.secondaryButton,
-                  padding: "7px 14px",
-                  fontSize: 13,
-                  flexShrink: 0,
+                  ...workflowStyles.primaryButton,
+                  padding: "13px 28px",
+                  fontSize: 14,
+                  width: "100%",
                 }}
               >
-                {isResolvingBrowserLocation
-                  ? "Capturing..."
-                  : hasLocation
-                    ? "Re-capture"
-                    : "Capture location"}
+                {startingPhase === "locating"
+                  ? "Capturing location..."
+                  : startingPhase === "starting"
+                    ? "Starting session..."
+                    : "Start attendance"}
               </button>
             </div>
-
-            {locationMessage && !statusMessage ? (
-              <div style={{ fontSize: 13, color: webTheme.colors.success, fontWeight: 500 }}>
-                {locationMessage}
-              </div>
-            ) : null}
-
-            {statusMessage ? (
-              <WorkflowBanner tone={statusMessage.tone} message={statusMessage.text} />
-            ) : null}
           </div>
-
-          <div
-            style={{
-              padding: "14px 24px",
-              borderTop: `1px solid ${webTheme.colors.border}`,
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: 10,
-              background: webTheme.colors.surfaceMuted,
-            }}
-          >
-            <button
-              type="button"
-              className="ui-primary-btn"
-              onClick={() => createQrSession.mutate()}
-              disabled={createQrSession.isPending || !readiness.canStart}
-              style={{
-                ...workflowStyles.primaryButton,
-                padding: "11px 28px",
-                fontSize: 14,
-              }}
-            >
-              {createQrSession.isPending ? "Starting session..." : "Start attendance"}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <WorkflowStateCard message="Loading session form..." />
-      )}
+        ) : (
+          <WorkflowStateCard message="Loading session form..." />
+        )
+      ) : null}
     </div>
   )
 }

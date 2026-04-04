@@ -263,14 +263,17 @@ export function TeacherRosterWorkspace(props: {
       {/* Add student + search row */}
       <div
         style={{
-          borderRadius: webTheme.radius.card,
-          border: `1px solid ${webTheme.colors.border}`,
-          background: webTheme.colors.surfaceRaised,
+          borderRadius: 16,
+          border: "1px solid var(--ae-card-border)",
+          background: "var(--ae-card-surface)",
+          boxShadow: "var(--ae-card-shadow)",
           padding: "16px 20px",
           display: "grid",
           gridTemplateColumns: "1fr 1fr auto",
           gap: 12,
           alignItems: "end",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
         <WorkflowField

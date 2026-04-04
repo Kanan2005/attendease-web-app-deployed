@@ -38,6 +38,11 @@ export function StudentClassroomsScreen() {
     return a.title.localeCompare(b.title)
   })
   const liveCount = sortedCourses.filter((c) => c.hasOpenAttendance).length
+  // v2.0: Separate unmarked (action needed) from fully-marked (info only) live courses
+  const unmarkedLiveCount = sortedCourses.filter((c) => c.unmarkedCandidateCount > 0).length
+  const allMarkedLiveCount = sortedCourses.filter(
+    (c) => c.hasOpenAttendance && c.hasMarkedAttendance,
+  ).length
 
   return (
     <StudentScreen
@@ -55,8 +60,8 @@ export function StudentClassroomsScreen() {
         <StudentErrorCard label={mapStudentApiErrorToMessage(discoveryError)} />
       ) : sortedCourses.length > 0 ? (
         <>
-          {/* Live Attendance Banner */}
-          {liveCount > 0 ? (
+          {/* v2.0: Top banner — red for unmarked live sessions, green when all are marked */}
+          {unmarkedLiveCount > 0 ? (
             <Animated.View entering={FadeInDown.duration(350)}>
               <View
                 style={{
@@ -75,13 +80,35 @@ export function StudentClassroomsScreen() {
                 />
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 15, fontWeight: "700", color: c.text }}>
-                    {liveCount} live session{liveCount === 1 ? "" : "s"}
-                  </Text>
-                  <Text style={{ fontSize: 13, color: c.textMuted }}>
-                    Tap the highlighted course{liveCount === 1 ? "" : "s"} below to mark attendance
+                    {unmarkedLiveCount} live session{unmarkedLiveCount === 1 ? "" : "s"}
                   </Text>
                 </View>
                 <Ionicons name="arrow-down" size={18} color={c.danger} />
+              </View>
+            </Animated.View>
+          ) : allMarkedLiveCount > 0 ? (
+            <Animated.View entering={FadeInDown.duration(350)}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  backgroundColor: c.successSoft,
+                  borderRadius: 14,
+                  padding: 14,
+                  borderWidth: 1.5,
+                  borderColor: c.success,
+                }}
+              >
+                <Ionicons name="checkmark-circle" size={20} color={c.success} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 15, fontWeight: "700", color: c.text }}>
+                    {allMarkedLiveCount} session{allMarkedLiveCount === 1 ? "" : "s"} marked
+                  </Text>
+                  <Text style={{ fontSize: 13, color: c.textMuted }}>
+                    Your attendance has been recorded.
+                  </Text>
+                </View>
               </View>
             </Animated.View>
           ) : null}
@@ -90,6 +117,26 @@ export function StudentClassroomsScreen() {
           {sortedCourses.map((course, i) => {
             const codeLabel = course.subtitle.split("·")[0]?.trim() ?? ""
             const isLive = course.hasOpenAttendance
+            // v2.0: Distinguish "needs marking" (red) from "already marked" (green)
+            const needsMarking = course.unmarkedCandidateCount > 0
+            const isMarkedLive = isLive && course.hasMarkedAttendance
+
+            const cardBg = needsMarking
+              ? c.dangerSoft
+              : isMarkedLive
+                ? c.successSoft
+                : c.surfaceRaised
+            const cardBorder = needsMarking
+              ? c.danger
+              : isMarkedLive
+                ? c.success
+                : c.border
+            const accentColor = needsMarking
+              ? c.danger
+              : isMarkedLive
+                ? c.success
+                : c.primary
+
             return (
               <Animated.View
                 key={course.classroomId}
@@ -99,15 +146,15 @@ export function StudentClassroomsScreen() {
                   onPress={() => router.push(studentRoutes.classroomDetail(course.classroomId))}
                   style={{
                     borderRadius: 16,
-                    backgroundColor: isLive ? c.dangerSoft : c.surfaceRaised,
+                    backgroundColor: cardBg,
                     borderWidth: isLive ? 2 : 1,
-                    borderColor: isLive ? c.danger : c.border,
+                    borderColor: cardBorder,
                     overflow: "hidden",
                     ...mobileTheme.shadow.soft,
                   }}
                 >
-                  {/* Live banner strip at top of card */}
-                  {isLive ? (
+                  {/* v2.0: Banner strip — red "TAP TO MARK" or green "ATTENDANCE MARKED" */}
+                  {needsMarking ? (
                     <View
                       style={{
                         flexDirection: "row",
@@ -132,6 +179,29 @@ export function StudentClassroomsScreen() {
                         ATTENDANCE LIVE — TAP TO MARK
                       </Text>
                     </View>
+                  ) : isMarkedLive ? (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        backgroundColor: c.success,
+                        paddingVertical: 6,
+                      }}
+                    >
+                      <Ionicons name="checkmark-circle" size={14} color="#fff" />
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontWeight: "800",
+                          color: "#fff",
+                          letterSpacing: 0.5,
+                        }}
+                      >
+                        ATTENDANCE MARKED
+                      </Text>
+                    </View>
                   ) : null}
 
                   <View style={{ padding: 16, gap: 8 }}>
@@ -141,7 +211,7 @@ export function StudentClassroomsScreen() {
                           width: 48,
                           height: 48,
                           borderRadius: 14,
-                          backgroundColor: isLive ? `${c.danger}20` : c.primarySoft,
+                          backgroundColor: `${accentColor}20`,
                           alignItems: "center",
                           justifyContent: "center",
                         }}
@@ -150,7 +220,7 @@ export function StudentClassroomsScreen() {
                           style={{
                             fontSize: 14,
                             fontWeight: "800",
-                            color: isLive ? c.danger : c.primary,
+                            color: accentColor,
                           }}
                         >
                           {codeLabel.slice(0, 3).toUpperCase()}
@@ -171,7 +241,7 @@ export function StudentClassroomsScreen() {
                       <Ionicons
                         name="chevron-forward"
                         size={20}
-                        color={isLive ? c.danger : c.textSubtle}
+                        color={isLive ? accentColor : c.textSubtle}
                       />
                     </View>
                   </View>

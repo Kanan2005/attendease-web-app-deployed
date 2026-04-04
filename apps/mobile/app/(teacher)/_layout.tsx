@@ -39,6 +39,7 @@ export default function TeacherLayout() {
         name="sessions/[sessionId]"
         options={{ ...detailHeader, title: "Session Details" }}
       />
+      <Stack.Screen name="profile" options={{ ...detailHeader, title: "Profile" }} />
       <Stack.Screen name="bluetooth/create" options={{ headerShown: false }} />
       <Stack.Screen name="bluetooth/active/[sessionId]" options={{ headerShown: false }} />
     </Stack>

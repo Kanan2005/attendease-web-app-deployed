@@ -409,6 +409,7 @@ model StudentProfile {
   degree             String?
   branch             String?
   currentSemester    Int?
+  parentEmail        String?
   attendanceDisabled Boolean  @default(false)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt

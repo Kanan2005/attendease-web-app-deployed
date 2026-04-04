@@ -98,6 +98,8 @@ export function buildTeacherWebReportOverviewModel(input: {
       )
       .map((row) => ({
         studentId: row.studentId,
+        studentEmail: row.studentEmail,
+        studentParentEmail: row.studentParentEmail,
         title: row.studentDisplayName,
         supportingLabel: row.studentRollNumber
           ? `${row.studentRollNumber} · ${row.classroomDisplayTitle} · ${row.subjectTitle}`
@@ -113,6 +115,7 @@ export function buildTeacherWebReportOverviewModel(input: {
               : row.attendancePercentage >= 50
                 ? "Needs follow-up"
                 : "Immediate follow-up",
+        emailSentCount: row.emailSentCount,
         lastSessionAt: row.lastSessionAt,
         tone: toneForAttendancePercentage(row.attendancePercentage),
       })),

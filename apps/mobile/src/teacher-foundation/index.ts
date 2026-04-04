@@ -16,3 +16,4 @@ export {
 } from "./bluetooth-screens"
 export { TeacherSessionHistoryScreen, TeacherSessionDetailScreen } from "./session-review-screens"
 export { TeacherReportsScreen, TeacherExportsScreen } from "./report-export-screens"
+export { TeacherProfileScreen } from "./teacher-profile-screen"

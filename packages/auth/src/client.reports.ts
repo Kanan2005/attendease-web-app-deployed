@@ -21,6 +21,8 @@ import {
   type LowAttendanceEmailPreviewResponse,
   type ManualLowAttendanceEmailSendRequest,
   type ManualLowAttendanceEmailSendResponse,
+  type SendThresholdEmailsRequest,
+  type SendThresholdEmailsResponse,
   type TeacherDaywiseAttendanceReportResponse,
   type TeacherReportFilters,
   type TeacherStudentAttendancePercentageReportResponse,
@@ -49,6 +51,8 @@ import {
   lowAttendanceEmailPreviewResponseSchema,
   manualLowAttendanceEmailSendRequestSchema,
   manualLowAttendanceEmailSendResponseSchema,
+  sendThresholdEmailsRequestSchema,
+  sendThresholdEmailsResponseSchema,
   teacherDaywiseAttendanceReportResponseSchema,
   teacherReportFiltersSchema,
   teacherStudentAttendancePercentageReportResponseSchema,
@@ -255,6 +259,17 @@ export function buildAuthClientReportMethods(request: AuthApiRequest) {
         method: "GET",
         token,
         parse: exportJobDetailSchema.parse,
+      })
+    },
+    sendThresholdEmails(
+      token: string,
+      payload: SendThresholdEmailsRequest,
+    ): Promise<SendThresholdEmailsResponse> {
+      return request("/reports/send-threshold-emails", {
+        method: "POST",
+        token,
+        payload: sendThresholdEmailsRequestSchema.parse(payload),
+        parse: sendThresholdEmailsResponseSchema.parse,
       })
     },
   }

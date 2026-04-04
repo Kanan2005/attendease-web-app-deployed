@@ -1,5 +1,4 @@
 import { getColors, mobileTheme } from "@attendease/ui-mobile"
-import { StatusPill } from "@attendease/ui-mobile/animated"
 import { Ionicons } from "@expo/vector-icons"
 import { useState } from "react"
 import {
@@ -89,15 +88,7 @@ export function TeacherClassroomRosterScreenContent(props: Props) {
 
   if (!props.hasSession) {
     return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: c.surface,
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 32,
-        }}
-      >
+      <View style={[rs.centerContainer, { backgroundColor: c.surface }]}>
         <Ionicons name="lock-closed-outline" size={40} color={c.textSubtle} />
         <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 12 }}>
           Sign in required
@@ -108,31 +99,16 @@ export function TeacherClassroomRosterScreenContent(props: Props) {
 
   if (props.isLoading) {
     return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: c.surface,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+      <View style={[rs.centerContainer, { backgroundColor: c.surface }]}>
         <ActivityIndicator size="large" color={c.primary} />
-        <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 12 }}>Loading roster…</Text>
+        <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 12 }}>Loading students…</Text>
       </View>
     )
   }
 
   if (props.loadErrorMessage) {
     return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: c.surface,
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 32,
-        }}
-      >
+      <View style={[rs.centerContainer, { backgroundColor: c.surface }]}>
         <Ionicons name="alert-circle" size={40} color={c.danger} />
         <Text style={{ fontSize: 14, color: c.danger, marginTop: 12, textAlign: "center" }}>
           {props.loadErrorMessage}
@@ -142,408 +118,245 @@ export function TeacherClassroomRosterScreenContent(props: Props) {
   }
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: c.surface }}
-      contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
-      {/* ── Classroom header ── */}
-      <View style={rs.headerSection}>
-        <Text style={[rs.classroomTitle, { color: c.text }]} numberOfLines={2}>
-          {props.classroomTitle}
-        </Text>
-        <View style={rs.statsRow}>
-          <StatChip
-            label="Total"
-            value={props.totalRosterCount}
-            color={c.primary}
-            bg={c.primarySoft}
-          />
-          <StatChip
-            label="Active"
-            value={props.activeRosterCount}
-            color={c.success}
-            bg={c.successSoft}
-          />
-          {props.pendingRosterCount > 0 ? (
-            <StatChip
-              label="Pending"
-              value={props.pendingRosterCount}
-              color={c.warning}
-              bg={c.warningSoft}
-            />
-          ) : null}
-          {props.blockedRosterCount > 0 ? (
-            <StatChip
-              label="Blocked"
-              value={props.blockedRosterCount}
-              color={c.danger}
-              bg={c.dangerSoft}
-            />
-          ) : null}
-        </View>
-      </View>
-
-      {/* ── Search + filter bar ── */}
-      <View
-        style={[
-          rs.section,
-          {
-            borderBottomWidth: StyleSheet.hairlineWidth,
-            borderBottomColor: c.border,
-            paddingBottom: 16,
-          },
-        ]}
+    <View style={{ flex: 1, backgroundColor: c.surface }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <View
-          style={[rs.searchBar, { backgroundColor: c.surfaceMuted, borderColor: c.borderStrong }]}
-        >
-          <Ionicons name="search-outline" size={18} color={c.textSubtle} />
-          <TextInput
-            value={props.searchText}
-            onChangeText={props.onSetSearchText}
-            placeholder="Search by name or roll number…"
-            placeholderTextColor={c.textSubtle}
-            autoCapitalize="none"
-            style={[rs.searchInput, { color: c.text }]}
-          />
-          {props.searchText.length > 0 ? (
-            <Pressable onPress={() => props.onSetSearchText("")} hitSlop={8}>
-              <Ionicons name="close-circle" size={18} color={c.textSubtle} />
-            </Pressable>
-          ) : null}
-        </View>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 }}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 8, paddingRight: 4 }}
-          >
-            {props.statusFilters.map((filter) => {
-              const active = props.statusFilter === filter
-              return (
-                <Pressable
-                  key={filter}
-                  onPress={() => props.onSetStatusFilter(filter)}
-                  style={[
-                    rs.filterPill,
-                    {
-                      borderColor: active ? c.primary : c.border,
-                      backgroundColor: active ? c.primarySoft : c.surfaceRaised,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: "600",
-                      color: active ? c.primary : c.textMuted,
-                    }}
-                  >
-                    {filter === "ALL" ? "All" : filter.charAt(0) + filter.slice(1).toLowerCase()}
-                  </Text>
-                </Pressable>
-              )
-            })}
-          </ScrollView>
-          <Pressable
-            onPress={() => setShowAddForm((v) => !v)}
-            style={[rs.addToggle, { backgroundColor: c.primary }]}
-          >
-            <Ionicons
-              name={showAddForm ? "close" : "person-add-outline"}
-              size={16}
-              color={c.primaryContrast}
-            />
-          </Pressable>
-        </View>
-        <Text style={{ fontSize: 12, color: c.textSubtle }}>{props.rosterSummaryText}</Text>
-      </View>
+        {/* ── Header: count + search ── */}
+        <View style={rs.header}>
+          <View style={rs.headerRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={[rs.heading, { color: c.text }]}>
+                {props.totalRosterCount} Student{props.totalRosterCount === 1 ? "" : "s"}
+              </Text>
+              <Text style={{ fontSize: 13, color: c.textMuted, marginTop: 2 }}>
+                {props.classroomTitle}
+              </Text>
+            </View>
+          </View>
 
-      {/* ── Inline add student form (toggled) ── */}
-      {showAddForm ? (
-        <Animated.View
-          entering={FadeInDown.duration(250)}
-          style={[
-            rs.section,
-            {
-              backgroundColor: c.surfaceTint,
-              marginHorizontal: 16,
-              marginTop: 12,
-              borderRadius: 14,
-              padding: 16,
-              gap: 12,
-              borderWidth: 1,
-              borderColor: c.border,
-            },
-          ]}
-        >
-          <Text style={{ fontSize: 15, fontWeight: "700", color: c.text }}>Add Student</Text>
-          <TextInput
-            value={props.studentLookup}
-            autoCapitalize="none"
-            placeholder="Email, roll number, or student ID"
-            placeholderTextColor={c.textSubtle}
-            onChangeText={props.onSetStudentLookup}
-            style={[
-              rs.searchBar,
-              rs.searchInput,
-              {
-                backgroundColor: c.surfaceMuted,
-                borderColor: c.borderStrong,
-                flex: 0,
-                paddingHorizontal: 14,
-                paddingVertical: 12,
-              },
-            ]}
-          />
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <Pressable
-              onPress={() => props.onSetMemberStatus("ACTIVE")}
+          {/* Search bar */}
+          <View style={[rs.searchBar, { backgroundColor: c.surfaceMuted, borderColor: c.border }]}>
+            <Ionicons name="search-outline" size={17} color={c.textSubtle} />
+            <TextInput
+              value={props.searchText}
+              onChangeText={props.onSetSearchText}
+              placeholder="Search students…"
+              placeholderTextColor={c.textSubtle}
+              autoCapitalize="none"
+              style={[rs.searchInput, { color: c.text }]}
+            />
+            {props.searchText.length > 0 ? (
+              <Pressable onPress={() => props.onSetSearchText("")} hitSlop={8}>
+                <Ionicons name="close-circle" size={17} color={c.textSubtle} />
+              </Pressable>
+            ) : null}
+          </View>
+        </View>
+
+        {/* ── Success/error toast ── */}
+        {props.rosterMessage ? (
+          <Animated.View entering={FadeInDown.duration(200)} style={rs.toastContainer}>
+            <View style={[rs.toast, { backgroundColor: c.successSoft }]}>
+              <Ionicons name="checkmark-circle" size={17} color={c.success} />
+              <Text style={{ fontSize: 13, color: c.success, flex: 1 }}>
+                {props.rosterMessage}
+              </Text>
+              <Pressable onPress={() => props.onSetRosterMessage(null)} hitSlop={8}>
+                <Ionicons name="close" size={15} color={c.success} />
+              </Pressable>
+            </View>
+          </Animated.View>
+        ) : null}
+
+        {/* ── Inline add student form ── */}
+        {showAddForm ? (
+          <Animated.View
+            entering={FadeInDown.duration(250)}
+            style={[rs.addFormCard, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}
+          >
+            <Text style={{ fontSize: 15, fontWeight: "700", color: c.text }}>Add Student</Text>
+            <TextInput
+              value={props.studentLookup}
+              autoCapitalize="none"
+              placeholder="Email, roll number, or student ID"
+              placeholderTextColor={c.textSubtle}
+              onChangeText={props.onSetStudentLookup}
               style={[
-                rs.filterPill,
+                rs.addInput,
+                { backgroundColor: c.surfaceMuted, borderColor: c.border, color: c.text },
+              ]}
+            />
+            <Pressable
+              style={[
+                rs.addButton,
                 {
-                  borderColor: props.memberStatus === "ACTIVE" ? c.primary : c.border,
-                  backgroundColor:
-                    props.memberStatus === "ACTIVE" ? c.primarySoft : c.surfaceRaised,
+                  backgroundColor: c.primary,
+                  opacity: props.isAddPending || props.studentLookup.trim().length < 3 ? 0.5 : 1,
                 },
               ]}
+              disabled={props.isAddPending || props.studentLookup.trim().length < 3}
+              onPress={() => {
+                props.onSetRosterMessage(null)
+                props.onAddStudent()
+              }}
             >
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: "600",
-                  color: props.memberStatus === "ACTIVE" ? c.primary : c.textMuted,
-                }}
-              >
-                Active
+              <Ionicons name="person-add-outline" size={15} color={c.primaryContrast} />
+              <Text style={{ fontSize: 14, fontWeight: "700", color: c.primaryContrast }}>
+                {props.isAddPending ? "Adding…" : "Add Student"}
               </Text>
             </Pressable>
-            <Pressable
-              onPress={() => props.onSetMemberStatus("PENDING")}
-              style={[
-                rs.filterPill,
-                {
-                  borderColor: props.memberStatus === "PENDING" ? c.primary : c.border,
-                  backgroundColor:
-                    props.memberStatus === "PENDING" ? c.primarySoft : c.surfaceRaised,
-                },
-              ]}
-            >
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: "600",
-                  color: props.memberStatus === "PENDING" ? c.primary : c.textMuted,
-                }}
-              >
-                Pending
+            {rosterErrorMessage(props.addMutationError) ? (
+              <Text style={{ fontSize: 12, color: c.danger }}>
+                {rosterErrorMessage(props.addMutationError)}
               </Text>
-            </Pressable>
-          </View>
-          <Pressable
-            style={[
-              rs.addButton,
-              {
-                backgroundColor: c.primary,
-                opacity: props.isAddPending || props.studentLookup.trim().length < 3 ? 0.5 : 1,
-              },
-            ]}
-            disabled={props.isAddPending || props.studentLookup.trim().length < 3}
-            onPress={() => {
-              props.onSetRosterMessage(null)
-              props.onAddStudent()
-            }}
-          >
-            <Ionicons name="person-add-outline" size={16} color={c.primaryContrast} />
-            <Text style={{ fontSize: 14, fontWeight: "700", color: c.primaryContrast }}>
-              {props.isAddPending ? "Adding…" : "Add"}
-            </Text>
-          </Pressable>
-          {rosterErrorMessage(props.addMutationError) ? (
-            <Text style={{ fontSize: 13, color: c.danger }}>
-              {rosterErrorMessage(props.addMutationError)}
-            </Text>
-          ) : null}
-        </Animated.View>
-      ) : null}
+            ) : null}
+          </Animated.View>
+        ) : null}
 
-      {/* ── Success/error messages ── */}
-      {props.rosterMessage ? (
-        <View style={[rs.section, { paddingVertical: 8 }]}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 8,
-              backgroundColor: c.successSoft,
-              borderRadius: 10,
-              padding: 12,
-            }}
-          >
-            <Ionicons name="checkmark-circle" size={18} color={c.success} />
-            <Text style={{ fontSize: 13, color: c.success, flex: 1 }}>{props.rosterMessage}</Text>
-            <Pressable onPress={() => props.onSetRosterMessage(null)} hitSlop={8}>
-              <Ionicons name="close" size={16} color={c.success} />
-            </Pressable>
-          </View>
+        {/* ── Student list ── */}
+        <View style={rs.listContainer}>
+          {props.members.length > 0 ? (
+            props.members.map((member, i) => (
+              <Animated.View key={member.id} entering={FadeInDown.duration(200).delay(i * 25)}>
+                <StudentRow
+                  member={member}
+                  index={i}
+                  isLast={i === props.members.length - 1}
+                  isRosterLoading={props.isRosterLoading}
+                  onPerformMemberAction={props.onPerformMemberAction}
+                />
+              </Animated.View>
+            ))
+          ) : (
+            <View style={rs.emptyState}>
+              <Ionicons name="people-outline" size={44} color={c.textSubtle} />
+              <Text style={{ fontSize: 16, fontWeight: "600", color: c.text, marginTop: 8 }}>
+                {props.searchText.trim() ? "No matches" : "No students yet"}
+              </Text>
+              <Text style={{ fontSize: 13, color: c.textMuted, textAlign: "center" }}>
+                {props.searchText.trim()
+                  ? "Try a different search term"
+                  : "Tap the + button to add students"}
+              </Text>
+            </View>
+          )}
         </View>
-      ) : null}
 
-      {/* ── Student list ── */}
-      <View style={rs.section}>
-        {props.members.length > 0 ? (
-          props.members.map((member, i) => (
-            <StudentRow
-              key={member.id}
-              member={member}
-              isLast={i === props.members.length - 1}
-              isRosterLoading={props.isRosterLoading}
-              onPerformMemberAction={props.onPerformMemberAction}
-            />
-          ))
-        ) : (
-          <View style={{ alignItems: "center", paddingVertical: 32, gap: 8 }}>
-            <Ionicons name="people-outline" size={36} color={c.textSubtle} />
-            <Text style={{ fontSize: 14, color: c.textMuted }}>
-              {props.isAddStudentEnabled ? "No students yet" : "No matching students"}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {props.updateMutationError ? (
-        <View style={[rs.section, { paddingVertical: 4 }]}>
-          <Text style={{ fontSize: 13, color: c.danger }}>
-            {mapTeacherApiErrorToMessage(props.updateMutationError)}
-          </Text>
-        </View>
-      ) : null}
-      {props.removeMutationError ? (
-        <View style={[rs.section, { paddingVertical: 4 }]}>
-          <Text style={{ fontSize: 13, color: c.danger }}>
-            {mapTeacherApiErrorToMessage(props.removeMutationError)}
-          </Text>
-        </View>
-      ) : null}
-
-      {/* ── Bulk import (keep existing cards for power users) ── */}
-      <View style={{ paddingHorizontal: 16, gap: 12, marginTop: 8 }}>
-        <TeacherClassroomRosterBulkCard
-          importPreviewTitle={props.importPreviewTitle}
-          importPreviewMessage={props.importPreviewMessage}
-          importSourceFileName={props.importSourceFileName}
-          importRowsText={props.importRowsText}
-          parsedRowsCount={props.parsedRowsCount}
-          invalidImportRows={props.invalidImportRows}
-          isCreateImportPending={props.isCreateImportPending}
-          onSetImportSourceFileName={props.onSetImportSourceFileName}
-          onSetImportRows={props.onSetImportRows}
-          onCreateImportJob={props.onCreateImportJob}
-          onSetRosterMessage={props.onSetRosterMessage}
-          isAddStudentEnabled={props.isAddStudentEnabled}
-          hasSourceAndRows={
-            props.importSourceFileName.trim().length > 0 && props.parsedRowsCount > 0
-          }
-        />
-
-        {props.rosterImportLoading ? (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, padding: 12 }}>
-            <ActivityIndicator size="small" color={c.primary} />
-            <Text style={{ fontSize: 13, color: c.textMuted }}>Loading import status…</Text>
+        {/* ── Error messages ── */}
+        {props.removeMutationError ? (
+          <View style={rs.toastContainer}>
+            <View style={[rs.toast, { backgroundColor: c.dangerSoft }]}>
+              <Ionicons name="alert-circle" size={17} color={c.danger} />
+              <Text style={{ fontSize: 13, color: c.danger, flex: 1 }}>
+                {mapTeacherApiErrorToMessage(props.removeMutationError)}
+              </Text>
+            </View>
           </View>
         ) : null}
-        <TeacherClassroomRosterImportStatusCard
-          jobs={props.jobs}
-          isApplyImportPending={props.isApplyImportPending}
-          applyImportMutationError={props.applyImportMutationError}
-          onApplyReviewJob={props.onApplyReviewJob}
+
+        {/* ── Bulk import section ── */}
+        <View style={{ paddingHorizontal: 16, gap: 12, marginTop: 12 }}>
+          <TeacherClassroomRosterBulkCard
+            importPreviewTitle={props.importPreviewTitle}
+            importPreviewMessage={props.importPreviewMessage}
+            importSourceFileName={props.importSourceFileName}
+            importRowsText={props.importRowsText}
+            parsedRowsCount={props.parsedRowsCount}
+            invalidImportRows={props.invalidImportRows}
+            isCreateImportPending={props.isCreateImportPending}
+            onSetImportSourceFileName={props.onSetImportSourceFileName}
+            onSetImportRows={props.onSetImportRows}
+            onCreateImportJob={props.onCreateImportJob}
+            onSetRosterMessage={props.onSetRosterMessage}
+            isAddStudentEnabled={props.isAddStudentEnabled}
+            hasSourceAndRows={
+              props.importSourceFileName.trim().length > 0 && props.parsedRowsCount > 0
+            }
+          />
+          {props.rosterImportLoading ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, padding: 12 }}>
+              <ActivityIndicator size="small" color={c.primary} />
+              <Text style={{ fontSize: 13, color: c.textMuted }}>Loading import status…</Text>
+            </View>
+          ) : null}
+          <TeacherClassroomRosterImportStatusCard
+            jobs={props.jobs}
+            isApplyImportPending={props.isApplyImportPending}
+            applyImportMutationError={props.applyImportMutationError}
+            onApplyReviewJob={props.onApplyReviewJob}
+          />
+        </View>
+      </ScrollView>
+
+      {/* ── FAB to toggle add form ── */}
+      <Pressable
+        onPress={() => setShowAddForm((v) => !v)}
+        style={[rs.fab, { backgroundColor: c.primary, ...mobileTheme.shadow.glow }]}
+      >
+        <Ionicons
+          name={showAddForm ? "close" : "person-add-outline"}
+          size={24}
+          color={c.primaryContrast}
         />
-      </View>
-    </ScrollView>
+      </Pressable>
+    </View>
   )
 }
 
-/* ── Student row component ── */
+/* ── Student row ── */
 function StudentRow(props: {
   member: RosterMemberModel
+  index: number
   isLast: boolean
   isRosterLoading: boolean
   onPerformMemberAction: (member: RosterMemberModel, action: RosterMemberActionModel) => void
 }) {
   const c = getColors()
   const { member } = props
-  const isActive = member.attendanceDisabled !== "Yes"
+  const removeAction = member.actions.find((a) => a.kind === "REMOVE") ?? null
+
+  // Alternate avatar colors for visual variety
+  const avatarColors = [
+    { bg: c.primarySoft, fg: c.primary },
+    { bg: c.successSoft, fg: c.success },
+    { bg: c.warningSoft, fg: c.warning },
+  ]
+  const pal = avatarColors[props.index % avatarColors.length]!
 
   return (
     <View
       style={[
         rs.studentRow,
-        !props.isLast && {
-          borderBottomWidth: StyleSheet.hairlineWidth,
-          borderBottomColor: c.border,
-        },
+        { backgroundColor: c.surfaceRaised, borderColor: c.border },
       ]}
     >
-      <View style={rs.studentRowTop}>
-        <View style={[rs.avatar, { backgroundColor: c.primarySoft }]}>
-          <Text style={{ fontSize: 15, fontWeight: "800", color: c.primary }}>
-            {member.studentDisplayName.charAt(0).toUpperCase()}
-          </Text>
-        </View>
-        <View style={{ flex: 1, gap: 2 }}>
-          <Text style={{ fontSize: 15, fontWeight: "600", color: c.text }} numberOfLines={1}>
-            {member.studentDisplayName}
-          </Text>
-          <Text style={{ fontSize: 12, color: c.textMuted }} numberOfLines={1}>
-            {member.identityText}
-          </Text>
-        </View>
-        <StatusPill
-          label={isActive ? "Active" : "Paused"}
-          tone={isActive ? "success" : "warning"}
-        />
+      <View style={[rs.avatar, { backgroundColor: pal.bg }]}>
+        <Text style={{ fontSize: 14, fontWeight: "800", color: pal.fg }}>
+          {member.studentDisplayName.charAt(0).toUpperCase()}
+        </Text>
       </View>
-      {member.actions.length > 0 ? (
-        <View style={rs.actionRow}>
-          {member.actions.map((action) => (
-            <Pressable
-              key={`${member.id}-${action.label}`}
-              disabled={props.isRosterLoading}
-              onPress={() => props.onPerformMemberAction(member, action)}
-              style={[
-                rs.actionBtn,
-                action.tone === "danger"
-                  ? { backgroundColor: c.dangerSoft }
-                  : { backgroundColor: c.surfaceTint, borderWidth: 1, borderColor: c.border },
-              ]}
-            >
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: "600",
-                  color: action.tone === "danger" ? c.danger : c.text,
-                }}
-              >
-                {action.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+      <View style={{ flex: 1, gap: 1 }}>
+        <Text style={{ fontSize: 14, fontWeight: "600", color: c.text }} numberOfLines={1}>
+          {member.studentDisplayName}
+        </Text>
+        <Text style={{ fontSize: 11, color: c.textMuted }} numberOfLines={1}>
+          {member.identityText}
+        </Text>
+      </View>
+      {removeAction ? (
+        <Pressable
+          disabled={props.isRosterLoading}
+          onPress={() => props.onPerformMemberAction(member, removeAction)}
+          hitSlop={10}
+          style={[rs.removeBtn, { backgroundColor: c.dangerSoft }]}
+        >
+          <Ionicons name="trash-outline" size={15} color={c.danger} />
+        </Pressable>
       ) : null}
-    </View>
-  )
-}
-
-/* ── Stat chip ── */
-function StatChip(props: { label: string; value: number; color: string; bg: string }) {
-  return (
-    <View style={[rs.statChip, { backgroundColor: props.bg }]}>
-      <Text style={{ fontSize: 16, fontWeight: "800", color: props.color }}>{props.value}</Text>
-      <Text style={{ fontSize: 11, fontWeight: "600", color: props.color, opacity: 0.8 }}>
-        {props.label}
-      </Text>
     </View>
   )
 }
@@ -553,32 +366,26 @@ function rosterErrorMessage(error: unknown): string | null {
 }
 
 const rs = StyleSheet.create({
-  headerSection: {
+  centerContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
+  },
+  header: {
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 16,
+    paddingBottom: 12,
     gap: 12,
   },
-  classroomTitle: {
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  heading: {
     fontSize: 20,
     fontWeight: "700",
     letterSpacing: -0.3,
-  },
-  statsRow: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  statChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  section: {
-    paddingHorizontal: 20,
-    paddingVertical: 4,
   },
   searchBar: {
     flexDirection: "row",
@@ -594,24 +401,33 @@ const rs = StyleSheet.create({
     fontSize: 14,
     padding: 0,
   },
-  filterRow: {
+  toastContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 6,
+  },
+  toast: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginTop: 10,
-  },
-  filterPill: {
-    borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 10,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 10,
   },
-  addToggle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: "center",
-    justifyContent: "center",
+  addFormCard: {
+    marginHorizontal: 16,
+    marginTop: 4,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 16,
+    gap: 12,
+  },
+  addInput: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    fontSize: 14,
   },
   addButton: {
     flexDirection: "row",
@@ -621,30 +437,47 @@ const rs = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 12,
   },
-  studentRow: {
-    paddingVertical: 12,
-    gap: 8,
+  listContainer: {
+    paddingHorizontal: 16,
+    gap: 6,
+    paddingTop: 4,
   },
-  studentRowTop: {
+  emptyState: {
+    alignItems: "center",
+    paddingVertical: 48,
+    gap: 4,
+  },
+  studentRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
   avatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
   },
-  actionRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginLeft: 50,
+  removeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  actionBtn: {
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  fab: {
+    position: "absolute",
+    bottom: 32,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
   },
 })

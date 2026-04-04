@@ -131,6 +131,7 @@ export function TeacherScreen(props: {
   subtitle: string
   children: ReactNode
   headerLeft?: ReactNode
+  headerRight?: ReactNode
   onRefresh?: () => void
   refreshing?: boolean
 }) {
@@ -162,6 +163,11 @@ export function TeacherScreen(props: {
           {props.headerLeft}
         </View>
       ) : null}
+      {props.headerRight ? (
+        <View style={{ position: "absolute", top: insets.top + 16, right: 16, zIndex: 10 }}>
+          {props.headerRight}
+        </View>
+      ) : null}
       <GradientHeader
         title={props.title}
         subtitle={props.subtitle}
@@ -170,6 +176,31 @@ export function TeacherScreen(props: {
       />
       {props.children}
     </ScrollView>
+  )
+}
+
+/** Tappable profile icon for the top-right corner of teacher screens. */
+export function TeacherProfileButton() {
+  const router = useRouter()
+  const c = getColors()
+
+  return (
+    <Pressable
+      onPress={() => router.push(teacherRoutes.profile)}
+      hitSlop={12}
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: c.primarySoft,
+        alignItems: "center",
+        justifyContent: "center",
+        borderWidth: 1.5,
+        borderColor: `${c.primary}30`,
+      }}
+    >
+      <Ionicons name="person-circle-outline" size={22} color={c.primary} />
+    </Pressable>
   )
 }
 
@@ -364,6 +395,13 @@ export function formatDateTime(value: string) {
   return new Date(value).toLocaleString("en-IN", {
     dateStyle: "medium",
     timeStyle: "short",
+  })
+}
+
+/** Format as date only (no time component) — suitable for lectureDate which has no meaningful time */
+export function formatDateOnly(value: string) {
+  return new Date(value).toLocaleDateString("en-IN", {
+    dateStyle: "medium",
   })
 }
 

@@ -32,16 +32,35 @@
   --ae-danger-border: rgba(248, 113, 113, 0.25);
   --ae-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.03);
   --ae-shadow-hero: 0 24px 64px rgba(0, 0, 0, 0.5);
-  --ae-shadow-glow: 0 0 48px rgba(167, 139, 250, 0.08);
+  --ae-shadow-glow: 0 0 40px rgba(167, 139, 250, 0.15);
   --ae-gradient-page: linear-gradient(180deg, #09090b 0%, #0f0f12 100%);
   --ae-gradient-card: linear-gradient(145deg, rgba(167, 139, 250, 0.03) 0%, transparent 50%);
   --ae-gradient-chart: linear-gradient(135deg, rgba(167, 139, 250, 0.06) 0%, transparent 60%);
   --ae-nav-bg: rgba(9, 9, 11, 0.8);
-  --ae-card-hover-bg: rgba(24, 24, 30, 1);
+  --ae-card-hover-bg: rgba(28, 28, 36, 1);
   --ae-scrollbar-thumb: rgba(255, 255, 255, 0.08);
   --ae-scrollbar-hover: rgba(255, 255, 255, 0.14);
   --ae-skeleton-from: rgba(255, 255, 255, 0.04);
   --ae-skeleton-mid: rgba(255, 255, 255, 0.08);
+  --ae-card-surface: linear-gradient(160deg, #1e1e2a 0%, #18181b 50%, #16161e 100%);
+  --ae-card-glow: radial-gradient(
+    ellipse at top left,
+    rgba(167, 139, 250, 0.12) 0%,
+    transparent 70%
+  );
+  --ae-card-border: rgba(167, 139, 250, 0.2);
+  --ae-card-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --ae-row-hover-bg: rgba(167, 139, 250, 0.06);
+  --ae-tab-hover-bg: rgba(167, 139, 250, 0.06);
+  --ae-tab-active-bg: rgba(167, 139, 250, 0.1);
+  --ae-divider-gradient: linear-gradient(
+    90deg,
+    transparent,
+    rgba(167, 139, 250, 0.15),
+    transparent
+  );
+  --ae-th-bg: rgba(167, 139, 250, 0.04);
 }
 
 /* ═══════ Light Mode (cool white / soft slate) ═══════ */
@@ -75,7 +94,7 @@
   --ae-danger-border: rgba(220, 38, 38, 0.18);
   --ae-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.03);
   --ae-shadow-hero: 0 20px 48px rgba(0, 0, 0, 0.07);
-  --ae-shadow-glow: 0 0 48px rgba(109, 90, 230, 0.05);
+  --ae-shadow-glow: 0 0 40px rgba(109, 90, 230, 0.1);
   --ae-gradient-page: linear-gradient(180deg, #f7f8fa 0%, #f1f3f5 100%);
   --ae-gradient-card: linear-gradient(145deg, rgba(109, 90, 230, 0.02) 0%, transparent 50%);
   --ae-gradient-chart: linear-gradient(135deg, rgba(109, 90, 230, 0.03) 0%, transparent 60%);
@@ -85,6 +104,25 @@
   --ae-scrollbar-hover: rgba(0, 0, 0, 0.18);
   --ae-skeleton-from: rgba(0, 0, 0, 0.04);
   --ae-skeleton-mid: rgba(0, 0, 0, 0.07);
+  --ae-card-surface: linear-gradient(160deg, #f8f7ff 0%, #ffffff 50%, #fafbff 100%);
+  --ae-card-glow: radial-gradient(
+    ellipse at top left,
+    rgba(109, 90, 230, 0.06) 0%,
+    transparent 70%
+  );
+  --ae-card-border: rgba(109, 90, 230, 0.15);
+  --ae-card-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --ae-row-hover-bg: rgba(109, 90, 230, 0.05);
+  --ae-tab-hover-bg: rgba(109, 90, 230, 0.04);
+  --ae-tab-active-bg: rgba(109, 90, 230, 0.08);
+  --ae-divider-gradient: linear-gradient(
+    90deg,
+    transparent,
+    rgba(109, 90, 230, 0.1),
+    transparent
+  );
+  --ae-th-bg: rgba(109, 90, 230, 0.03);
 }
 
 :root {
@@ -199,12 +237,15 @@ button:disabled {
 }
 
 .portal-action-card {
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .portal-action-card:hover {
-  border-color: var(--ae-accent) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
-  transform: translateY(-1px);
+  border-color: var(--ae-accent-border) !important;
+  box-shadow: var(--ae-shadow-card), var(--ae-shadow-glow) !important;
+  transform: translateY(-3px);
+}
+.portal-action-card:active {
+  transform: translateY(0) scale(0.99);
 }
 
 .dropdown-item {
@@ -218,21 +259,30 @@ button:disabled {
 /* ───── Interactive Elements ───── */
 
 .ui-card-link {
-  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease, box-shadow
-    0.2s ease;
+  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .ui-card-link:hover {
-  border-color: var(--ae-accent-border) !important;
+  border-color: rgba(167, 139, 250, 0.35) !important;
   background-color: var(--ae-card-hover-bg) !important;
-  box-shadow: var(--ae-shadow-card);
-  transform: translateY(-1px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(167, 139, 250, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transform: translateY(-4px);
+}
+.ui-card-link:active {
+  transform: translateY(0) scale(0.99);
+  transition-duration: 0.1s;
 }
 
 .ui-row-link {
-  transition: background-color 0.15s ease;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
 }
 .ui-row-link:hover {
-  background-color: var(--ae-accent-soft) !important;
+  background-color: var(--ae-row-hover-bg) !important;
+  box-shadow: inset 3px 0 0 var(--ae-accent);
 }
 
 .ui-danger-action {
@@ -273,19 +323,22 @@ button:disabled {
 /* ───── Tables ───── */
 
 table tbody tr {
-  transition: background-color 0.12s ease;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 table tbody tr:hover {
-  background-color: var(--ae-accent-soft);
+  background-color: var(--ae-row-hover-bg);
+  box-shadow: inset 3px 0 0 var(--ae-accent);
 }
 
 /* ───── Tab hover ───── */
 
 .ui-tab-link {
-  transition: color 0.15s ease;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  border-radius: 8px;
 }
 .ui-tab-link:hover {
   color: var(--ae-text) !important;
+  background-color: var(--ae-tab-hover-bg);
 }
 
 /* ───── Theme Toggle ───── */
@@ -359,6 +412,21 @@ table tbody tr:hover {
   to {
     transform: rotate(360deg);
   }
+}
+
+@keyframes cardGlow {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.ui-card-link:hover .ui-card-accent-bar {
+  opacity: 1 !important;
+  animation: cardGlow 2s ease-in-out infinite;
 }
 
 .animate-in {

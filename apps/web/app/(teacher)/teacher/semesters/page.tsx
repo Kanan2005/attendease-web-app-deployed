@@ -1,10 +1,10 @@
 import { TeacherSemesterVisibilityWorkspace } from "../../../../src/teacher-workflows-client"
 import { buildTeacherSemesterPageModel } from "../../../../src/web-portal"
-import { getWebPortalSession } from "../../../../src/web-session"
+import { requireWebPortalSession } from "../../../../src/web-session"
 import { WebPortalPage, WebSectionCard } from "../../../../src/web-shell"
 
 export default async function TeacherSemestersPage() {
-  const session = await getWebPortalSession()
+  const session = await requireWebPortalSession("/teacher/semesters")
 
   return (
     <WebPortalPage model={buildTeacherSemesterPageModel()}>
@@ -12,7 +12,7 @@ export default async function TeacherSemestersPage() {
         title="Teacher Semester Visibility"
         description="Teachers consume semester-linked classroom state here while admin pages own lifecycle mutation."
       >
-        <TeacherSemesterVisibilityWorkspace accessToken={session?.accessToken ?? null} />
+        <TeacherSemesterVisibilityWorkspace accessToken={session.accessToken} />
       </WebSectionCard>
     </WebPortalPage>
   )

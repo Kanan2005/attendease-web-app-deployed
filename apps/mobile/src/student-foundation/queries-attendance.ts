@@ -24,6 +24,7 @@ import {
 import {
   useStudentAttendanceReadyQuery,
   useStudentClassroomsQuery,
+  useStudentGlobalHistoryQuery,
   useStudentLiveAttendanceSessionsQuery,
   useStudentMeQuery,
 } from "./queries-core"
@@ -37,6 +38,7 @@ export function useStudentAttendanceOverview() {
   const attendanceReadyQuery = useStudentAttendanceReadyQuery()
   const qrLiveSessionsQuery = useStudentLiveAttendanceSessionsQuery("QR_GPS")
   const bluetoothLiveSessionsQuery = useStudentLiveAttendanceSessionsQuery("BLUETOOTH")
+  const historyQuery = useStudentGlobalHistoryQuery()
   const { session } = useStudentSession()
   const activeClassrooms = (classroomsQuery.data ?? []).filter(
     (classroom) => classroom.enrollmentStatus === "ACTIVE",
@@ -62,15 +64,26 @@ export function useStudentAttendanceOverview() {
         canContinue: false,
       }
     : gateModel
+
+  // v2.0: Build a Set of sessionIds the student has already marked PRESENT —
+  // used to tag candidates so the UI can show "Attendance Marked" instead of "Tap to Mark".
+  const markedSessionIds = new Set(
+    (historyQuery.data ?? [])
+      .filter((item) => item.attendanceStatus === "PRESENT" && item.markedAt !== null)
+      .map((item) => item.sessionId),
+  )
+
   const qrCandidates = buildStudentAttendanceCandidates({
     classrooms: activeClassrooms,
     liveSessions: qrLiveSessionsQuery.data ?? [],
     mode: "QR_GPS",
+    markedSessionIds,
   })
   const bluetoothCandidates = buildStudentAttendanceCandidates({
     classrooms: activeClassrooms,
     liveSessions: bluetoothLiveSessionsQuery.data ?? [],
     mode: "BLUETOOTH",
+    markedSessionIds,
   })
 
   return {
@@ -79,8 +92,10 @@ export function useStudentAttendanceOverview() {
     attendanceReadyQuery,
     qrLiveSessionsQuery,
     bluetoothLiveSessionsQuery,
+    historyQuery,
     lectureQueries,
     gateModel: resolvedGateModel,
+    markedSessionIds,
     qrCandidates,
     bluetoothCandidates,
     overview: buildStudentAttendanceOverviewModel({

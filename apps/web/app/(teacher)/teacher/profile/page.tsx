@@ -1,12 +1,12 @@
 import type { Metadata } from "next"
 
 import { TeacherProfileWorkspace } from "../../../../src/teacher-workflows-client/teacher-profile-workspace"
-import { getWebPortalSession } from "../../../../src/web-session"
+import { requireWebPortalSession } from "../../../../src/web-session"
 
 export const metadata: Metadata = { title: "My Profile" }
 
 export default async function TeacherProfilePage() {
-  const session = await getWebPortalSession()
+  const session = await requireWebPortalSession("/teacher/profile")
 
-  return <TeacherProfileWorkspace accessToken={session?.accessToken ?? null} />
+  return <TeacherProfileWorkspace accessToken={session.accessToken} />
 }

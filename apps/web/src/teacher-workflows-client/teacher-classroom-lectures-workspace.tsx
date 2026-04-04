@@ -3,10 +3,16 @@
 import { webTheme } from "@attendease/ui-web"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 
 import { createWebAuthBootstrap } from "../auth"
-import { formatPortalDate, teacherWorkflowRoutes, webWorkflowQueryKeys } from "../web-workflows"
+// v2.0: Imported to display attendance mode (QR+GPS / Bluetooth / Manual) per lecture session row
+import { formatTeacherWebAttendanceModeLabel } from "../teacher-classroom-management"
+import {
+  formatPortalDateTime,
+  teacherWorkflowRoutes,
+  webWorkflowQueryKeys,
+} from "../web-workflows"
 
 import { WorkflowBanner, WorkflowField, WorkflowStateCard, workflowStyles } from "./shared"
 
@@ -45,6 +51,7 @@ export function TeacherClassroomLecturesWorkspace(props: {
       bootstrap.authClient.listAttendanceSessions(props.accessToken ?? "", {
         classroomId: props.classroomId,
       }),
+    refetchInterval: 5_000,
   })
 
   const lectures = lecturesQuery.data ?? []
@@ -103,16 +110,16 @@ export function TeacherClassroomLecturesWorkspace(props: {
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "flex-end",
+          alignItems: "center",
           flexWrap: "wrap",
-          gap: 16,
+          gap: 12,
         }}
       >
-        <div>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
           <h2
             style={{
               margin: 0,
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: 700,
               color: webTheme.colors.text,
               letterSpacing: "-0.02em",
@@ -120,9 +127,9 @@ export function TeacherClassroomLecturesWorkspace(props: {
           >
             Sessions
           </h2>
-          <p style={{ margin: "4px 0 0", fontSize: 14, color: webTheme.colors.textMuted }}>
-            {lectures.length} lecture{lectures.length !== 1 ? "s" : ""} created
-          </p>
+          <span style={{ fontSize: 13, color: webTheme.colors.textSubtle }}>
+            {lectures.length}
+          </span>
         </div>
         <button
           type="button"
@@ -140,12 +147,14 @@ export function TeacherClassroomLecturesWorkspace(props: {
           }}
           style={{
             ...workflowStyles.primaryButton,
+            padding: "8px 18px",
+            fontSize: 13,
             display: "inline-flex",
             alignItems: "center",
-            gap: 6,
+            gap: 5,
           }}
         >
-          <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
+          <span style={{ fontSize: 15, lineHeight: 1 }}>+</span>
           New lecture
         </button>
       </div>
@@ -153,9 +162,12 @@ export function TeacherClassroomLecturesWorkspace(props: {
       {showCreate ? (
         <div
           style={{
-            borderRadius: webTheme.radius.card,
-            border: `1px solid ${webTheme.colors.accentBorder}`,
-            background: webTheme.colors.surfaceRaised,
+            position: "relative",
+            overflow: "hidden",
+            borderRadius: 16,
+            border: "1px solid var(--ae-card-border)",
+            background: "var(--ae-card-surface)",
+            boxShadow: "var(--ae-card-shadow)",
             padding: "20px 24px",
             display: "grid",
             gap: 16,
@@ -169,12 +181,32 @@ export function TeacherClassroomLecturesWorkspace(props: {
             onChange={setCreateTitle}
             placeholder="e.g. Week 3 – Introduction"
           />
-          <WorkflowField
-            label="Date & time"
-            value={createDate}
-            onChange={setCreateDate}
-            type="datetime-local"
-          />
+          <div>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: webTheme.colors.textMuted,
+                marginBottom: 6,
+                textTransform: "uppercase",
+                letterSpacing: "0.04em",
+              }}
+            >
+              Date &amp; time
+            </div>
+            <div
+              style={{
+                padding: "9px 12px",
+                borderRadius: 8,
+                border: "1px solid var(--ae-card-border)",
+                background: "var(--ae-surface-muted, rgba(0,0,0,0.03))",
+                fontSize: 14,
+                color: webTheme.colors.textMuted,
+              }}
+            >
+              {formatPortalDateTime(new Date().toISOString())}
+            </div>
+          </div>
           <div
             style={{ gridColumn: "1 / -1", display: "flex", gap: 10, justifyContent: "flex-end" }}
           >
@@ -227,16 +259,17 @@ export function TeacherClassroomLecturesWorkspace(props: {
           style={{
             display: "grid",
             gap: 1,
-            borderRadius: webTheme.radius.card,
+            borderRadius: 16,
             overflow: "hidden",
-            border: `1px solid ${webTheme.colors.border}`,
+            border: "1px solid var(--ae-card-border)",
+            boxShadow: "var(--ae-card-shadow)",
           }}
         >
           {[1, 2, 3].map((i) => (
             <div
               key={i}
               className="skeleton"
-              style={{ height: 68, background: webTheme.colors.surfaceRaised }}
+              style={{ height: 68, background: "var(--ae-card-surface)" }}
             />
           ))}
         </div>
@@ -271,15 +304,32 @@ export function TeacherClassroomLecturesWorkspace(props: {
           <p style={{ margin: 0, fontSize: 14 }}>Create your first lecture to start.</p>
         </div>
       ) : (
+        <>
+        <style>{`@keyframes ae-live-pulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.5)}70%{box-shadow:0 0 0 7px rgba(34,197,94,0)}}`}</style>
         <div
           style={{
-            borderRadius: webTheme.radius.card,
+            position: "relative",
+            borderRadius: 16,
             overflow: "hidden",
-            border: `1px solid ${webTheme.colors.border}`,
+            border: "1px solid var(--ae-card-border)",
+            boxShadow: "var(--ae-card-shadow)",
           }}
         >
+          {/* Glow overlay */}
+          <div
+            aria-hidden
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "var(--ae-card-glow)",
+              pointerEvents: "none",
+              zIndex: 0,
+            }}
+          />
           {lectures.map((lecture, index) => {
             const sessionForLecture = sessions.find((s) => s.lectureId === lecture.id)
+            const isLive = sessionForLecture?.status === "ACTIVE"
+            const isEnded = sessionForLecture?.status === "ENDED"
             const total =
               sessionForLecture != null
                 ? sessionForLecture.presentCount + sessionForLecture.absentCount
@@ -289,33 +339,26 @@ export function TeacherClassroomLecturesWorkspace(props: {
                 ? Math.round((sessionForLecture.presentCount / total) * 100)
                 : null
             const detailHref = teacherWorkflowRoutes.lectureSession(props.classroomId, lecture.id)
-            const hasSession = attendancePct != null
-            const durationMin =
-              sessionForLecture?.startedAt && sessionForLecture.endedAt
-                ? Math.round(
-                    (new Date(sessionForLecture.endedAt).getTime() -
-                      new Date(sessionForLecture.startedAt).getTime()) /
-                      60_000,
-                  )
-                : null
+            const hasSession = isLive || isEnded || attendancePct != null
+            const lectureNumber = lectures.length - index
 
             return (
+              <React.Fragment key={lecture.id}>
               <Link
-                key={lecture.id}
                 href={detailHref}
                 className="ui-row-link"
                 style={{
+                  position: "relative",
+                  zIndex: 1,
                   display: "grid",
                   gridTemplateColumns: "1fr auto",
                   alignItems: "center",
                   gap: 16,
                   padding: "16px 20px",
-                  background: webTheme.colors.surfaceRaised,
+                  background: "var(--ae-card-surface)",
                   textDecoration: "none",
                   color: "inherit",
-                  borderBottom:
-                    index < lectures.length - 1 ? `1px solid ${webTheme.colors.border}` : "none",
-                  transition: `background ${webTheme.animation.fast}`,
+                  transition: "background 0.2s ease",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
@@ -324,19 +367,23 @@ export function TeacherClassroomLecturesWorkspace(props: {
                       width: 36,
                       height: 36,
                       borderRadius: 10,
-                      background: hasSession
+                      background: isLive
                         ? webTheme.colors.successSoft
-                        : webTheme.colors.surfaceMuted,
-                      border: `1px solid ${hasSession ? webTheme.colors.successBorder : webTheme.colors.border}`,
+                        : hasSession
+                          ? webTheme.colors.successSoft
+                          : "rgba(167, 139, 250, 0.06)",
+                      border: `1px solid ${hasSession ? webTheme.colors.successBorder : "var(--ae-card-border)"}`,
                       display: "grid",
                       placeItems: "center",
                       fontSize: 13,
                       fontWeight: 700,
-                      color: hasSession ? webTheme.colors.success : webTheme.colors.textSubtle,
+                      color: hasSession ? webTheme.colors.success : webTheme.colors.accent,
                       flexShrink: 0,
+                      opacity: hasSession ? 1 : 0.6,
+                      ...(isLive ? { animation: "ae-live-pulse 2s ease-in-out infinite" } : {}),
                     }}
                   >
-                    {index + 1}
+                    {lectureNumber}
                   </div>
                   <div style={{ minWidth: 0 }}>
                     <div
@@ -349,47 +396,129 @@ export function TeacherClassroomLecturesWorkspace(props: {
                         textOverflow: "ellipsis",
                       }}
                     >
-                      {lecture.title ?? `Lecture ${index + 1}`}
+                      {lecture.title ?? `Lecture ${lectureNumber}`}
                     </div>
                     <div
                       style={{
                         fontSize: 12,
                         color: webTheme.colors.textMuted,
                         marginTop: 2,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
                       }}
                     >
-                      <span>{formatPortalDate(lecture.lectureDate)}</span>
-                      {hasSession && durationMin != null ? (
-                        <>
-                          <span style={{ color: webTheme.colors.textSubtle }}>·</span>
-                          <span>{durationMin} min</span>
-                        </>
-                      ) : null}
+                      {sessionForLecture?.startedAt
+                        ? formatPortalDateTime(sessionForLecture.startedAt)
+                        : `Created at ${formatPortalDateTime(lecture.createdAt)}`}
                     </div>
                   </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-                  {hasSession && sessionForLecture ? (
+                  {isLive ? (
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 12, color: webTheme.colors.textMuted }}>
-                        {sessionForLecture.presentCount}/{total}
-                      </span>
                       <span
                         style={{
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: webTheme.colors.success,
-                          padding: "3px 10px",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          letterSpacing: "0.05em",
+                          color: "#fff",
+                          background: webTheme.colors.success,
                           borderRadius: 999,
-                          background: webTheme.colors.successSoft,
-                          border: `1px solid ${webTheme.colors.successBorder}`,
+                          padding: "3px 10px",
+                          textTransform: "uppercase",
                         }}
                       >
-                        {attendancePct}%
+                        Live
                       </span>
+                      {sessionForLecture ? (
+                        <>
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 500,
+                              color: webTheme.colors.textMuted,
+                              background: "rgba(167, 139, 250, 0.08)",
+                              border: "1px solid rgba(167, 139, 250, 0.15)",
+                              borderRadius: 999,
+                              padding: "2px 9px",
+                              backdropFilter: "blur(6px)",
+                            }}
+                          >
+                            {formatTeacherWebAttendanceModeLabel(sessionForLecture.mode)}
+                          </span>
+                          <span style={{ fontSize: 12, color: webTheme.colors.textMuted }}>
+                            {sessionForLecture.presentCount}/{total}
+                          </span>
+                        </>
+                      ) : null}
+                    </div>
+                  ) : hasSession && sessionForLecture ? (
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 500,
+                          color: webTheme.colors.textMuted,
+                          background: "rgba(167, 139, 250, 0.08)",
+                          border: "1px solid rgba(167, 139, 250, 0.15)",
+                          borderRadius: 999,
+                          padding: "2px 9px",
+                          backdropFilter: "blur(6px)",
+                        }}
+                      >
+                        {formatTeacherWebAttendanceModeLabel(sessionForLecture.mode)}
+                      </span>
+                      {total > 0 ? (
+                        <>
+                          <span style={{ fontSize: 12, color: webTheme.colors.textMuted }}>
+                            {sessionForLecture.presentCount}/{total}
+                          </span>
+                          {attendancePct != null ? (
+                            <span
+                              style={{
+                                fontSize: 13,
+                                fontWeight: 600,
+                                color:
+                                  attendancePct >= 75
+                                    ? webTheme.colors.success
+                                    : attendancePct >= 50
+                                      ? webTheme.colors.warning
+                                      : webTheme.colors.danger,
+                                padding: "3px 10px",
+                                borderRadius: 999,
+                                background:
+                                  attendancePct >= 75
+                                    ? webTheme.colors.successSoft
+                                    : attendancePct >= 50
+                                      ? webTheme.colors.warningSoft
+                                      : webTheme.colors.dangerSoft,
+                                border: `1px solid ${
+                                  attendancePct >= 75
+                                    ? webTheme.colors.successBorder
+                                    : attendancePct >= 50
+                                      ? webTheme.colors.warningBorder
+                                      : webTheme.colors.dangerBorder
+                                }`,
+                              }}
+                            >
+                              {attendancePct}%
+                            </span>
+                          ) : null}
+                        </>
+                      ) : (
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            letterSpacing: "0.03em",
+                            color: webTheme.colors.textMuted,
+                            padding: "3px 10px",
+                            borderRadius: 999,
+                            background: webTheme.colors.surfaceMuted,
+                            border: `1px solid ${webTheme.colors.border}`,
+                          }}
+                        >
+                          Completed
+                        </span>
+                      )}
                     </div>
                   ) : (
                     <span
@@ -399,8 +528,8 @@ export function TeacherClassroomLecturesWorkspace(props: {
                         color: webTheme.colors.textSubtle,
                         padding: "3px 10px",
                         borderRadius: 999,
-                        background: webTheme.colors.surfaceMuted,
-                        border: `1px solid ${webTheme.colors.border}`,
+                        background: "rgba(167, 139, 250, 0.05)",
+                        border: "1px solid var(--ae-card-border)",
                       }}
                     >
                       Not taken
@@ -408,17 +537,28 @@ export function TeacherClassroomLecturesWorkspace(props: {
                   )}
                   {!hasSession ? (
                     confirmDeleteId === lecture.id ? (
-                      <fieldset
+                      <div
+                        onClick={(e) => e.preventDefault()}
                         style={{
                           display: "inline-flex",
-                          gap: 4,
                           alignItems: "center",
-                          border: "none",
-                          margin: 0,
-                          padding: 0,
-                          minWidth: 0,
+                          gap: 6,
+                          padding: "4px 6px 4px 10px",
+                          borderRadius: 8,
+                          background: webTheme.colors.dangerSoft,
+                          border: `1px solid ${webTheme.colors.dangerBorder}`,
                         }}
                       >
+                        <span
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: webTheme.colors.danger,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          Delete?
+                        </span>
                         <button
                           type="button"
                           onClick={(e) => {
@@ -429,15 +569,15 @@ export function TeacherClassroomLecturesWorkspace(props: {
                           style={{
                             border: "none",
                             borderRadius: 6,
-                            padding: "4px 10px",
-                            background: webTheme.colors.dangerSoft,
-                            color: webTheme.colors.danger,
+                            padding: "3px 10px",
+                            background: webTheme.colors.danger,
+                            color: "#fff",
                             fontSize: 12,
                             fontWeight: 600,
                             cursor: "pointer",
                           }}
                         >
-                          {deleteLecture.isPending ? "..." : "Yes"}
+                          {deleteLecture.isPending ? "..." : "Confirm"}
                         </button>
                         <button
                           type="button"
@@ -447,19 +587,19 @@ export function TeacherClassroomLecturesWorkspace(props: {
                           }}
                           className="ui-secondary-btn"
                           style={{
-                            border: "none",
+                            border: `1px solid var(--ae-card-border)`,
                             borderRadius: 6,
-                            padding: "4px 10px",
-                            background: webTheme.colors.surfaceMuted,
+                            padding: "3px 10px",
+                            background: "var(--ae-card-surface)",
                             color: webTheme.colors.textMuted,
                             fontSize: 12,
                             fontWeight: 500,
                             cursor: "pointer",
                           }}
                         >
-                          No
+                          Cancel
                         </button>
-                      </fieldset>
+                      </div>
                     ) : (
                       <button
                         type="button"
@@ -468,11 +608,15 @@ export function TeacherClassroomLecturesWorkspace(props: {
                           setConfirmDeleteId(lecture.id)
                         }}
                         className="ui-danger-action"
-                        aria-label={`Delete ${lecture.title ?? `Lecture ${index + 1}`}`}
+                        aria-label={`Delete ${lecture.title ?? `Lecture ${lectureNumber}`}`}
                         style={{
-                          border: "none",
-                          borderRadius: 6,
-                          padding: "4px 8px",
+                          width: 30,
+                          height: 30,
+                          display: "grid",
+                          placeItems: "center",
+                          border: `1px solid var(--ae-card-border)`,
+                          borderRadius: 8,
+                          padding: 0,
                           background: "transparent",
                           color: webTheme.colors.textSubtle,
                           fontSize: 14,
@@ -487,9 +631,24 @@ export function TeacherClassroomLecturesWorkspace(props: {
                   <span style={{ fontSize: 14, color: webTheme.colors.textSubtle }}>›</span>
                 </div>
               </Link>
-            )
+              {index < lectures.length - 1 ? (
+                <div
+                  aria-hidden
+                  style={{
+                    height: 1,
+                    background: "var(--ae-divider-gradient)",
+                    marginRight: 20,
+                    marginLeft: 20,
+                    position: "relative",
+                    zIndex: 1,
+                  }}
+                />
+              ) : null}
+            </React.Fragment>
+          )
           })}
         </div>
+        </>
       )}
     </div>
   )

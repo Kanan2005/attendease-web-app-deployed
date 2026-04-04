@@ -64,17 +64,18 @@ export async function createBluetoothSession(
   const activeSession = await context.database.prisma.attendanceSession.findFirst({
     where: {
       courseOfferingId: request.classroomId,
-      mode: "BLUETOOTH",
       status: "ACTIVE",
     },
     select: {
       id: true,
+      mode: true,
     },
   })
 
   if (activeSession) {
+    const modeLabel = activeSession.mode === "QR_GPS" ? "QR+GPS" : "Bluetooth"
     throw new ConflictException(
-      "A Bluetooth attendance session is already active for this classroom.",
+      `A ${modeLabel} attendance session is already active for this classroom.`,
     )
   }
 

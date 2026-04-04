@@ -193,6 +193,20 @@ export function useStudentClassroomDetailData(classroomId: string) {
   }
 }
 
+// v2.0: Global (unfiltered) student attendance history — used by the
+// overview hook to build a Set of already-marked sessionIds so the UI
+// can show "Attendance Marked" instead of "Tap to Mark" for live sessions.
+export function useStudentGlobalHistoryQuery() {
+  const { session } = useStudentSession()
+
+  return useQuery({
+    queryKey: studentQueryKeys.history(),
+    enabled: Boolean(session),
+    queryFn: async () =>
+      authClient.listStudentAttendanceHistory(requireStudentAccessToken(session)),
+  })
+}
+
 export function useStudentAttendanceReadyQuery() {
   const { session, draft } = useStudentSession()
 

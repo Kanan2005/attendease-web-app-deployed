@@ -16,6 +16,7 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  NotFoundException,
 } from "@nestjs/common"
 
 import { DatabaseService } from "../../database/database.service.js"
@@ -289,6 +290,29 @@ export class SchedulingService {
           if (linkedLecture) {
             linkedLectureIds.push(linkedLecture.id)
           }
+        }
+
+        for (const exceptionDelete of request.exceptionDeletes ?? []) {
+          const existing = await transaction.courseScheduleException.findFirst({
+            where: { id: exceptionDelete.exceptionId, courseOfferingId: classroomId },
+          })
+          if (!existing) {
+            throw new NotFoundException("Schedule exception not found.")
+          }
+
+          // Linked lectures get scheduleExceptionId set to null via onDelete: SetNull.
+          // Also delete any PLANNED lectures that have no attendance data yet.
+          await transaction.lecture.deleteMany({
+            where: {
+              scheduleExceptionId: existing.id,
+              attendanceSessions: { none: {} },
+            },
+          })
+          await transaction.courseScheduleException.delete({
+            where: { id: existing.id },
+          })
+
+          changedExceptionIds.push(existing.id)
         }
 
         await queueOutboxEvent(transaction, {

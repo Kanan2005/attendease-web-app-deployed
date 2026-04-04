@@ -22,7 +22,7 @@ import {
   useTeacherCreateExportJobMutation,
   useTeacherExportJobsQuery,
 } from "./queries"
-import { formatDateTime, styles } from "./shared-ui"
+import { TeacherProfileButton, formatDateTime, styles } from "./shared-ui"
 
 // ── Export type definitions (purpose-first) ──
 type ExportTypeKey = "attendance_sheet" | "student_report" | "full_register"
@@ -198,12 +198,15 @@ export function TeacherExportsScreen() {
       contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
       showsVerticalScrollIndicator={false}
     >
-      {/* ── Header ── */}
-      <View style={[es.header, { paddingTop: insets.top + 8 }]}>
-        <Text style={[es.heading, { color: c.text }]}>Exports</Text>
-        <Text style={{ fontSize: 13, color: c.textMuted }}>
-          Download attendance data for records or submission
-        </Text>
+      {/* ── Header with profile icon ── */}
+      <View style={[es.header, { paddingTop: insets.top + 8, flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }]}>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={[es.heading, { color: c.text }]}>Exports</Text>
+          <Text style={{ fontSize: 13, color: c.textMuted }}>
+            Download attendance data for records or submission
+          </Text>
+        </View>
+        <TeacherProfileButton />
       </View>
 
       {/* ── Export type cards ── */}

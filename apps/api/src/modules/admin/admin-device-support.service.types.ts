@@ -15,6 +15,7 @@ export type StudentRecord = {
     rollNumber: string | null
     programName: string | null
     currentSemester: number | null
+    parentEmail: string | null
     attendanceDisabled: boolean
   } | null
 }

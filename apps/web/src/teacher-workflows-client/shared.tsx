@@ -1,6 +1,7 @@
 "use client"
 
 import { webTheme } from "@attendease/ui-web"
+import { useEffect } from "react"
 import { createWebAuthBootstrap } from "../auth"
 import type { TeacherWebReviewTone } from "../teacher-review-workflows"
 
@@ -79,7 +80,17 @@ export function WorkflowSummaryGrid(props: {
           }}
         >
           <div
+            aria-hidden
             style={{
+              position: "absolute",
+              inset: 0,
+              background: "var(--ae-card-glow)",
+              pointerEvents: "none",
+            }}
+          />
+          <div
+            style={{
+              position: "relative",
               color: webTheme.colors.textSubtle,
               fontSize: 11,
               fontWeight: 600,
@@ -90,7 +101,13 @@ export function WorkflowSummaryGrid(props: {
             {card.label}
           </div>
           <strong
-            style={{ display: "block", fontSize: 22, marginTop: 6, letterSpacing: "-0.02em" }}
+            style={{
+              display: "block",
+              fontSize: 22,
+              marginTop: 6,
+              letterSpacing: "-0.02em",
+              position: "relative",
+            }}
           >
             {card.value}
           </strong>
@@ -144,6 +161,20 @@ export function WorkflowStatusCard(props: {
 
 export function WorkflowStateCard(props: { message: string }) {
   return <div style={workflowStyles.stateCard}>{props.message}</div>
+}
+
+/**
+ * Client-side safety net: redirects to the login page when the access token
+ * is missing. Handles the edge case where the layout RSC is cached during
+ * soft navigation but the session cookies have already expired.
+ */
+export function useAuthRedirect(accessToken: string | null) {
+  useEffect(() => {
+    if (!accessToken && typeof window !== "undefined") {
+      const next = window.location.pathname + window.location.search
+      window.location.href = `/?next=${encodeURIComponent(next)}`
+    }
+  }, [accessToken])
 }
 
 export function WorkflowBanner(props: {

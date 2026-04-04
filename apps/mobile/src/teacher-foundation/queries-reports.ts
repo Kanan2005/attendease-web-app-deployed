@@ -128,6 +128,15 @@ export function useTeacherExportJobsQuery() {
   })
 }
 
+export function useTeacherSendThresholdEmailsMutation() {
+  const { session } = useTeacherSession()
+
+  return useMutation({
+    mutationFn: async (payload: Parameters<typeof authClient.sendThresholdEmails>[1]) =>
+      authClient.sendThresholdEmails(getTeacherAccessToken(session), payload),
+  })
+}
+
 export function useTeacherCreateExportJobMutation() {
   const queryClient = useQueryClient()
   const { session } = useTeacherSession()

@@ -57,11 +57,13 @@ export type TeacherStudentPercentageRow = {
   student_email: string
   student_name: string
   student_roll_number: string | null
+  student_parent_email: string | null
   enrollment_status: "ACTIVE" | "PENDING" | "DROPPED" | "BLOCKED"
   total_sessions: NumberLike
   present_sessions: NumberLike
   absent_sessions: NumberLike
   last_session_at: NullableDateValue
+  email_sent_count: NumberLike
 }
 
 export type StudentOverviewRow = {
@@ -191,6 +193,7 @@ export function toTeacherStudentAttendancePercentageReportRow(
     studentEmail: row.student_email,
     studentDisplayName: row.student_name,
     studentRollNumber: row.student_roll_number,
+    studentParentEmail: row.student_parent_email,
     enrollmentStatus: row.enrollment_status,
     totalSessions: toNumber(row.total_sessions),
     presentSessions: toNumber(row.present_sessions),
@@ -200,6 +203,7 @@ export function toTeacherStudentAttendancePercentageReportRow(
       totalCount: toNumber(row.total_sessions),
     }),
     lastSessionAt: toNullableIsoDateTime(row.last_session_at),
+    emailSentCount: toNumber(row.email_sent_count),
   }
 }
 

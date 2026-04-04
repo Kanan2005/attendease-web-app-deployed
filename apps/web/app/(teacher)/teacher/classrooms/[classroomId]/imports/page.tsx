@@ -1,13 +1,13 @@
 import { TeacherImportStatusWorkspace } from "../../../../../../src/teacher-workflows-client"
 import { buildTeacherClassroomDetailPageModel } from "../../../../../../src/web-portal"
-import { getWebPortalSession } from "../../../../../../src/web-session"
+import { requireWebPortalSession } from "../../../../../../src/web-session"
 import { WebPortalPage, WebSectionCard } from "../../../../../../src/web-shell"
 
 export default async function TeacherClassroomImportsPage(props: {
   params: Promise<{ classroomId: string }>
 }) {
   const params = await props.params
-  const session = await getWebPortalSession()
+  const session = await requireWebPortalSession("/teacher/classrooms")
 
   return (
     <WebPortalPage model={buildTeacherClassroomDetailPageModel(params.classroomId)}>
@@ -16,7 +16,7 @@ export default async function TeacherClassroomImportsPage(props: {
         description="Create, inspect, and apply roster import jobs from the classroom-level import status page."
       >
         <TeacherImportStatusWorkspace
-          accessToken={session?.accessToken ?? null}
+          accessToken={session.accessToken}
           classroomId={params.classroomId}
         />
       </WebSectionCard>

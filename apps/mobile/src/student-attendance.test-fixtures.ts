@@ -18,6 +18,7 @@ export const qrCandidate = {
   mode: "QR_GPS" as const,
   timestamp: "2026-03-14T09:30:00.000Z",
   requiresTrustedDevice: true,
+  isMarked: false,
 }
 
 export const bluetoothCandidate = {
@@ -30,4 +31,5 @@ export const bluetoothCandidate = {
   mode: "BLUETOOTH" as const,
   timestamp: "2026-03-14T10:30:00.000Z",
   requiresTrustedDevice: true,
+  isMarked: false,
 }

@@ -3,18 +3,30 @@ import { Suspense } from "react"
 
 import { UnifiedLoginForm } from "../src/unified-login-form"
 import type { LoginMode } from "../src/unified-login-form"
+import { resolveScopedWebPortalPath } from "../src/web-auth-session"
 import { getWebPortalSession } from "../src/web-session"
 
 export default async function HomePage(props: {
-  searchParams?: Promise<{ error?: string; mode?: string }>
+  searchParams?: Promise<{ error?: string; mode?: string; next?: string }>
 }) {
   const searchParams = (await props.searchParams) ?? {}
 
   if (!searchParams.error) {
     const session = await getWebPortalSession()
     if (session?.accessToken) {
-      const dest = session.activeRole === "ADMIN" ? "/admin/dashboard" : "/teacher/dashboard"
-      redirect(dest)
+      const sessionScope = session.activeRole === "ADMIN" ? "admin" : "teacher"
+      const requestedMode = searchParams.mode
+
+      // If the user explicitly requested admin mode but has a non-admin session,
+      // show the login form so they can sign in with an admin account.
+      if (requestedMode === "admin" && sessionScope !== "admin") {
+        // fall through to render the login form
+      } else {
+        const fallback =
+          sessionScope === "admin" ? "/admin/dashboard" : "/teacher/dashboard"
+        const dest = resolveScopedWebPortalPath(searchParams.next, sessionScope) ?? fallback
+        redirect(dest)
+      }
     }
   }
 

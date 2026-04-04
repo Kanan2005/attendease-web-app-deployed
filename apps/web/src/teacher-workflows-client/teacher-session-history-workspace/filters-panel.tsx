@@ -25,8 +25,42 @@ export function TeacherSessionHistoryFiltersPanel(props: {
   }
 
   return (
-    <div style={workflowStyles.grid}>
-      <div style={workflowStyles.formGrid}>
+    <div
+      style={{
+        borderRadius: 14,
+        border: "1px solid var(--ae-card-border)",
+        background: "var(--ae-card-surface)",
+        boxShadow: "var(--ae-card-shadow)",
+        padding: "18px 22px",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "var(--ae-card-glow)",
+          pointerEvents: "none",
+        }}
+      />
+      <p
+        style={{
+          margin: "0 0 14px",
+          fontSize: 11,
+          fontWeight: 700,
+          textTransform: "uppercase",
+          letterSpacing: "0.08em",
+          color: webTheme.colors.accent,
+          opacity: 0.7,
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        Filters
+      </p>
+      <div style={{ ...workflowStyles.formGrid, position: "relative", zIndex: 1 }}>
         <WorkflowSelectField
           label="Classroom"
           value={props.filters.classroomId}
@@ -141,7 +175,7 @@ export function TeacherSessionHistoryFiltersPanel(props: {
       </div>
 
       {props.classroomsError && props.errorMessage ? (
-        <p style={{ margin: 0, fontSize: 13, color: webTheme.colors.danger }}>
+        <p style={{ margin: 0, fontSize: 13, color: webTheme.colors.danger, position: "relative", zIndex: 1 }}>
           {props.errorMessage}
         </p>
       ) : null}

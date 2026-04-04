@@ -192,6 +192,15 @@ export function TeacherProfileWorkspace(props: { accessToken: string | null }) {
           padding: 28,
         }}
       >
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "var(--ae-card-glow)",
+            pointerEvents: "none",
+          }}
+        />
         <div style={{ position: "relative", flexShrink: 0 }}>
           {form.avatarUrl && !avatarBroken ? (
             <img
@@ -301,8 +310,17 @@ export function TeacherProfileWorkspace(props: { accessToken: string | null }) {
         transition={{ duration: 0.35, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
         style={workflowStyles.rowCard}
       >
-        <h3 style={sectionTitle}>Personal Information</h3>
-        <div style={{ display: "grid", gap: 16 }}>
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "var(--ae-card-glow)",
+            pointerEvents: "none",
+          }}
+        />
+        <h3 style={{ ...sectionTitle, position: "relative", zIndex: 1 }}>Personal Information</h3>
+        <div style={{ display: "grid", gap: 16, position: "relative", zIndex: 1 }}>
           <label style={fieldWrap}>
             <span style={fieldLabel}>Display Name</span>
             <input
@@ -374,12 +392,23 @@ export function TeacherProfileWorkspace(props: { accessToken: string | null }) {
         transition={{ duration: 0.35, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
         style={workflowStyles.rowCard}
       >
-        <h3 style={sectionTitle}>Professional Information</h3>
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "var(--ae-card-glow)",
+            pointerEvents: "none",
+          }}
+        />
+        <h3 style={{ ...sectionTitle, position: "relative", zIndex: 1 }}>Professional Information</h3>
         <div
           style={{
             display: "grid",
             gap: 16,
             gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            position: "relative",
+            zIndex: 1,
           }}
         >
           <label style={fieldWrap}>

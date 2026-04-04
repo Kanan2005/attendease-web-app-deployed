@@ -25,8 +25,8 @@ export function TeacherSessionHistoryList(props: {
               ...workflowStyles.rowCard,
               textAlign: "left",
               cursor: "pointer",
-              borderColor: isSelected ? webTheme.colors.accent : workflowStyles.rowCard.border,
-              background: isSelected ? webTheme.colors.accentSoft : webTheme.colors.surfaceRaised,
+              borderColor: isSelected ? webTheme.colors.accent : "var(--ae-card-border)",
+              background: isSelected ? webTheme.colors.accentSoft : "var(--ae-card-surface)",
             }}
           >
             <div style={workflowStyles.buttonRow}>

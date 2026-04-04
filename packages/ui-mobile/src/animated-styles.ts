@@ -28,8 +28,8 @@ export function buildAnimatedStyles(c: MobileColors) {
     },
     gradientHeader: {
       paddingHorizontal: mobileTheme.spacing.xl,
-      paddingTop: mobileTheme.spacing.xxxl,
-      paddingBottom: mobileTheme.spacing.xl,
+      paddingTop: mobileTheme.spacing.lg,
+      paddingBottom: mobileTheme.spacing.lg,
       gap: mobileTheme.spacing.sm,
       borderRadius: mobileTheme.radius.card,
     },

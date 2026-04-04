@@ -1,8 +1,8 @@
 import { TeacherSessionHistoryWorkspace } from "../../../../../src/teacher-workflows-client"
-import { getWebPortalSession } from "../../../../../src/web-session"
+import { requireWebPortalSession } from "../../../../../src/web-session"
 
 export default async function TeacherSessionHistoryPage() {
-  const session = await getWebPortalSession()
+  const session = await requireWebPortalSession("/teacher/sessions/history")
 
-  return <TeacherSessionHistoryWorkspace accessToken={session?.accessToken ?? null} />
+  return <TeacherSessionHistoryWorkspace accessToken={session.accessToken} />
 }

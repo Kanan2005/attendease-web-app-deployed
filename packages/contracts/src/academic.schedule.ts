@@ -179,12 +179,20 @@ export type ScheduleExceptionUpdateOperation = z.infer<
   typeof scheduleExceptionUpdateOperationSchema
 >
 
+export const scheduleExceptionDeleteOperationSchema = z.object({
+  exceptionId: z.string().min(1),
+})
+export type ScheduleExceptionDeleteOperation = z.infer<
+  typeof scheduleExceptionDeleteOperationSchema
+>
+
 export const saveAndNotifyScheduleRequestSchema = z
   .object({
     weeklySlotCreates: z.array(createScheduleSlotRequestSchema).optional(),
     weeklySlotUpdates: z.array(scheduleSlotUpdateOperationSchema).optional(),
     exceptionCreates: z.array(createScheduleExceptionRequestSchema).optional(),
     exceptionUpdates: z.array(scheduleExceptionUpdateOperationSchema).optional(),
+    exceptionDeletes: z.array(scheduleExceptionDeleteOperationSchema).optional(),
     note: z.string().trim().min(1).max(500).optional(),
   })
   .refine(
@@ -192,7 +200,8 @@ export const saveAndNotifyScheduleRequestSchema = z
       (value.weeklySlotCreates?.length ?? 0) +
         (value.weeklySlotUpdates?.length ?? 0) +
         (value.exceptionCreates?.length ?? 0) +
-        (value.exceptionUpdates?.length ?? 0) >
+        (value.exceptionUpdates?.length ?? 0) +
+        (value.exceptionDeletes?.length ?? 0) >
       0,
     {
       message: "At least one schedule change must be provided.",

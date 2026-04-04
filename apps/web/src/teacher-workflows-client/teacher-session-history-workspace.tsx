@@ -217,21 +217,62 @@ export function TeacherSessionHistoryWorkspace(props: {
         <span aria-hidden>←</span> Back to classrooms
       </Link>
 
-      <div style={{ marginBottom: 16 }}>
-        <h1
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+          padding: "20px 24px",
+          borderRadius: 16,
+          background: "var(--ae-card-surface)",
+          border: "1px solid var(--ae-card-border)",
+          boxShadow: "var(--ae-card-shadow)",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          aria-hidden
           style={{
-            margin: 0,
-            fontSize: 24,
-            fontWeight: 700,
-            color: webTheme.colors.text,
-            letterSpacing: "-0.02em",
+            position: "absolute",
+            inset: 0,
+            background: "var(--ae-card-glow)",
+            pointerEvents: "none",
+          }}
+        />
+        <div
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            background: webTheme.colors.accentSoft,
+            border: `1px solid ${webTheme.colors.accentBorder}`,
+            display: "grid",
+            placeItems: "center",
+            fontSize: 18,
+            flexShrink: 0,
+            position: "relative",
+            zIndex: 1,
           }}
         >
-          Attendance sessions
-        </h1>
-        <p style={{ margin: "4px 0 0", fontSize: 14, color: webTheme.colors.textMuted }}>
-          Filter by classroom, view records, and save corrections before the edit window closes.
-        </p>
+          📋
+        </div>
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <h1
+            style={{
+              margin: 0,
+              fontSize: 22,
+              fontWeight: 700,
+              color: webTheme.colors.text,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Attendance sessions
+          </h1>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: webTheme.colors.textMuted }}>
+            Filter by classroom, view records, and save corrections before the edit window closes.
+          </p>
+        </div>
       </div>
       <TeacherSessionHistoryFiltersPanel
         accessToken={props.accessToken}

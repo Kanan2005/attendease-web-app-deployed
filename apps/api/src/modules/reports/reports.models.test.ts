@@ -47,6 +47,7 @@ describe("report model mapping", () => {
       student_email: "student.one@attendease.dev",
       student_name: "Student One",
       student_roll_number: "23CS001",
+      student_parent_email: null,
       enrollment_status: "ACTIVE",
       total_sessions: 3,
       present_sessions: 2,

@@ -18,6 +18,27 @@ export async function createWeeklySlotInTransaction(
     request.endMinutes,
   )
 
+  // Reactivate an archived slot with the same unique key instead of creating a duplicate
+  const archivedSlot = await transaction.courseScheduleSlot.findFirst({
+    where: {
+      courseOfferingId: classroomId,
+      weekday: request.weekday,
+      startMinutes: request.startMinutes,
+      endMinutes: request.endMinutes,
+      status: "ARCHIVED",
+    },
+  })
+
+  if (archivedSlot) {
+    return transaction.courseScheduleSlot.update({
+      where: { id: archivedSlot.id },
+      data: {
+        status: "ACTIVE",
+        ...(request.locationLabel !== undefined ? { locationLabel: request.locationLabel } : {}),
+      },
+    })
+  }
+
   return transaction.courseScheduleSlot.create({
     data: {
       courseOfferingId: classroomId,

@@ -114,12 +114,15 @@ export interface TeacherWebReportDaywiseRowModel {
 
 export interface TeacherWebReportStudentRowModel {
   studentId: string
+  studentEmail: string
+  studentParentEmail: string | null
   title: string
   supportingLabel: string
   attendancePercentage: number
   attendanceLabel: string
   sessionSummary: string
   followUpLabel: string
+  emailSentCount: number
   lastSessionAt: string | null
   tone: TeacherWebReviewTone
 }

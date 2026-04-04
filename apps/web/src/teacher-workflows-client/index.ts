@@ -10,6 +10,5 @@ export {
 } from "./classroom-operations"
 export { TeacherClassroomLecturesWorkspace } from "./teacher-classroom-lectures-workspace"
 export { TeacherLectureSessionDetailWorkspace } from "./teacher-lecture-session-detail-workspace"
-export { TeacherSessionStartWorkspace } from "./session-start"
 export { TeacherSessionHistoryWorkspace, TeacherReportsWorkspace } from "./session-history-reports"
 export { TeacherExportsWorkspace, TeacherSemesterVisibilityWorkspace } from "./exports-semester"

@@ -38,6 +38,7 @@ export class AdminDeviceSupportServiceSharedCore {
             rollNumber: true,
             programName: true,
             currentSemester: true,
+            parentEmail: true,
             attendanceDisabled: true,
           },
         },

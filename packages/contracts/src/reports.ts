@@ -105,12 +105,14 @@ export const teacherStudentAttendancePercentageReportRowSchema = z.object({
   studentEmail: z.string().email(),
   studentDisplayName: z.string().min(1),
   studentRollNumber: z.string().nullable(),
+  studentParentEmail: z.string().email().nullable(),
   enrollmentStatus: z.enum(["ACTIVE", "PENDING", "DROPPED", "BLOCKED"]),
   totalSessions: z.number().int().nonnegative(),
   presentSessions: z.number().int().nonnegative(),
   absentSessions: z.number().int().nonnegative(),
   attendancePercentage: attendancePercentageSchema,
   lastSessionAt: isoDateTimeSchema.nullable(),
+  emailSentCount: z.number().int().nonnegative(),
 })
 export type TeacherStudentAttendancePercentageReportRow = z.infer<
   typeof teacherStudentAttendancePercentageReportRowSchema
@@ -175,3 +177,28 @@ export const studentSubjectReportDetailSchema = studentSubjectReportSummarySchem
   classrooms: z.array(studentSubjectReportClassroomRowSchema),
 })
 export type StudentSubjectReportDetail = z.infer<typeof studentSubjectReportDetailSchema>
+
+// --- Threshold email notifications (teacher → selected students / parents) ---
+
+export const sendThresholdEmailsRequestSchema = z
+  .object({
+    studentIds: z.array(z.string().min(1)).min(1).max(200),
+    classroomId: z.string().min(1),
+    emailStudents: z.boolean(),
+    emailParents: z.boolean(),
+    subject: z.string().min(1).max(200),
+    body: z.string().min(1).max(5000),
+    thresholdPercent: z.number().min(0).max(100),
+  })
+  .refine((v) => v.emailStudents || v.emailParents, {
+    message: "At least one of emailStudents or emailParents must be true.",
+  })
+export type SendThresholdEmailsRequest = z.infer<typeof sendThresholdEmailsRequestSchema>
+
+export const sendThresholdEmailsResponseSchema = z.object({
+  queuedCount: z.number().int().nonnegative(),
+  sentCount: z.number().int().nonnegative(),
+  failedCount: z.number().int().nonnegative(),
+  skippedNoParentEmail: z.number().int().nonnegative(),
+})
+export type SendThresholdEmailsResponse = z.infer<typeof sendThresholdEmailsResponseSchema>

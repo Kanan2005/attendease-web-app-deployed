@@ -44,12 +44,14 @@ export const shellStyles = {
     alignContent: "start",
   },
   surface: {
-    borderRadius: webTheme.radius.card,
-    background: webTheme.colors.surfaceRaised,
-    border: `1px solid ${webTheme.colors.border}`,
-    boxShadow: webTheme.shadow.card,
+    borderRadius: 16,
+    background: "var(--ae-card-surface)",
+    border: "1px solid var(--ae-card-border)",
+    boxShadow: "var(--ae-card-shadow)",
     padding: webTheme.spacing.lg,
     transition: `all ${webTheme.animation.normal} ${webTheme.animation.easing}`,
+    position: "relative" as const,
+    overflow: "hidden" as const,
   },
 } as const
 

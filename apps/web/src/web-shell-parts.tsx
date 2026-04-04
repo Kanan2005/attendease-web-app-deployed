@@ -128,51 +128,140 @@ export function WebChartCard(props: {
   )
 }
 
-export function WebPortalAccessCard(props: {
+export function WebPortalAccessPage(props: {
   access: { title: string; message: string; loginHref: string; loginLabel: string }
+  scopeLabel: string
 }) {
   return (
-    <section
+    <main
       style={{
-        ...shellStyles.surface,
-        borderColor: webTheme.colors.borderStrong,
-        background: webTheme.colors.surfaceTint,
-        maxWidth: 580,
+        minHeight: "100vh",
+        display: "grid",
+        placeItems: "center",
+        padding: "40px 24px",
+        background: webTheme.gradients.page,
       }}
     >
-      <p
+      <section
         style={{
-          margin: "0 0 10px",
-          textTransform: "uppercase",
-          letterSpacing: "0.1em",
-          fontSize: 11,
-          fontWeight: 600,
-          color: webTheme.colors.accent,
+          width: "min(440px, 100%)",
+          display: "grid",
+          gap: 0,
+          textAlign: "center",
         }}
       >
-        Protected page
-      </p>
-      <h2 style={{ marginTop: 0, color: webTheme.colors.text }}>{props.access.title}</h2>
-      <p style={{ marginTop: 0, lineHeight: 1.6, color: webTheme.colors.textMuted }}>
-        {props.access.message}
-      </p>
-      <Link
-        href={props.access.loginHref}
-        style={{
-          display: "inline-flex",
-          marginTop: 8,
-          padding: "12px 20px",
-          borderRadius: webTheme.radius.button,
-          background: webTheme.colors.accent,
-          color: "#0D0D0D",
-          textDecoration: "none",
-          fontWeight: 600,
-          fontSize: 14,
-        }}
-      >
-        {props.access.loginLabel}
-      </Link>
-    </section>
+        <div
+          style={{
+            borderRadius: 24,
+            padding: "48px 36px 40px",
+            background: webTheme.colors.surfaceRaised,
+            border: `1px solid ${webTheme.colors.border}`,
+            boxShadow: webTheme.shadow.hero,
+            display: "grid",
+            gap: 0,
+            justifyItems: "center",
+          }}
+        >
+          <div
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 16,
+              background: webTheme.gradients.accentButton,
+              display: "grid",
+              placeItems: "center",
+              fontSize: 22,
+              fontWeight: 800,
+              color: "#fff",
+              marginBottom: 28,
+            }}
+          >
+            A
+          </div>
+
+          <p
+            style={{
+              margin: "0 0 8px",
+              color: webTheme.colors.accent,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              fontSize: 11,
+            }}
+          >
+            {props.scopeLabel} Portal
+          </p>
+
+          <h1
+            style={{
+              margin: "0 0 10px",
+              color: webTheme.colors.primary,
+              fontSize: 28,
+              fontWeight: 700,
+              letterSpacing: "-0.025em",
+              lineHeight: 1.2,
+            }}
+          >
+            {props.access.title}
+          </h1>
+
+          <p
+            style={{
+              margin: "0 0 32px",
+              color: webTheme.colors.textMuted,
+              lineHeight: 1.7,
+              fontSize: 15,
+              maxWidth: 340,
+            }}
+          >
+            {props.access.message}
+          </p>
+
+          <Link
+            href={props.access.loginHref}
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              width: "100%",
+              padding: "14px 24px",
+              borderRadius: 14,
+              border: "none",
+              background: webTheme.gradients.accentButton,
+              color: "#fff",
+              textDecoration: "none",
+              fontWeight: 700,
+              fontSize: 15,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            {props.access.loginLabel}
+          </Link>
+        </div>
+
+        <div
+          style={{
+            marginTop: 20,
+            display: "flex",
+            justifyContent: "center",
+            gap: 6,
+            fontSize: 13,
+            color: webTheme.colors.textSubtle,
+          }}
+        >
+          <span>Powered by</span>
+          <Link
+            href="/"
+            style={{
+              color: webTheme.colors.textMuted,
+              fontWeight: 600,
+              textDecoration: "none",
+            }}
+          >
+            AttendEase
+          </Link>
+        </div>
+      </section>
+    </main>
   )
 }
 

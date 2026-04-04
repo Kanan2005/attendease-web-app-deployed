@@ -680,6 +680,7 @@ describe("health contracts", () => {
       actualStartAt: null,
       actualEndAt: null,
       status: "PLANNED",
+      createdAt: "2026-03-19T14:30:00.000Z",
     })
 
     expect(semester.status).toBe("ACTIVE")
@@ -1308,12 +1309,14 @@ describe("health contracts", () => {
       studentEmail: "student.one@attendease.dev",
       studentDisplayName: "Student One",
       studentRollNumber: "23CS001",
+      studentParentEmail: null,
       enrollmentStatus: "ACTIVE",
       totalSessions: 3,
       presentSessions: 2,
       absentSessions: 1,
       attendancePercentage: 66.67,
       lastSessionAt: "2026-03-10T03:45:00.000Z",
+      emailSentCount: 0,
     })
     const overview = studentReportOverviewSchema.parse({
       studentId: "student_1",

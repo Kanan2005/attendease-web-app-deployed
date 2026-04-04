@@ -31,6 +31,7 @@ import {
   useTeacherClassroomsQuery,
   useTeacherCreateClassroomMutation,
 } from "./queries"
+import { TeacherProfileButton } from "./shared-ui"
 
 const AVATAR_COLORS = [
   { bg: "#E8F5E9", fg: "#2E7D32" },
@@ -117,12 +118,15 @@ export function TeacherClassroomsScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Header ── */}
-        <View style={[cs.header, { paddingTop: insets.top + 8 }]}>
-          <Text style={[cs.heading, { color: c.text }]}>My Classrooms</Text>
-          <Text style={{ fontSize: 13, color: c.textMuted }}>
-            {allClassrooms.length} course{allClassrooms.length === 1 ? "" : "s"}
-          </Text>
+        {/* ── Header with profile icon ── */}
+        <View style={[cs.header, { paddingTop: insets.top + 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+          <View style={{ gap: 2 }}>
+            <Text style={[cs.heading, { color: c.text }]}>My Classrooms</Text>
+            <Text style={{ fontSize: 13, color: c.textMuted }}>
+              {allClassrooms.length} course{allClassrooms.length === 1 ? "" : "s"}
+            </Text>
+          </View>
+          <TeacherProfileButton />
         </View>
 
         {/* ── Search bar ── */}

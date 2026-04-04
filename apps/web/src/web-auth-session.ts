@@ -46,6 +46,12 @@ export function buildWebPortalCookieDefinitions(input: {
       input.secure,
     ),
     createCookieDefinition(
+      webSessionCookieNames.refreshToken,
+      input.authSession.tokens.refreshToken,
+      expires,
+      input.secure,
+    ),
+    createCookieDefinition(
       webSessionCookieNames.activeRole,
       session.activeRole,
       expires,

@@ -114,9 +114,9 @@ export function TeacherSessionHistoryDetail(props: {
           gap: 8,
           flexWrap: "wrap",
           padding: "12px 16px",
-          borderRadius: 10,
-          background: webTheme.colors.surfaceMuted,
-          border: `1px solid ${webTheme.colors.border}`,
+          borderRadius: 12,
+          background: "var(--ae-card-surface)",
+          border: "1px solid var(--ae-card-border)",
           fontSize: 13,
           color: webTheme.colors.textMuted,
           lineHeight: 1.6,
@@ -209,12 +209,23 @@ export function TeacherSessionHistoryDetail(props: {
       {/* Combined roster table */}
       <div
         style={{
-          borderRadius: webTheme.radius.card,
-          border: `1px solid ${webTheme.colors.border}`,
+          borderRadius: 16,
+          border: "1px solid var(--ae-card-border)",
+          boxShadow: "var(--ae-card-shadow)",
           overflow: "hidden",
+          position: "relative",
         }}
       >
-        <table style={workflowStyles.table}>
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "var(--ae-card-glow)",
+            pointerEvents: "none",
+          }}
+        />
+        <table style={{ ...workflowStyles.table, position: "relative", zIndex: 1 }}>
           <thead>
             <tr>
               <th style={{ ...workflowStyles.th, width: 44 }}>#</th>
@@ -458,9 +469,12 @@ function MetricCard(props: { label: string; value: string; color: string }) {
     <div
       style={{
         padding: "14px 16px",
-        borderRadius: 12,
-        background: webTheme.colors.surfaceRaised,
-        border: `1px solid ${webTheme.colors.border}`,
+        borderRadius: 14,
+        background: "var(--ae-card-surface)",
+        border: "1px solid var(--ae-card-border)",
+        boxShadow: "var(--ae-card-shadow)",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
       <p

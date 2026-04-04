@@ -47,7 +47,7 @@ export class LecturesService {
             }
           : {}),
       },
-      orderBy: [{ lectureDate: "asc" }, { createdAt: "asc" }],
+      orderBy: [{ createdAt: "desc" }],
     })
 
     return lectures.map((lecture) => this.toLectureSummary(lecture))
@@ -243,6 +243,7 @@ export class LecturesService {
     actualStartAt: Date | null
     actualEndAt: Date | null
     status: "PLANNED" | "OPEN_FOR_ATTENDANCE" | "COMPLETED" | "CANCELLED"
+    createdAt: Date
   }): LectureSummary {
     return lectureSummarySchema.parse({
       id: input.id,
@@ -258,6 +259,7 @@ export class LecturesService {
       actualStartAt: input.actualStartAt?.toISOString() ?? null,
       actualEndAt: input.actualEndAt?.toISOString() ?? null,
       status: input.status,
+      createdAt: input.createdAt.toISOString(),
     })
   }
 }

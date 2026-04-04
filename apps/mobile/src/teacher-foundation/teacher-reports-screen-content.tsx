@@ -1,21 +1,24 @@
 import { getColors } from "@attendease/ui-mobile"
 import { Ionicons } from "@expo/vector-icons"
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from "react-native"
 import Animated, { FadeInDown } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { mapTeacherApiErrorToMessage } from "../teacher-models"
 import type { buildTeacherReportsStatus } from "../teacher-view-state"
-import { formatDateTime } from "./shared-ui"
+import { useTeacherSendThresholdEmailsMutation } from "./queries-reports"
+import { TeacherProfileButton, formatDateTime } from "./shared-ui"
 
 type ReportsStatus = ReturnType<typeof buildTeacherReportsStatus>
 
@@ -49,6 +52,8 @@ type ReportModel = {
       classroomId: string
       studentId: string
       studentDisplayName: string
+      studentEmail: string
+      studentParentEmail: string | null
       classroomTitle: string
       subjectTitle: string
       attendanceLabel: string
@@ -110,13 +115,26 @@ type Props = {
   setSelectedSubjectId: (subjectId: string) => void
 }
 
-type TabKey = "students" | "subjects" | "trends"
+type TabKey = "students" | "email" | "trends"
 
 const TABS: Array<{ key: TabKey; label: string; icon: keyof typeof Ionicons.glyphMap }> = [
   { key: "students", label: "Students", icon: "people-outline" },
-  { key: "subjects", label: "Subjects", icon: "library-outline" },
+  { key: "email", label: "Send Email", icon: "mail-outline" },
   { key: "trends", label: "Trends", icon: "trending-up-outline" },
 ]
+
+const EMAIL_SUBJECT_TEMPLATE =
+  "Attendance below {{thresholdPercent}} for {{classroomTitle}}"
+const EMAIL_BODY_TEMPLATE = [
+  "Hello,",
+  "",
+  "This is regarding {{studentName}}'s attendance for {{subjectTitle}} in {{classroomTitle}}, which is currently {{attendancePercentage}} — below the required threshold of {{thresholdPercent}}.",
+  "",
+  "Please take necessary steps to improve attendance.",
+  "",
+  "Regards,",
+  "AttendEase",
+].join("\n")
 
 function toneColor(tone: string, c: ReturnType<typeof getColors>) {
   if (tone === "success") return c.success
@@ -168,7 +186,7 @@ export function TeacherReportsScreenContent({
   const [activeTab, setActiveTab] = useState<TabKey>("students")
   const [studentSearch, setStudentSearch] = useState("")
   const [showAllStudents, setShowAllStudents] = useState(false)
-  const [showAllTrends, setShowAllTrends] = useState(false)
+  // (showAllTrends removed — trends tab now shows a bar chart)
 
   const isLoading =
     reports.classroomsQuery.isLoading ||
@@ -190,18 +208,107 @@ export function TeacherReportsScreenContent({
     : "All Classes"
 
   // ── Sorted & grouped students ──
-  const { atRiskStudents, healthyStudents, filteredStudents } = useMemo(() => {
+  const filteredStudents = useMemo(() => {
     const query = studentSearch.trim().toLowerCase()
-    const all = [...reports.model.studentRows].sort(
-      (a, b) => a.attendancePercentage - b.attendancePercentage,
-    )
-    const filtered = query
-      ? all.filter((r) => r.studentDisplayName.toLowerCase().includes(query))
-      : all
-    const atRisk = filtered.filter((r) => r.followUpLabel.toLowerCase().includes("follow"))
-    const healthy = filtered.filter((r) => !r.followUpLabel.toLowerCase().includes("follow"))
-    return { atRiskStudents: atRisk, healthyStudents: healthy, filteredStudents: filtered }
+    const belowThreshold = [...reports.model.studentRows]
+      .filter((r) => r.attendancePercentage < 75)
+      .sort((a, b) => a.attendancePercentage - b.attendancePercentage)
+    return query
+      ? belowThreshold.filter((r) => r.studentDisplayName.toLowerCase().includes(query))
+      : belowThreshold
   }, [reports.model.studentRows, studentSearch])
+
+  // ── Email tab state ──
+  const [emailThreshold, setEmailThreshold] = useState(75)
+  const [selectedEmailIds, setSelectedEmailIds] = useState<Set<string>>(new Set())
+  const [emailStudentsToggle, setEmailStudentsToggle] = useState(true)
+  const [emailParentsToggle, setEmailParentsToggle] = useState(true)
+  const sendEmailMutation = useTeacherSendThresholdEmailsMutation()
+
+  const emailEligibleStudents = useMemo(() => {
+    return [...reports.model.studentRows]
+      .filter((r) => r.attendancePercentage < emailThreshold)
+      .sort((a, b) => a.attendancePercentage - b.attendancePercentage)
+  }, [reports.model.studentRows, emailThreshold])
+
+  const allEmailSelected =
+    emailEligibleStudents.length > 0 &&
+    emailEligibleStudents.every((r) => selectedEmailIds.has(r.studentId))
+
+  const toggleEmailStudent = useCallback((studentId: string) => {
+    setSelectedEmailIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(studentId)) next.delete(studentId)
+      else next.add(studentId)
+      return next
+    })
+  }, [])
+
+  const toggleSelectAll = useCallback(() => {
+    if (allEmailSelected) {
+      setSelectedEmailIds(new Set())
+    } else {
+      setSelectedEmailIds(new Set(emailEligibleStudents.map((r) => r.studentId)))
+    }
+  }, [allEmailSelected, emailEligibleStudents])
+
+  const handleSendEmails = useCallback(() => {
+    if (!selectedClassroomId || selectedEmailIds.size === 0) return
+    const selectedStudents = emailEligibleStudents.filter((r) => selectedEmailIds.has(r.studentId))
+    if (selectedStudents.length === 0) return
+
+    Alert.alert(
+      "Send Follow-up Emails",
+      `Send emails to ${selectedStudents.length} student${selectedStudents.length !== 1 ? "s" : ""}${emailStudentsToggle ? " (student)" : ""}${emailParentsToggle ? " (parent)" : ""}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Send",
+          onPress: () => {
+            sendEmailMutation.mutate(
+              {
+                studentIds: selectedStudents.map((s) => s.studentId),
+                classroomId: selectedClassroomId,
+                emailStudents: emailStudentsToggle,
+                emailParents: emailParentsToggle,
+                subject: EMAIL_SUBJECT_TEMPLATE,
+                body: EMAIL_BODY_TEMPLATE,
+                thresholdPercent: emailThreshold,
+              },
+              {
+                onSuccess: (data) => {
+                  const parts: string[] = []
+                  if (data.sentCount > 0) parts.push(`${data.sentCount} sent`)
+                  if (data.failedCount > 0) parts.push(`${data.failedCount} failed`)
+                  if (data.skippedNoParentEmail > 0)
+                    parts.push(`${data.skippedNoParentEmail} skipped (no parent email)`)
+                  Alert.alert(
+                    "Emails Sent",
+                    parts.length > 0 ? parts.join(", ") : "No emails were sent.",
+                  )
+                  setSelectedEmailIds(new Set())
+                },
+                onError: (error) => {
+                  Alert.alert(
+                    "Email Failed",
+                    error instanceof Error ? error.message : "Failed to send emails.",
+                  )
+                },
+              },
+            )
+          },
+        },
+      ],
+    )
+  }, [
+    selectedClassroomId,
+    selectedEmailIds,
+    emailEligibleStudents,
+    emailStudentsToggle,
+    emailParentsToggle,
+    emailThreshold,
+    sendEmailMutation,
+  ])
 
   if (!session) {
     return (
@@ -316,9 +423,10 @@ export function TeacherReportsScreenContent({
       contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
       showsVerticalScrollIndicator={false}
     >
-      {/* ── Header ── */}
-      <View style={[rs.header, { paddingTop: insets.top + 8 }]}>
+      {/* ── Header with profile icon ── */}
+      <View style={[rs.header, { paddingTop: insets.top + 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
         <Text style={[rs.heading, { color: c.text }]}>Reports</Text>
+        <TeacherProfileButton />
       </View>
 
       {/* ── Classroom filter ── */}
@@ -430,8 +538,8 @@ export function TeacherReportsScreenContent({
           const count =
             tab.key === "students"
               ? filteredStudents.length
-              : tab.key === "subjects"
-                ? reports.model.subjectRows.length
+              : tab.key === "email"
+                ? emailEligibleStudents.length
                 : reports.model.sessionTrendRows.length
           return (
             <Pressable
@@ -439,7 +547,6 @@ export function TeacherReportsScreenContent({
               onPress={() => {
                 setActiveTab(tab.key)
                 setShowAllStudents(false)
-                setShowAllTrends(false)
               }}
               style={[rs.tab, active && { borderBottomColor: c.primary, borderBottomWidth: 2 }]}
             >
@@ -514,39 +621,21 @@ export function TeacherReportsScreenContent({
                     paddingVertical: 16,
                   }}
                 >
-                  No students match "{studentSearch}"
+                  {studentSearch
+                    ? `No students match "${studentSearch}"`
+                    : "All students are above 75% attendance"}
                 </Text>
               ) : (
                 <>
-                  {/* At-risk section */}
-                  {atRiskStudents.length > 0 ? (
-                    <>
-                      <View style={[rs.sectionHeader, { backgroundColor: c.dangerSoft }]}>
-                        <Ionicons name="warning-outline" size={14} color={c.danger} />
-                        <Text style={{ fontSize: 12, fontWeight: "700", color: c.danger }}>
-                          Needs Attention ({atRiskStudents.length})
-                        </Text>
-                      </View>
-                      {(showAllStudents ? atRiskStudents : atRiskStudents.slice(0, 10)).map(
-                        (row, i) => renderStudentRow(row, i),
-                      )}
-                    </>
-                  ) : null}
-
-                  {/* Healthy section */}
-                  {healthyStudents.length > 0 ? (
-                    <>
-                      <View style={[rs.sectionHeader, { backgroundColor: c.successSoft }]}>
-                        <Ionicons name="checkmark-circle-outline" size={14} color={c.success} />
-                        <Text style={{ fontSize: 12, fontWeight: "700", color: c.success }}>
-                          Healthy ({healthyStudents.length})
-                        </Text>
-                      </View>
-                      {(showAllStudents ? healthyStudents : healthyStudents.slice(0, 5)).map(
-                        (row, i) => renderStudentRow(row, i + atRiskStudents.length),
-                      )}
-                    </>
-                  ) : null}
+                  <View style={[rs.sectionHeader, { backgroundColor: c.dangerSoft }]}>
+                    <Ionicons name="warning-outline" size={14} color={c.danger} />
+                    <Text style={{ fontSize: 12, fontWeight: "700", color: c.danger }}>
+                      Needs Attention ({filteredStudents.length})
+                    </Text>
+                  </View>
+                  {(showAllStudents ? filteredStudents : filteredStudents.slice(0, 10)).map(
+                    (row, i) => renderStudentRow(row, i),
+                  )}
 
                   {/* Show all toggle */}
                   {!showAllStudents && filteredStudents.length > 10 ? (
@@ -565,168 +654,145 @@ export function TeacherReportsScreenContent({
           )
         ) : null}
 
-        {/* ── SUBJECTS TAB ── */}
-        {activeTab === "subjects" ? (
-          reports.model.subjectRows.length === 0 ? (
+        {/* ── SEND EMAIL TAB ── */}
+        {activeTab === "email" ? (
+          !selectedClassroomId ? (
             <View style={{ alignItems: "center", paddingVertical: 32 }}>
-              <Ionicons name="library-outline" size={36} color={c.textSubtle} />
-              <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 8 }}>
-                No subject data for these filters
-              </Text>
-            </View>
-          ) : (
-            reports.model.subjectRows.map((row, i) => (
-              <Animated.View
-                key={`${row.classroomId}-${row.subjectId}`}
-                entering={FadeInDown.duration(150).delay(i * 30)}
-              >
-                <View
-                  style={[
-                    rs.subjectCard,
-                    { backgroundColor: c.surfaceRaised, borderColor: c.border },
-                  ]}
-                >
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                    <View style={[rs.avatar, { backgroundColor: toneBg(row.tone, c) }]}>
-                      <Ionicons name="library-outline" size={16} color={toneColor(row.tone, c)} />
-                    </View>
-                    <View style={{ flex: 1, gap: 1 }}>
-                      <Text
-                        style={{ fontSize: 14, fontWeight: "700", color: c.text }}
-                        numberOfLines={1}
-                      >
-                        {row.subjectTitle}
-                      </Text>
-                      <Text style={{ fontSize: 11, color: c.textMuted }} numberOfLines={1}>
-                        {row.classroomTitle}
-                      </Text>
-                    </View>
-                    <Text
-                      style={{ fontSize: 18, fontWeight: "800", color: toneColor(row.tone, c) }}
-                    >
-                      {row.attendancePercentage}%
-                    </Text>
-                  </View>
-                  <AttendanceBar percentage={row.attendancePercentage} tone={row.tone} c={c} />
-                  <View
-                    style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}
-                  >
-                    <View
-                      style={{
-                        paddingHorizontal: 8,
-                        paddingVertical: 3,
-                        borderRadius: 6,
-                        backgroundColor: c.surfaceTint,
-                      }}
-                    >
-                      <Text style={{ fontSize: 10, fontWeight: "600", color: c.textMuted }}>
-                        {row.totalSessions} sessions
-                      </Text>
-                    </View>
-                    <View
-                      style={{
-                        paddingHorizontal: 8,
-                        paddingVertical: 3,
-                        borderRadius: 6,
-                        backgroundColor: c.successSoft,
-                      }}
-                    >
-                      <Text style={{ fontSize: 10, fontWeight: "600", color: c.success }}>
-                        {row.presentCount} present
-                      </Text>
-                    </View>
-                    <View
-                      style={{
-                        paddingHorizontal: 8,
-                        paddingVertical: 3,
-                        borderRadius: 6,
-                        backgroundColor: c.dangerSoft,
-                      }}
-                    >
-                      <Text style={{ fontSize: 10, fontWeight: "600", color: c.danger }}>
-                        {row.absentCount} absent
-                      </Text>
-                    </View>
-                  </View>
-                  <Text style={{ fontSize: 10, color: c.textSubtle }}>{row.lastActivityLabel}</Text>
-                </View>
-              </Animated.View>
-            ))
-          )
-        ) : null}
-
-        {/* ── TRENDS TAB ── */}
-        {activeTab === "trends" ? (
-          reports.model.sessionTrendRows.length === 0 ? (
-            <View style={{ alignItems: "center", paddingVertical: 32 }}>
-              <Ionicons name="trending-up-outline" size={36} color={c.textSubtle} />
-              <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 8 }}>
-                No session data for these filters
+              <Ionicons name="mail-outline" size={36} color={c.textSubtle} />
+              <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 8, textAlign: "center" }}>
+                Select a classroom to send follow-up emails
               </Text>
             </View>
           ) : (
             <>
-              {(showAllTrends
-                ? reports.model.sessionTrendRows
-                : reports.model.sessionTrendRows.slice(0, 15)
-              ).map((row, i) => {
-                const dt = row.startedAt ? new Date(row.startedAt) : null
-                const timeStr = dt
-                  ? dt.toLocaleTimeString("en-IN", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                    })
-                  : "—"
-                const modeIcon: keyof typeof Ionicons.glyphMap =
-                  row.mode === "BLUETOOTH" ? "bluetooth-outline" : "qr-code-outline"
-                return (
-                  <Animated.View
-                    key={row.sessionId}
-                    entering={FadeInDown.duration(150).delay(i * 20)}
+              {/* Threshold input */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  paddingVertical: 4,
+                }}
+              >
+                <Text style={{ fontSize: 13, fontWeight: "600", color: c.text }}>Threshold</Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    borderWidth: 1,
+                    borderColor: c.border,
+                    borderRadius: 8,
+                    backgroundColor: c.surfaceRaised,
+                    paddingHorizontal: 10,
+                    gap: 2,
+                  }}
+                >
+                  <TextInput
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "700",
+                      color: c.text,
+                      textAlign: "center",
+                      width: 36,
+                      paddingVertical: 6,
+                    }}
+                    keyboardType="numeric"
+                    value={String(emailThreshold)}
+                    onChangeText={(v) => {
+                      const n = Number.parseInt(v, 10)
+                      if (!Number.isNaN(n) && n >= 0 && n <= 100) setEmailThreshold(n)
+                      else if (v === "") setEmailThreshold(0)
+                    }}
+                  />
+                  <Text style={{ fontSize: 13, color: c.textMuted }}>%</Text>
+                </View>
+              </View>
+
+              {emailEligibleStudents.length === 0 ? (
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: c.textMuted,
+                    textAlign: "center",
+                    paddingVertical: 16,
+                  }}
+                >
+                  No students below {emailThreshold}% threshold
+                </Text>
+              ) : (
+                <>
+                  {/* Header with count + select all */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      paddingVertical: 4,
+                    }}
                   >
-                    <View
-                      style={[
-                        rs.trendRow,
-                        { backgroundColor: c.surfaceRaised, borderColor: c.border },
-                      ]}
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                      <Text style={{ fontSize: 13, fontWeight: "600", color: c.text }}>
+                        Below threshold
+                      </Text>
+                      <View style={[rs.tabBadge, { backgroundColor: c.dangerSoft }]}>
+                        <Text style={{ fontSize: 10, fontWeight: "700", color: c.danger }}>
+                          {emailEligibleStudents.length}
+                        </Text>
+                      </View>
+                    </View>
+                    <Pressable
+                      onPress={toggleSelectAll}
+                      style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
                     >
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                        <View style={[rs.dateBadge, { backgroundColor: toneBg(row.tone, c) }]}>
-                          <Text
-                            style={{
-                              fontSize: 10,
-                              fontWeight: "800",
-                              color: toneColor(row.tone, c),
-                            }}
-                          >
-                            {dt ? dt.toLocaleDateString("en-IN", { day: "2-digit" }) : "—"}
-                          </Text>
-                          <Text
-                            style={{
-                              fontSize: 8,
-                              fontWeight: "600",
-                              color: toneColor(row.tone, c),
-                              opacity: 0.7,
-                            }}
-                          >
-                            {dt ? dt.toLocaleDateString("en-IN", { month: "short" }) : ""}
-                          </Text>
-                        </View>
-                        <View style={{ flex: 1, gap: 3 }}>
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                            }}
-                          >
-                            <Text
-                              style={{ fontSize: 13, fontWeight: "600", color: c.text, flex: 1 }}
-                              numberOfLines={1}
-                            >
-                              {row.subjectTitle}
-                            </Text>
+                      <Ionicons
+                        name={allEmailSelected ? "checkbox" : "square-outline"}
+                        size={18}
+                        color={allEmailSelected ? c.primary : c.textMuted}
+                      />
+                      <Text style={{ fontSize: 12, color: c.primary, fontWeight: "600" }}>
+                        Select All
+                      </Text>
+                    </Pressable>
+                  </View>
+
+                  {/* Student rows with checkboxes */}
+                  {emailEligibleStudents.map((row) => {
+                    const selected = selectedEmailIds.has(row.studentId)
+                    return (
+                      <Pressable
+                        key={`${row.classroomId}-${row.studentId}`}
+                        onPress={() => toggleEmailStudent(row.studentId)}
+                      >
+                        <View
+                          style={[
+                            rs.studentRow,
+                            {
+                              backgroundColor: selected ? c.primarySoft : c.surfaceRaised,
+                              borderColor: selected ? c.primary : c.border,
+                            },
+                          ]}
+                        >
+                          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                            <Ionicons
+                              name={selected ? "checkbox" : "square-outline"}
+                              size={20}
+                              color={selected ? c.primary : c.textMuted}
+                            />
+                            <View style={{ flex: 1, gap: 2 }}>
+                              <Text
+                                style={{ fontSize: 13, fontWeight: "600", color: c.text }}
+                                numberOfLines={1}
+                              >
+                                {row.studentDisplayName}
+                              </Text>
+                              <Text
+                                style={{ fontSize: 11, color: c.textMuted }}
+                                numberOfLines={1}
+                              >
+                                {row.subjectTitle} · {row.presentSessions}/{row.totalSessions}{" "}
+                                present
+                              </Text>
+                            </View>
                             <Text
                               style={{
                                 fontSize: 14,
@@ -742,42 +808,275 @@ export function TeacherReportsScreenContent({
                             tone={row.tone}
                             c={c}
                           />
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                            }}
-                          >
-                            <Text style={{ fontSize: 10, color: c.textMuted }}>
-                              {row.presentCount}P / {row.absentCount}A · {row.classroomTitle}
-                            </Text>
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-                              <Ionicons name={modeIcon} size={10} color={c.textSubtle} />
-                              <Text style={{ fontSize: 10, color: c.textSubtle }}>{timeStr}</Text>
-                            </View>
-                          </View>
                         </View>
-                      </View>
+                      </Pressable>
+                    )
+                  })}
+
+                  {/* Recipient toggles */}
+                  <View style={{ gap: 8, paddingTop: 8 }}>
+                    <Text style={{ fontSize: 13, fontWeight: "600", color: c.text }}>
+                      Send email to:
+                    </Text>
+                    <View style={{ flexDirection: "row", gap: 16 }}>
+                      <Pressable
+                        onPress={() => setEmailStudentsToggle((v) => !v)}
+                        style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+                      >
+                        <Ionicons
+                          name={emailStudentsToggle ? "checkbox" : "square-outline"}
+                          size={18}
+                          color={emailStudentsToggle ? c.primary : c.textMuted}
+                        />
+                        <Text style={{ fontSize: 13, color: c.text }}>Students</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => setEmailParentsToggle((v) => !v)}
+                        style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+                      >
+                        <Ionicons
+                          name={emailParentsToggle ? "checkbox" : "square-outline"}
+                          size={18}
+                          color={emailParentsToggle ? c.primary : c.textMuted}
+                        />
+                        <Text style={{ fontSize: 13, color: c.text }}>Parents</Text>
+                      </Pressable>
                     </View>
-                  </Animated.View>
-                )
-              })}
-              {!showAllTrends && reports.model.sessionTrendRows.length > 15 ? (
-                <Pressable
-                  onPress={() => setShowAllTrends(true)}
-                  style={{ alignItems: "center", paddingVertical: 10 }}
-                >
-                  <Text style={{ fontSize: 13, fontWeight: "600", color: c.primary }}>
-                    Show all {reports.model.sessionTrendRows.length} sessions
-                  </Text>
-                </Pressable>
-              ) : null}
+                  </View>
+
+                  {/* Send button */}
+                  <Pressable
+                    onPress={handleSendEmails}
+                    disabled={
+                      selectedEmailIds.size === 0 ||
+                      (!emailStudentsToggle && !emailParentsToggle) ||
+                      sendEmailMutation.isPending
+                    }
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      paddingVertical: 14,
+                      borderRadius: 12,
+                      marginTop: 8,
+                      backgroundColor:
+                        selectedEmailIds.size > 0 && (emailStudentsToggle || emailParentsToggle)
+                          ? c.primary
+                          : c.textMuted,
+                      opacity: sendEmailMutation.isPending ? 0.6 : 1,
+                    }}
+                  >
+                    {sendEmailMutation.isPending ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <>
+                        <Ionicons name="send" size={16} color="#fff" />
+                        <Text style={{ fontSize: 14, fontWeight: "700", color: "#fff" }}>
+                          Email {selectedEmailIds.size} student
+                          {selectedEmailIds.size !== 1 ? "s" : ""}
+                        </Text>
+                      </>
+                    )}
+                  </Pressable>
+                </>
+              )}
             </>
           )
         ) : null}
+
+        {/* ── TRENDS TAB — Vertical bar chart ── */}
+        {activeTab === "trends" ? (
+          <AttendanceBarChart
+            sessionTrendRows={reports.model.sessionTrendRows}
+          />
+        ) : null}
       </View>
     </ScrollView>
+  )
+}
+
+// ── Attendance bar chart — horizontal bars, vertical layout ──
+
+const CHART_X_TICKS = [0, 25, 50, 75, 100]
+const CHART_ROW_HEIGHT = 32
+const CHART_DATE_WIDTH = 52
+const CHART_PCT_WIDTH = 36
+
+type ChartPoint = {
+  dateLabel: string
+  pct: number
+  tone: "primary" | "success" | "warning" | "danger"
+}
+
+function AttendanceBarChart(props: {
+  sessionTrendRows: Array<{
+    sessionId: string
+    startedAt: string | null
+    presentCount: number
+    absentCount: number
+    attendancePercentage: number
+    tone: "primary" | "success" | "warning" | "danger"
+  }>
+}) {
+  const c = getColors()
+  const { width: screenWidth } = useWindowDimensions()
+
+  const points = useMemo<ChartPoint[]>(() => {
+    const rows = [...props.sessionTrendRows]
+    const fmt = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short" })
+    return rows.map((r) => ({
+      dateLabel: r.startedAt ? fmt.format(new Date(r.startedAt)) : "—",
+      pct: r.attendancePercentage,
+      tone: r.tone,
+    }))
+  }, [props.sessionTrendRows])
+
+  if (points.length === 0) {
+    return (
+      <View style={{ alignItems: "center", paddingVertical: 32 }}>
+        <Ionicons name="bar-chart-outline" size={36} color={c.textSubtle} />
+        <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 8 }}>
+          No session data for these filters
+        </Text>
+      </View>
+    )
+  }
+
+  const barTrackWidth = screenWidth - 32 - CHART_DATE_WIDTH - CHART_PCT_WIDTH - 8
+  const chartHeight = points.length * CHART_ROW_HEIGHT
+
+  return (
+    <Animated.View entering={FadeInDown.duration(200)} style={{ gap: 8, paddingTop: 4 }}>
+      <Text style={{ fontSize: 13, fontWeight: "700", color: c.text, paddingHorizontal: 4 }}>
+        Attendance % per session
+      </Text>
+
+      {/* Legend (above chart) */}
+      <View style={{ flexDirection: "row", gap: 12, justifyContent: "center", paddingVertical: 2 }}>
+        {(
+          [
+            { tone: "success", label: "≥75%" },
+            { tone: "warning", label: "50-74%" },
+            { tone: "danger", label: "<50%" },
+          ] as const
+        ).map((item) => (
+          <View key={item.tone} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <View
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 2,
+                backgroundColor: toneColor(item.tone, c),
+              }}
+            />
+            <Text style={{ fontSize: 10, color: c.textMuted }}>{item.label}</Text>
+          </View>
+        ))}
+      </View>
+
+      {/* X-axis tick labels (above chart) */}
+      <View
+        style={{
+          flexDirection: "row",
+          paddingLeft: CHART_DATE_WIDTH,
+          marginBottom: -2,
+        }}
+      >
+        {CHART_X_TICKS.map((tick) => (
+          <Text
+            key={tick}
+            style={{
+              position: "absolute",
+              left: CHART_DATE_WIDTH + (tick / 100) * barTrackWidth - 8,
+              fontSize: 9,
+              color: c.textSubtle,
+              width: 24,
+              textAlign: "center",
+            }}
+          >
+            {tick}%
+          </Text>
+        ))}
+      </View>
+
+      {/* Chart body */}
+      <View style={{ position: "relative", height: chartHeight, marginTop: 10 }}>
+        {/* Vertical grid lines */}
+        {CHART_X_TICKS.map((tick) => (
+          <View
+            key={tick}
+            style={{
+              position: "absolute",
+              top: 0,
+              bottom: 0,
+              left: CHART_DATE_WIDTH + (tick / 100) * barTrackWidth,
+              width: 1,
+              backgroundColor: c.border,
+              opacity: tick === 0 ? 1 : 0.4,
+            }}
+          />
+        ))}
+
+        {/* Rows */}
+        {points.map((pt, i) => {
+          const barW = Math.max(2, (pt.pct / 100) * barTrackWidth)
+          return (
+            <View
+              key={i}
+              style={{
+                position: "absolute",
+                top: i * CHART_ROW_HEIGHT,
+                left: 0,
+                right: 0,
+                height: CHART_ROW_HEIGHT,
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              {/* Date label */}
+              <Text
+                style={{
+                  width: CHART_DATE_WIDTH,
+                  fontSize: 9,
+                  color: c.textSubtle,
+                  textAlign: "right",
+                  paddingRight: 6,
+                }}
+                numberOfLines={1}
+              >
+                {pt.dateLabel}
+              </Text>
+
+              {/* Bar */}
+              <View
+                style={{
+                  width: barW,
+                  height: Math.min(20, CHART_ROW_HEIGHT - 6),
+                  borderRadius: 4,
+                  backgroundColor: toneColor(pt.tone, c),
+                  opacity: 0.85,
+                }}
+              />
+
+              {/* Percentage value */}
+              <Text
+                style={{
+                  width: CHART_PCT_WIDTH,
+                  fontSize: 9,
+                  fontWeight: "700",
+                  color: toneColor(pt.tone, c),
+                  paddingLeft: 4,
+                }}
+              >
+                {pt.pct}%
+              </Text>
+            </View>
+          )
+        })}
+      </View>
+
+    </Animated.View>
   )
 }
 
@@ -881,12 +1180,5 @@ const rs = StyleSheet.create({
   barTrack: { height: 4, borderRadius: 2, overflow: "hidden" },
   barFill: { height: 4, borderRadius: 2 },
   subjectCard: { borderWidth: 1, borderRadius: 12, padding: 14, gap: 8 },
-  trendRow: { borderWidth: 1, borderRadius: 12, padding: 12, gap: 4 },
-  dateBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  /* trendRow and dateBadge removed — trends tab now uses a bar chart */
 })

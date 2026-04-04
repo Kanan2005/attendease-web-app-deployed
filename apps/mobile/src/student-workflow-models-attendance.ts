@@ -27,6 +27,8 @@ export function buildStudentAttendanceCandidates(input: {
   classrooms: StudentClassroomMembershipSummary[]
   liveSessions: LiveAttendanceSessionSummary[]
   mode?: Extract<AttendanceMode, "QR_GPS" | "BLUETOOTH">
+  // v2.0: Set of sessionIds where the student already has a PRESENT record.
+  markedSessionIds?: Set<string>
 }): StudentAttendanceCandidate[] {
   return input.classrooms
     .filter((classroom) => classroom.enrollmentStatus === "ACTIVE")
@@ -49,6 +51,7 @@ export function buildStudentAttendanceCandidates(input: {
             session.scheduledEndAt ??
             new Date().toISOString(),
           requiresTrustedDevice: classroom.requiresTrustedDevice,
+          isMarked: input.markedSessionIds?.has(session.id) ?? false,
         }))
     })
     .sort((left, right) => new Date(left.timestamp).getTime() - new Date(right.timestamp).getTime())
@@ -101,29 +104,37 @@ export function buildStudentCourseDiscoveryCards(input: {
             new Date(resolveLectureTimestamp(right)).getTime(),
         )[0]
 
+      // v2.0: Partition candidates into marked (already submitted) and unmarked.
+      const unmarked = candidates.filter((c) => !c.isMarked)
+      const allMarked = candidates.length > 0 && unmarked.length === 0
+
       return {
         classroomId: classroom.id,
         title: classroom.displayTitle,
         subtitle: `${classroom.code} · ${formatAttendanceModeLabel(classroom.defaultAttendanceMode)}`,
         teacherName: classroom.primaryTeacherDisplayName ?? null,
-        attendanceTitle:
-          candidates.length > 0
+        attendanceTitle: allMarked
+          ? "Attendance marked"
+          : candidates.length > 0
             ? candidates.length === 1
               ? "Attendance open now"
               : `${candidates.length} attendance sessions open`
             : "No attendance session open",
-        attendanceMessage:
-          candidates.length > 0
+        attendanceMessage: allMarked
+          ? "Your attendance has been recorded for this session."
+          : candidates.length > 0
             ? buildAttendanceCandidateMessage(candidates)
             : nextSession
               ? `Next class session: ${formatDateTimeLabel(resolveLectureTimestamp(nextSession))}`
               : "No class session is published yet.",
-        attendanceTone: (candidates.length > 0 ? "success" : "primary") as CardTone,
+        attendanceTone: (allMarked ? "success" : candidates.length > 0 ? "success" : "primary") as CardTone,
         updatesLabel: "Open updates and schedule from the course page.",
         scheduleLabel: nextSession
           ? `Next: ${formatDateTimeLabel(resolveLectureTimestamp(nextSession))}`
           : "Open schedule",
         hasOpenAttendance: candidates.length > 0,
+        hasMarkedAttendance: allMarked,
+        unmarkedCandidateCount: unmarked.length,
       }
     })
     .sort((left, right) => {

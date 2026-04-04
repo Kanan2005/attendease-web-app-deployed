@@ -71,6 +71,7 @@ export const teacherRoutes = {
   home: teacherHomeRoute,
   dashboard: teacherHomeRoute,
   classrooms: "/(teacher)/(tabs)/classrooms" as const,
+  profile: "/(teacher)/profile" as const,
   sessionHistory: "/(teacher)/sessions" as const,
   bluetoothCreate: "/(teacher)/bluetooth/create" as const,
   bluetoothCreateWithContext(classroomId: string) {

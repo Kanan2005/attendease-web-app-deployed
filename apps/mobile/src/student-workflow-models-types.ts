@@ -122,6 +122,9 @@ export interface StudentAttendanceCandidate {
   mode: Extract<AttendanceMode, "QR_GPS" | "BLUETOOTH">
   timestamp: string
   requiresTrustedDevice: boolean
+  // v2.0: true when the student's attendance history already has a PRESENT
+  // record for this session — used to show "Attendance Marked" instead of "Tap to Mark".
+  isMarked: boolean
 }
 
 export interface StudentAttendanceOverviewModel {
@@ -142,7 +145,12 @@ export interface StudentCourseDiscoveryCardModel {
   attendanceTone: CardTone
   updatesLabel: string
   scheduleLabel: string
+  // v2.0: hasOpenAttendance = any live session exists (marked or not).
+  // hasMarkedAttendance = all live sessions for this classroom are already marked.
+  // unmarkedCandidateCount = how many still need marking (drives TAP TO MARK vs MARKED).
   hasOpenAttendance: boolean
+  hasMarkedAttendance: boolean
+  unmarkedCandidateCount: number
 }
 
 export interface StudentClassroomDetailSummaryModel {

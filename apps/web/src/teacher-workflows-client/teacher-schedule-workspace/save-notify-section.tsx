@@ -1,36 +1,75 @@
 "use client"
 
-import { WebSectionCard } from "../../web-shell"
+import { webTheme } from "@attendease/ui-web"
 
-import { WorkflowBanner, WorkflowField, workflowStyles } from "../shared"
+import { workflowStyles } from "../shared"
 
-export function TeacherScheduleSaveNotifySection(props: {
-  saveNote: string
-  setSaveNote: (value: string) => void
+export function ScheduleActionBar(props: {
+  isSaving: boolean
   statusMessage: string | null
-  savePending: boolean
-  onSave: () => void
+  statusTone: "info" | "danger" | "success"
+  onAddSlot: () => void
+  onAddExtra: () => void
 }) {
   return (
-    <>
-      <WebSectionCard
-        title="Save & Notify"
-        description="One transaction-backed schedule.changed outbox event is emitted when the draft is saved successfully."
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        flexWrap: "wrap",
+      }}
+    >
+      <button
+        type="button"
+        onClick={props.onAddSlot}
+        style={{
+          ...workflowStyles.secondaryButton,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+        }}
       >
-        <div style={workflowStyles.grid}>
-          <WorkflowField label="Save note" value={props.saveNote} onChange={props.setSaveNote} />
-          <button
-            type="button"
-            onClick={props.onSave}
-            disabled={props.savePending}
-            style={workflowStyles.primaryButton}
-          >
-            {props.savePending ? "Saving..." : "Save & Notify"}
-          </button>
-        </div>
-      </WebSectionCard>
+        <span style={{ fontSize: 14, lineHeight: 1 }}>+</span>
+        Weekly Slot
+      </button>
 
-      {props.statusMessage ? <WorkflowBanner tone="info" message={props.statusMessage} /> : null}
-    </>
+      <button
+        type="button"
+        onClick={props.onAddExtra}
+        style={{
+          ...workflowStyles.secondaryButton,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+        }}
+      >
+        <span style={{ fontSize: 14, lineHeight: 1 }}>+</span>
+        Extra Lecture
+      </button>
+
+      <div style={{ flex: 1 }} />
+
+      {props.isSaving ? (
+        <span style={{ fontSize: 12, color: webTheme.colors.textMuted, fontWeight: 500 }}>
+          Saving…
+        </span>
+      ) : props.statusMessage ? (
+        <span
+          style={{
+            fontSize: 12,
+            color:
+              props.statusTone === "danger"
+                ? webTheme.colors.danger
+                : props.statusTone === "success"
+                  ? webTheme.colors.success
+                  : webTheme.colors.textMuted,
+            fontWeight: 500,
+          }}
+        >
+          {props.statusMessage}
+        </span>
+      ) : null}
+    </div>
   )
 }

@@ -22,6 +22,7 @@ export const lectureSummarySchema = z.object({
   actualStartAt: isoDateTimeSchema.nullable(),
   actualEndAt: isoDateTimeSchema.nullable(),
   status: lectureStatusSchema,
+  createdAt: isoDateTimeSchema,
 })
 export type LectureSummary = z.infer<typeof lectureSummarySchema>
 export const classSessionSummarySchema = lectureSummarySchema

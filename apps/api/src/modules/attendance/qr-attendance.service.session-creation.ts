@@ -62,18 +62,21 @@ export async function createQrSession(
   const activeSession = await context.database.prisma.attendanceSession.findFirst({
     where: {
       courseOfferingId: request.classroomId,
-      mode: "QR_GPS",
       status: "ACTIVE",
     },
     select: {
       id: true,
       lectureId: true,
       startedAt: true,
+      mode: true,
     },
   })
 
   if (activeSession) {
-    throw new ConflictException("A QR attendance session is already active for this classroom.")
+    const modeLabel = activeSession.mode === "BLUETOOTH" ? "Bluetooth" : "QR"
+    throw new ConflictException(
+      `A ${modeLabel} attendance session is already active for this classroom.`,
+    )
   }
 
   const teacherAssignment = await resolveTeacherAssignment(context, {

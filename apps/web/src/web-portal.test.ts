@@ -15,7 +15,6 @@ import {
   buildTeacherDashboardPageModel,
   buildTeacherReportsPageModel,
   buildTeacherSessionHistoryPageModel,
-  buildTeacherSessionStartPageModel,
   evaluateWebPortalAccess,
   isPortalNavItemActive,
   readWebPortalSession,
@@ -69,7 +68,7 @@ describe("web portal models", () => {
     })
     expect(evaluateWebPortalAccess(null, "teacher")).toMatchObject({
       allowed: false,
-      title: "Sign in required",
+      title: "Your session has expired",
       loginHref: "/login?next=/teacher/dashboard",
       loginLabel: "Open teacher sign in",
     })
@@ -97,8 +96,6 @@ describe("web portal models", () => {
   it("keeps teacher and admin navigation coverage aligned with the planned route tree", () => {
     expect(teacherPortalNavigation.map((item) => item.href)).toEqual([
       "/teacher/classrooms",
-      "/teacher/sessions/start",
-      "/teacher/sessions/history",
     ])
 
     expect(adminPortalNavigation.map((item) => item.href)).toEqual([
@@ -119,10 +116,6 @@ describe("web portal models", () => {
     expect(teacherDashboard.actions[0]).toMatchObject({
       href: "/teacher/classrooms",
     })
-    expect(teacherDashboard.actions[1]).toMatchObject({
-      href: "/teacher/sessions/start",
-      label: "Start QR attendance",
-    })
     expect(teacherDashboard.spotlightSections).toHaveLength(2)
     expect(
       teacherDashboard.spotlightSections?.flatMap((section) =>
@@ -130,7 +123,6 @@ describe("web portal models", () => {
       ),
     ).toEqual([
       "/teacher/classrooms",
-      "/teacher/sessions/start",
       "/teacher/sessions/history",
       "/teacher/reports",
       "/teacher/exports",
@@ -177,8 +169,6 @@ describe("web portal models", () => {
     const classroomHub = buildTeacherClassroomPageModel()
     const detail = buildTeacherClassroomDetailPageModel("classroom_math_1")
     const roster = buildTeacherClassroomRosterPageModel("classroom_math_1")
-    const sessionStart = buildTeacherSessionStartPageModel()
-
     expect(classroomHub.actions[0]).toMatchObject({
       href: "/teacher/classrooms/new",
       label: "Create Classroom",
@@ -207,7 +197,7 @@ describe("web portal models", () => {
       href: "/teacher/classrooms",
     })
     expect(detail.actions.slice(1).map((action) => action.href)).toEqual([
-      "/teacher/sessions/start?classroomId=classroom_math_1",
+      "/teacher/classrooms/classroom_math_1/lectures",
       "/teacher/classrooms/classroom_math_1/roster",
       "/teacher/classrooms/classroom_math_1/schedule",
     ])
@@ -231,12 +221,6 @@ describe("web portal models", () => {
       "Joined",
       "Actions",
     ])
-    expect(sessionStart.actions.map((action) => action.href)).toEqual([
-      "/teacher/classrooms",
-      "/teacher/sessions/history",
-      "/teacher/reports",
-    ])
-    expect(sessionStart.tables[0]?.columns).toEqual(["Step", "What You Confirm", "Result"])
   })
 
   it("keeps teacher history and admin support pages segregated by route group", () => {
@@ -248,8 +232,8 @@ describe("web portal models", () => {
     const adminImports = buildAdminImportsPageModel()
 
     expect(sessionHistory.actions[0]).toMatchObject({
-      href: "/teacher/sessions/start",
-      label: "Start QR Attendance",
+      href: "/teacher/classrooms",
+      label: "Open Classrooms",
     })
     expect(reports.actions[0]).toMatchObject({
       href: "/teacher/sessions/history",
@@ -285,7 +269,6 @@ describe("web portal models", () => {
       buildTeacherClassroomPageModel(),
       buildTeacherClassroomDetailPageModel("classroom_math_1"),
       buildTeacherClassroomRosterPageModel("classroom_math_1"),
-      buildTeacherSessionStartPageModel(),
       buildTeacherSessionHistoryPageModel(),
       buildTeacherAnalyticsPageModel(),
       buildAdminSemesterPageModel(),

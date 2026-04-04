@@ -167,6 +167,7 @@ export interface TeacherStudentReportRowModel {
   studentId: string
   studentDisplayName: string
   studentEmail: string
+  studentParentEmail: string | null
   studentRollNumber: string | null
   enrollmentStatus: TeacherStudentAttendancePercentageReportRow["enrollmentStatus"]
   classroomId: string

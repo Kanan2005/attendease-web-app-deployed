@@ -19,7 +19,6 @@ describe("web workspace barrel exports", () => {
       "TeacherImportStatusWorkspace",
       "TeacherScheduleWorkspace",
       "TeacherStreamWorkspace",
-      "TeacherSessionStartWorkspace",
       "TeacherSessionHistoryWorkspace",
       "TeacherReportsWorkspace",
       "TeacherExportsWorkspace",

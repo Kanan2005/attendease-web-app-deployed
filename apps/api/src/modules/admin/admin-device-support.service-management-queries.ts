@@ -111,6 +111,7 @@ export class AdminDeviceSupportServiceManagementQueries extends AdminDeviceSuppo
             rollNumber: true,
             programName: true,
             currentSemester: true,
+            parentEmail: true,
             attendanceDisabled: true,
           },
         },
@@ -240,6 +241,7 @@ export class AdminDeviceSupportServiceManagementQueries extends AdminDeviceSuppo
             rollNumber: true,
             programName: true,
             currentSemester: true,
+            parentEmail: true,
             attendanceDisabled: true,
           },
         },
@@ -345,11 +347,59 @@ export class AdminDeviceSupportServiceManagementQueries extends AdminDeviceSuppo
       throw new NotFoundException("Student support record was not found.")
     }
 
+    // Fetch attendance stats per enrollment and last active session in parallel
+    const enrollmentIds = student.enrollments.map((e) => e.id)
+    const courseOfferingIds = student.enrollments.map((e) => e.courseOffering.id)
+
+    const [attendanceStats, sessionCounts, lastActiveSession] = await Promise.all([
+      // Count attended sessions per enrollment (PRESENT)
+      enrollmentIds.length > 0
+        ? this.database.prisma.attendanceRecord.groupBy({
+            by: ["enrollmentId"],
+            where: {
+              enrollmentId: { in: enrollmentIds },
+              status: "PRESENT",
+            },
+            _count: true,
+          })
+        : Promise.resolve([]),
+      // Count total sessions per course offering (ENDED or ACTIVE)
+      courseOfferingIds.length > 0
+        ? this.database.prisma.attendanceSession.groupBy({
+            by: ["courseOfferingId"],
+            where: {
+              courseOfferingId: { in: courseOfferingIds },
+              status: { in: ["ENDED", "ACTIVE"] },
+            },
+            _count: true,
+          })
+        : Promise.resolve([]),
+      // Last attended attendance record for this student
+      this.database.prisma.attendanceRecord.findFirst({
+        where: {
+          studentId,
+          status: "PRESENT",
+        },
+        orderBy: { markedAt: "desc" },
+        select: { markedAt: true },
+      }),
+    ])
+
+    const attendedByEnrollment = new Map(
+      attendanceStats.map((row) => [row.enrollmentId, row._count]),
+    )
+    const totalByCourseOffering = new Map(
+      sessionCounts.map((row) => [row.courseOfferingId, row._count]),
+    )
+
     const activeBinding = student.deviceBindings.find((binding) => binding.status === "ACTIVE")
     const pendingBinding = student.deviceBindings.find((binding) => binding.status === "PENDING")
 
     return {
-      student: this.toStudentIdentityDetail(student),
+      student: {
+        ...this.toStudentIdentityDetail(student),
+        lastActiveSessionAt: lastActiveSession?.markedAt?.toISOString() ?? null,
+      },
       attendanceDeviceState: this.resolveAttendanceDeviceState({
         bindings: student.deviceBindings,
         latestSecurityEvent: student.securityEvents[0] ?? null,
@@ -357,9 +407,19 @@ export class AdminDeviceSupportServiceManagementQueries extends AdminDeviceSuppo
       activeBinding: activeBinding ? this.toBindingRecord(activeBinding) : null,
       pendingBinding: pendingBinding ? this.toBindingRecord(pendingBinding) : null,
       enrollmentCounts: this.toEnrollmentCounts(student.enrollments),
-      recentClassrooms: student.enrollments.map((enrollment) =>
-        this.toStudentClassroomContext(enrollment),
-      ),
+      recentClassrooms: student.enrollments.map((enrollment) => {
+        const totalSessions = totalByCourseOffering.get(enrollment.courseOffering.id) ?? 0
+        const attendedSessions = attendedByEnrollment.get(enrollment.id) ?? 0
+        const attendancePercentage =
+          totalSessions > 0 ? Math.round((attendedSessions / totalSessions) * 100) : null
+
+        return {
+          ...this.toStudentClassroomContext(enrollment),
+          totalSessions,
+          attendedSessions,
+          attendancePercentage,
+        }
+      }),
       securityEvents: student.securityEvents.map((event) => this.toSecurityEventSummary(event)),
       adminActions: student.targetedActions.map((action) => this.toAdminActionSummary(action)),
       actions: this.buildStudentStatusActions(student.status),

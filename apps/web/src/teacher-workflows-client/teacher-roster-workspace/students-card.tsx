@@ -19,9 +19,10 @@ export function TeacherRosterStudentsCard(props: {
     return (
       <div
         style={{
-          borderRadius: webTheme.radius.card,
+          borderRadius: 16,
           overflow: "hidden",
-          border: `1px solid ${webTheme.colors.border}`,
+          border: "1px solid var(--ae-card-border)",
+          boxShadow: "var(--ae-card-shadow)",
         }}
       >
         {[1, 2, 3, 4].map((i) => (
@@ -30,8 +31,8 @@ export function TeacherRosterStudentsCard(props: {
             className="skeleton"
             style={{
               height: 48,
-              background: webTheme.colors.surfaceRaised,
-              borderBottom: `1px solid ${webTheme.colors.border}`,
+              background: "var(--ae-card-surface)",
+              borderBottom: "1px solid var(--ae-card-border)",
             }}
           />
         ))}
@@ -83,12 +84,23 @@ export function TeacherRosterStudentsCard(props: {
   return (
     <div
       style={{
-        borderRadius: webTheme.radius.card,
-        border: `1px solid ${webTheme.colors.border}`,
+        borderRadius: 16,
+        border: "1px solid var(--ae-card-border)",
+        boxShadow: "var(--ae-card-shadow)",
         overflow: "hidden",
+        position: "relative",
       }}
     >
-      <table style={workflowStyles.table}>
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "var(--ae-card-glow)",
+          pointerEvents: "none",
+        }}
+      />
+      <table style={{ ...workflowStyles.table, position: "relative", zIndex: 1 }}>
         <thead>
           <tr>
             <th style={{ ...workflowStyles.th, width: 48 }}>#</th>

@@ -8,6 +8,7 @@ import { webSessionCookieNames } from "../../src/web-portal"
 export async function GET(request: Request) {
   const cookieStore = await cookies()
   const accessToken = cookieStore.get(webSessionCookieNames.accessToken)?.value
+  const refreshToken = cookieStore.get(webSessionCookieNames.refreshToken)?.value
 
   if (accessToken) {
     try {
@@ -15,7 +16,7 @@ export async function GET(request: Request) {
         baseUrl: resolveWebAuthApiBaseUrl(process.env as Record<string, string | undefined>),
         fetcher: fetch,
       })
-      await authClient.logout(accessToken)
+      await authClient.logout(accessToken, refreshToken ? { refreshToken } : {})
     } catch {
       // Best-effort server session invalidation; proceed with cookie cleanup
     }

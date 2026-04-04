@@ -36,7 +36,6 @@ export async function expireTimedOutActiveSessions(
   const timedOutSessions = await context.database.prisma.attendanceSession.findMany({
     where: {
       courseOfferingId: classroomId,
-      mode: "BLUETOOTH",
       status: "ACTIVE",
       scheduledEndAt: {
         lte: now,

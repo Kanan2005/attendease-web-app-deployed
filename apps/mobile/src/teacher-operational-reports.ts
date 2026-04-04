@@ -209,6 +209,7 @@ export function buildTeacherReportOverviewModel(input: {
       studentId: row.studentId,
       studentDisplayName: row.studentDisplayName,
       studentEmail: row.studentEmail,
+      studentParentEmail: row.studentParentEmail ?? null,
       studentRollNumber: row.studentRollNumber,
       enrollmentStatus: row.enrollmentStatus,
       classroomId: row.classroomId,

@@ -1,4 +1,5 @@
 import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 import type { ReactNode } from "react"
 
 import {
@@ -13,10 +14,14 @@ export default async function AdminPortalLayout(props: { children: ReactNode }) 
   const session = readWebPortalSession(cookieStore)
   const access = evaluateWebPortalAccess(session, "admin")
 
+  if (!access.allowed) {
+    redirect(access.loginHref)
+  }
+
   return (
     <WebPortalLayout
       scopeLabel="Admin"
-      scopeDescription="Student support, device recovery, imports, and academic governance with audited controls."
+      scopeDescription="Manage students, teachers, devices, classrooms, and semesters from one place."
       session={session}
       navItems={adminPortalNavigation}
       access={access}

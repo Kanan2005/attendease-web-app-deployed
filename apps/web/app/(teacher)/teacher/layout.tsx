@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 import type { ReactNode } from "react"
 
 import {
@@ -15,6 +16,10 @@ export default async function TeacherPortalLayout(props: { children: ReactNode }
   const cookieStore = await cookies()
   const session = readWebPortalSession(cookieStore)
   const access = evaluateWebPortalAccess(session, "teacher")
+
+  if (!access.allowed) {
+    redirect(access.loginHref)
+  }
 
   return (
     <WebPortalLayout

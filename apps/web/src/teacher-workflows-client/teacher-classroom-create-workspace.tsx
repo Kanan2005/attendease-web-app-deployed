@@ -174,13 +174,31 @@ export function TeacherClassroomCreateWorkspace(props: {
 
       <div
         style={{
-          borderRadius: webTheme.radius.card,
-          border: `1px solid ${webTheme.colors.border}`,
-          background: webTheme.colors.surfaceRaised,
+          borderRadius: 16,
+          border: "1px solid var(--ae-card-border)",
+          background: "var(--ae-card-surface)",
+          boxShadow: "var(--ae-card-shadow)",
           overflow: "hidden",
+          position: "relative",
         }}
       >
-        <div style={{ padding: "20px 28px", borderBottom: `1px solid ${webTheme.colors.border}` }}>
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "var(--ae-card-glow)",
+            pointerEvents: "none",
+          }}
+        />
+        <div
+          style={{
+            padding: "20px 28px",
+            borderBottom: "1px solid var(--ae-card-border)",
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
           <h2
             style={{
               margin: "0 0 2px",
@@ -197,7 +215,7 @@ export function TeacherClassroomCreateWorkspace(props: {
           </p>
         </div>
 
-        <div style={{ padding: "24px 28px", display: "grid", gap: 18 }}>
+        <div style={{ padding: "24px 28px", display: "grid", gap: 18, position: "relative", zIndex: 1 }}>
           <WorkflowField
             label="Course title"
             value={draft.classroomTitle}

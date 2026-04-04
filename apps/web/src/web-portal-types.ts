@@ -78,6 +78,7 @@ export interface WebPortalAccessState {
 }
 export const webSessionCookieNames = {
   accessToken: "attendease_web_access_token",
+  refreshToken: "attendease_web_refresh_token",
   activeRole: "attendease_web_active_role",
   availableRoles: "attendease_web_available_roles",
   displayName: "attendease_web_display_name",

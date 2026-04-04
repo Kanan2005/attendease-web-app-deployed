@@ -24,6 +24,7 @@ function normalizeTeacherRosterFilters(filters: ClassroomRosterListQuery = {}) {
 export const teacherQueryKeys = {
   all: ["teacher"] as const,
   me: () => [...teacherQueryKeys.all, "me"] as const,
+  profile: () => [...teacherQueryKeys.all, "profile"] as const,
   assignments: () => [...teacherQueryKeys.all, "assignments"] as const,
   classrooms: () => [...teacherQueryKeys.all, "classrooms"] as const,
   dashboardRecentActivity: () => [...teacherQueryKeys.all, "dashboard", "recent-activity"] as const,

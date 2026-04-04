@@ -1,6 +1,7 @@
 import {
   type AdminApproveReplacementDeviceRequest,
   type AdminApproveReplacementDeviceResponse,
+  type AdminDashboardStats,
   type AdminDelinkStudentDevicesRequest,
   type AdminDelinkStudentDevicesResponse,
   type AdminDeviceSupportDetail,
@@ -10,6 +11,9 @@ import {
   type AdminStudentManagementDetail,
   type AdminStudentManagementSearchQuery,
   type AdminStudentManagementSummary,
+  type AdminTeacherDetail,
+  type AdminTeacherSearchQuery,
+  type AdminTeacherSummary,
   type AdminUpdateStudentStatusRequest,
   type AdminUpdateStudentStatusResponse,
   type ApproveReplacementStudentDeviceRequest,
@@ -19,12 +23,16 @@ import {
   type StudentSupportCaseSummary,
   type StudentSupportSearchQuery,
   adminApproveReplacementDeviceResponseSchema,
+  adminDashboardStatsSchema,
   adminDelinkStudentDevicesResponseSchema,
   adminDeviceSupportDetailSchema,
   adminDeviceSupportSummariesResponseSchema,
   adminStudentManagementDetailSchema,
   adminStudentManagementSearchQuerySchema,
   adminStudentManagementSummariesResponseSchema,
+  adminTeacherDetailSchema,
+  adminTeacherListResponseSchema,
+  adminTeacherSearchQuerySchema,
   adminUpdateStudentStatusRequestSchema,
   adminUpdateStudentStatusResponseSchema,
   approveReplacementStudentDeviceRequestSchema,
@@ -40,6 +48,33 @@ import { type AuthApiRequest, toQuery } from "./client.core"
 
 export function buildAuthClientAdminMethods(request: AuthApiRequest) {
   return {
+    getAdminDashboardStats(token: string): Promise<AdminDashboardStats> {
+      return request("/admin/dashboard/stats", {
+        method: "GET",
+        token,
+        parse: adminDashboardStatsSchema.parse,
+      })
+    },
+    listAdminTeachers(
+      token: string,
+      filters: Partial<AdminTeacherSearchQuery> = {},
+    ): Promise<AdminTeacherSummary[]> {
+      const query = adminTeacherSearchQuerySchema.parse(filters)
+
+      return request("/admin/teachers", {
+        method: "GET",
+        token,
+        query: toQuery(query),
+        parse: adminTeacherListResponseSchema.parse,
+      })
+    },
+    getAdminTeacher(token: string, teacherId: string): Promise<AdminTeacherDetail> {
+      return request(`/admin/teachers/${teacherId}`, {
+        method: "GET",
+        token,
+        parse: adminTeacherDetailSchema.parse,
+      })
+    },
     listAdminDeviceSupport(
       token: string,
       filters: Partial<AdminDeviceSupportSearchQuery> = {},

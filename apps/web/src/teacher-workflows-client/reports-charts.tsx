@@ -16,47 +16,60 @@ import {
 import type { TeacherWebSummaryCard } from "../teacher-review-workflows-types"
 import { type ChartColors, useChartColors } from "../theme-context"
 
-export function ReportSummaryRings(props: { cards: TeacherWebSummaryCard[] }) {
-  const cc = useChartColors()
-  const attendanceCard =
-    props.cards.find((c) => c.label === "Average attendance") ??
-    props.cards.find((c) => c.label === "Attendance")
+export interface ReportRingMetrics {
+  attendancePct: number
+  qrSessions: number
+  bleSessions: number
+  manualSessions: number
+  studentsAtRisk: number
+  totalStudents: number
+  attendanceThreshold: number
+}
 
-  const attendancePct = attendanceCard
-    ? Number.parseFloat(attendanceCard.value.replace("%", "")) || 0
-    : 0
+export function ReportSummaryRings(props: {
+  cards: TeacherWebSummaryCard[]
+  metrics?: ReportRingMetrics
+}) {
+  const cc = useChartColors()
+
+  const attendancePct = props.metrics
+    ? props.metrics.attendancePct
+    : (() => {
+        const card =
+          props.cards.find((c) => c.label === "Average attendance") ??
+          props.cards.find((c) => c.label === "Attendance")
+        return card ? Number.parseFloat(card.value.replace("%", "")) || 0 : 0
+      })()
+
   const attendanceData = [
     { name: "Attendance", value: attendancePct, fill: cc.accent },
     { name: "Remaining", value: Math.max(0, 100 - attendancePct), fill: cc.border },
   ].filter((d) => d.value > 0)
 
-  const sessionsCard =
-    props.cards.find((c) => c.label === "Lecture sessions") ??
-    props.cards.find((c) => c.label === "Sessions")
-  const sessionsCount = sessionsCard ? Number.parseInt(sessionsCard.value, 10) || 0 : 0
-  const sessionsCap = Math.max(sessionsCount, 30)
-  const sessionsData =
-    sessionsCount > 0
+  const m = props.metrics
+
+  const totalModeSessions = m ? m.qrSessions + m.bleSessions + m.manualSessions : 0
+  const modeData =
+    m && totalModeSessions > 0
       ? [
-          { name: "Taken", value: sessionsCount, fill: cc.success },
-          { name: "Remaining", value: Math.max(0, sessionsCap - sessionsCount), fill: cc.border },
-        ]
+          { name: "QR + GPS", value: m.qrSessions, fill: cc.accent },
+          { name: "Bluetooth", value: m.bleSessions, fill: cc.success },
+          { name: "Manual", value: m.manualSessions, fill: cc.warning },
+        ].filter((d) => d.value > 0)
       : []
 
-  const studentsCard = props.cards.find(
-    (c) => c.label === "Students enrolled" || c.label === "Students",
-  )
-  const studentsCount = studentsCard ? Number.parseInt(studentsCard.value, 10) || 0 : 0
-  const studentsCap = Math.max(studentsCount, 60)
+  const atRiskPct =
+    m && m.totalStudents > 0 ? Math.round((m.studentsAtRisk / m.totalStudents) * 100) : null
+  const safePct = atRiskPct != null ? 100 - atRiskPct : null
   const studentsData =
-    studentsCount > 0
+    m && atRiskPct != null
       ? [
-          { name: "Enrolled", value: studentsCount, fill: cc.warning },
-          { name: "Remaining", value: Math.max(0, studentsCap - studentsCount), fill: cc.border },
-        ]
+          { name: "On track", value: safePct ?? 0, fill: cc.success },
+          { name: "At risk", value: atRiskPct, fill: cc.warning },
+        ].filter((d) => d.value > 0)
       : []
 
-  if (attendanceData.length === 0 && sessionsData.length === 0 && studentsData.length === 0)
+  if (attendanceData.length === 0 && modeData.length === 0 && studentsData.length === 0)
     return null
 
   return (
@@ -64,11 +77,28 @@ export function ReportSummaryRings(props: { cards: TeacherWebSummaryCard[] }) {
       style={{
         display: "flex",
         justifyContent: "center",
+        alignItems: "center",
         gap: 40,
         flexWrap: "wrap",
         marginBottom: 24,
+        padding: "28px 24px",
+        borderRadius: 16,
+        border: "1px solid var(--ae-card-border)",
+        background: "var(--ae-card-surface)",
+        boxShadow: "var(--ae-card-shadow)",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "var(--ae-card-glow)",
+          pointerEvents: "none",
+        }}
+      />
       {attendanceData.length > 0 ? (
         <RingItem
           label="Average attendance"
@@ -77,18 +107,18 @@ export function ReportSummaryRings(props: { cards: TeacherWebSummaryCard[] }) {
           colors={cc}
         />
       ) : null}
-      {sessionsData.length > 0 ? (
-        <RingItem
-          label="Sessions taken"
-          value={String(sessionsCount)}
-          data={sessionsData}
+      {modeData.length > 0 ? (
+        <ModeRingItem
+          label="Session modes"
+          total={totalModeSessions}
+          data={modeData}
           colors={cc}
         />
       ) : null}
-      {studentsData.length > 0 ? (
+      {studentsData.length > 0 && m ? (
         <RingItem
-          label="Students enrolled"
-          value={String(studentsCount)}
+          label={`Students below ${m.attendanceThreshold}%`}
+          value={`${m.studentsAtRisk} / ${m.totalStudents}`}
           data={studentsData}
           colors={cc}
         />
@@ -104,7 +134,7 @@ function RingItem(props: {
   colors: ChartColors
 }) {
   return (
-    <div style={{ textAlign: "center" }}>
+    <div style={{ textAlign: "center", width: 160, flexShrink: 0, position: "relative", zIndex: 1 }}>
       <ResponsiveContainer width="100%" height={140}>
         <PieChart>
           <Pie
@@ -116,6 +146,8 @@ function RingItem(props: {
             innerRadius={44}
             outerRadius={60}
             paddingAngle={2}
+            startAngle={90}
+            endAngle={-270}
           >
             {props.data.map((entry) => (
               <Cell key={`${entry.name}-${entry.fill}`} fill={entry.fill} />
@@ -123,8 +155,72 @@ function RingItem(props: {
           </Pie>
         </PieChart>
       </ResponsiveContainer>
-      <div style={{ fontSize: 13, color: props.colors.textMuted }}>{props.label}</div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: props.colors.text }}>{props.value}</div>
+      <div style={{ fontSize: 13, color: props.colors.textMuted, marginTop: 4 }}>{props.label}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: props.colors.text, marginTop: 2 }}>{props.value}</div>
+    </div>
+  )
+}
+
+function ModeRingItem(props: {
+  label: string
+  total: number
+  data: Array<{ name: string; value: number; fill: string }>
+  colors: ChartColors
+}) {
+  return (
+    <div style={{ textAlign: "center", width: 180, flexShrink: 0, position: "relative", zIndex: 1 }}>
+      <ResponsiveContainer width="100%" height={140}>
+        <PieChart>
+          <Pie
+            data={props.data}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            innerRadius={44}
+            outerRadius={60}
+            paddingAngle={3}
+            startAngle={90}
+            endAngle={-270}
+          >
+            {props.data.map((entry) => (
+              <Cell key={`${entry.name}-${entry.fill}`} fill={entry.fill} />
+            ))}
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+      <div style={{ fontSize: 13, color: props.colors.textMuted, marginTop: 4 }}>{props.label}</div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: 12,
+          marginTop: 6,
+          flexWrap: "wrap",
+        }}
+      >
+        {props.data.map((entry) => (
+          <div
+            key={entry.name}
+            style={{ display: "flex", alignItems: "center", gap: 4 }}
+          >
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                background: entry.fill,
+                display: "inline-block",
+                flexShrink: 0,
+              }}
+            />
+            <span style={{ fontSize: 11, color: props.colors.textMuted, whiteSpace: "nowrap" }}>
+              {entry.name}
+              <strong style={{ color: props.colors.text, marginLeft: 3 }}>{entry.value}</strong>
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -146,8 +242,10 @@ export function ReportSessionTrendChart(props: { data: SessionChartPoint[] }) {
           padding: 24,
           textAlign: "center",
           color: webTheme.colors.textMuted,
-          border: `1px solid ${webTheme.colors.border}`,
-          borderRadius: 10,
+          border: "1px solid var(--ae-card-border)",
+          borderRadius: 16,
+          background: "var(--ae-card-surface)",
+          boxShadow: "var(--ae-card-shadow)",
         }}
       >
         No session data for the selected filters.
@@ -156,13 +254,38 @@ export function ReportSessionTrendChart(props: { data: SessionChartPoint[] }) {
   }
 
   return (
-    <div style={{ height: 280, marginTop: 8 }}>
+    <div
+      style={{
+        height: 320,
+        marginTop: 8,
+        padding: "20px 16px 16px",
+        borderRadius: 16,
+        border: "1px solid var(--ae-card-border)",
+        background: "var(--ae-card-surface)",
+        boxShadow: "var(--ae-card-shadow)",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "var(--ae-card-glow)",
+          pointerEvents: "none",
+        }}
+      />
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={props.data} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
+        <LineChart data={props.data} margin={{ top: 8, right: 16, left: 0, bottom: 24 }}>
           <XAxis
             dataKey="dateLabel"
-            tick={{ fontSize: 12, fill: cc.textMuted }}
+            tick={{ fontSize: 11, fill: cc.textMuted }}
             stroke={cc.border}
+            angle={-35}
+            textAnchor="end"
+            height={56}
+            interval={0}
           />
           <YAxis
             domain={[0, 100]}
@@ -173,9 +296,10 @@ export function ReportSessionTrendChart(props: { data: SessionChartPoint[] }) {
           <Tooltip
             contentStyle={{
               background: cc.surfaceRaised,
-              border: `1px solid ${cc.border}`,
-              borderRadius: 8,
+              border: "1px solid var(--ae-card-border)",
+              borderRadius: 12,
               color: cc.text,
+              boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
             }}
             labelStyle={{ color: cc.text }}
             itemStyle={{ color: cc.text }}

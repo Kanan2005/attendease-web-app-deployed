@@ -58,9 +58,10 @@ describe("web auth session helpers", () => {
       secure: false,
     })
 
-    expect(cookies).toHaveLength(5)
+    expect(cookies).toHaveLength(6)
     expect(cookies.map((entry) => entry.name)).toEqual([
       webSessionCookieNames.accessToken,
+      webSessionCookieNames.refreshToken,
       webSessionCookieNames.activeRole,
       webSessionCookieNames.availableRoles,
       webSessionCookieNames.displayName,
@@ -74,9 +75,22 @@ describe("web auth session helpers", () => {
         sameSite: "lax",
         path: "/",
         secure: false,
+        expires: new Date("2026-03-15T10:00:00.000Z"),
+      },
+    })
+    expect(cookies[1]).toMatchObject({
+      name: webSessionCookieNames.refreshToken,
+      value: "refresh_token_1234567890",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: false,
+        expires: new Date("2026-03-15T10:00:00.000Z"),
       },
     })
     expect(cookies[2]?.value).toBe("ADMIN")
+    expect(cookies[2]?.options.expires).toEqual(new Date("2026-03-15T10:00:00.000Z"))
   })
 
   it("prefers the internal web API url when one is configured", () => {

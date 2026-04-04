@@ -92,6 +92,14 @@ export function formatDateTimeLabel(value: string) {
   })
 }
 
+// v2.0: Date-only format — avoids the "5:30 am" bug when only a date
+// (no time component) is available.
+export function formatDateOnlyLabel(value: string) {
+  return new Date(value).toLocaleDateString("en-IN", {
+    dateStyle: "medium",
+  })
+}
+
 export function formatEnrollmentStatusLabel(
   status: StudentClassroomMembershipSummary["enrollmentStatus"],
 ) {

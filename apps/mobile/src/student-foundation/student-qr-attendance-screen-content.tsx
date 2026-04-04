@@ -25,6 +25,7 @@ type Props = {
     | "camera"
     | "verifying"
     | "success"
+    | "already_marked" // v2.0: API returned 409 — attendance already recorded
     | "error"
   errorMessage: string | null
   gpsStatus: "pending" | "acquiring" | "ready" | "denied" | "unavailable"
@@ -39,6 +40,7 @@ type Props = {
   classroomTitle: string | null
   onBarcodeScan: (payload: string) => void
   onRetry: () => void
+  onGoBack: () => void
 }
 
 export function StudentQrAttendanceScreenContent(props: Props) {
@@ -80,6 +82,9 @@ export function StudentQrAttendanceScreenContent(props: Props) {
           <Pressable style={styles.secondaryButton} onPress={props.onRetry}>
             <Text style={styles.secondaryButtonLabel}>Retry</Text>
           </Pressable>
+          <Pressable onPress={props.onGoBack} hitSlop={12}>
+            <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 4 }}>Go Back</Text>
+          </Pressable>
         </View>
       ) : props.phase === "location_denied" ? (
         <View style={{ alignItems: "center", gap: 16, paddingVertical: 40 }}>
@@ -104,6 +109,9 @@ export function StudentQrAttendanceScreenContent(props: Props) {
           </Pressable>
           <Pressable style={styles.secondaryButton} onPress={props.onRetry}>
             <Text style={styles.secondaryButtonLabel}>Retry</Text>
+          </Pressable>
+          <Pressable onPress={props.onGoBack} hitSlop={12}>
+            <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 4 }}>Go Back</Text>
           </Pressable>
         </View>
       ) : props.phase === "camera_denied" ? (
@@ -130,6 +138,9 @@ export function StudentQrAttendanceScreenContent(props: Props) {
           <Pressable style={styles.secondaryButton} onPress={props.onRetry}>
             <Text style={styles.secondaryButtonLabel}>Retry</Text>
           </Pressable>
+          <Pressable onPress={props.onGoBack} hitSlop={12}>
+            <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 4 }}>Go Back</Text>
+          </Pressable>
         </View>
       ) : props.phase === "success" ? (
         <View style={{ alignItems: "center", gap: 12, paddingVertical: 40 }}>
@@ -147,6 +158,13 @@ export function StudentQrAttendanceScreenContent(props: Props) {
               {formatDateTime(props.markData.markedAt)}
             </Text>
           ) : null}
+          {/* v2.0: Done button to navigate back after successful attendance */}
+          <Pressable
+            style={[styles.primaryButton, { paddingHorizontal: 40, marginTop: 8 }]}
+            onPress={props.onGoBack}
+          >
+            <Text style={styles.primaryButtonLabel}>Done</Text>
+          </Pressable>
         </View>
       ) : props.phase === "error" ? (
         <View style={{ alignItems: "center", gap: 16, paddingVertical: 40 }}>
@@ -168,11 +186,43 @@ export function StudentQrAttendanceScreenContent(props: Props) {
               <Text style={{ fontSize: 15, fontWeight: "700", color: "#fff" }}>Open Settings</Text>
             </Pressable>
           ) : null}
+          {/* v2.0: Two actions — Scan Again re-opens camera with fresh GPS,
+              Go Back returns to previous screen */}
           <Pressable
             style={[styles.primaryButton, { paddingHorizontal: 32 }]}
             onPress={props.onRetry}
           >
-            <Text style={styles.primaryButtonLabel}>Retry</Text>
+            <Text style={styles.primaryButtonLabel}>Scan Again</Text>
+          </Pressable>
+          <Pressable style={styles.secondaryButton} onPress={props.onGoBack}>
+            <Text style={styles.secondaryButtonLabel}>Go Back</Text>
+          </Pressable>
+        </View>
+      ) : props.phase === "already_marked" ? (
+        /* v2.0: API returned 409 — student already has attendance for this session.
+           Shows a friendly info screen instead of a red error. */
+        <View style={{ alignItems: "center", gap: 12, paddingVertical: 40 }}>
+          <View style={localStyles.iconCircle(c.warningSoft)}>
+            <Ionicons name="checkmark-done-circle" size={64} color={c.warning} />
+          </View>
+          <Text style={{ fontSize: 20, fontWeight: "800", color: c.warning }}>
+            Already Marked
+          </Text>
+          <Text
+            style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}
+          >
+            Your attendance has already been recorded for this session. No action needed.
+          </Text>
+          {props.classroomTitle ? (
+            <Text style={{ fontSize: 13, fontWeight: "600", color: c.primary }}>
+              {props.classroomTitle}
+            </Text>
+          ) : null}
+          <Pressable
+            style={[styles.primaryButton, { paddingHorizontal: 40, marginTop: 8 }]}
+            onPress={props.onGoBack}
+          >
+            <Text style={styles.primaryButtonLabel}>Done</Text>
           </Pressable>
         </View>
       ) : props.phase === "verifying" ? (
@@ -186,7 +236,7 @@ export function StudentQrAttendanceScreenContent(props: Props) {
           <Text
             style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}
           >
-            Checking enrollment, capturing GPS, and marking your attendance.
+            Checking enrollment, verifying GPS, and marking your attendance.
           </Text>
           {props.classroomTitle ? (
             <Text style={{ fontSize: 13, fontWeight: "600", color: c.primary }}>
@@ -197,7 +247,9 @@ export function StudentQrAttendanceScreenContent(props: Props) {
       ) : CameraPreview ? (
         <View style={{ gap: 12 }}>
           <Text style={{ fontSize: 15, fontWeight: "600", color: c.text, textAlign: "center" }}>
-            Point the camera at the QR code
+            {props.gpsStatus === "ready"
+              ? "Point the camera at the QR code"
+              : "Waiting for GPS lock before you can scan…"}
           </Text>
           <View
             style={{
@@ -217,11 +269,43 @@ export function StudentQrAttendanceScreenContent(props: Props) {
                 }
               }}
             />
+            {/* v2.0: Overlay blocks scanning while GPS acquires — QR codes rotate
+                frequently so we must have location ready before processing any scan. */}
+            {props.gpsStatus !== "ready" && (
+              <View
+                style={{
+                  ...StyleSheet.absoluteFillObject,
+                  backgroundColor: "rgba(0, 0, 0, 0.35)",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <ActivityIndicator size="small" color="#fff" />
+                <Text
+                  style={{
+                    color: "#fff",
+                    fontSize: 13,
+                    fontWeight: "600",
+                    marginTop: 8,
+                    textAlign: "center",
+                    paddingHorizontal: 24,
+                  }}
+                >
+                  Acquiring GPS… scanning will activate once locked
+                </Text>
+              </View>
+            )}
           </View>
           <GpsStatusBanner status={props.gpsStatus} />
           <Text style={{ fontSize: 13, color: c.textMuted, textAlign: "center" }}>
-            Attendance will be marked automatically after scanning.
+            {props.gpsStatus === "ready"
+              ? "Attendance will be marked automatically after scanning."
+              : "Scanning is disabled until GPS locks — please wait."}
           </Text>
+          {/* v2.0: Go Back link so students aren't stuck on camera during GPS acquisition */}
+          <Pressable onPress={props.onGoBack} hitSlop={12} style={{ alignSelf: "center" }}>
+            <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 4 }}>Go Back</Text>
+          </Pressable>
         </View>
       ) : (
         <StudentLoadingCard label="Preparing camera…" />
@@ -247,10 +331,11 @@ function GpsStatusBanner(props: {
       bg = c.successSoft
       break
     case "acquiring":
+      // v2.0: Warning-level colors to emphasize GPS is not yet ready for attendance
       icon = "locate-outline"
       label = "Acquiring GPS…"
-      color = c.primary
-      bg = c.primarySoft
+      color = c.warning
+      bg = c.warningSoft
       break
     case "denied":
       icon = "warning-outline"
@@ -265,10 +350,11 @@ function GpsStatusBanner(props: {
       bg = c.warningSoft
       break
     default:
+      // v2.0: Warning-level colors for pending state to draw attention
       icon = "locate-outline"
       label = "GPS pending"
-      color = c.textMuted
-      bg = c.surfaceMuted
+      color = c.warning
+      bg = c.warningSoft
   }
 
   return (

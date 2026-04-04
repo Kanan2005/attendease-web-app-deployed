@@ -5,6 +5,7 @@ import { Alert, BackHandler, PermissionsAndroid, Platform } from "react-native"
 
 import { createAuthApiClient } from "@attendease/auth"
 import type { BluetoothSessionCreateResponse } from "@attendease/contracts"
+import * as FileSystem from "expo-file-system"
 import { getMobileAttendanceSessionPollInterval } from "../attendance-live"
 import {
   useTeacherBluetoothAdvertiser,
@@ -25,6 +26,70 @@ const authClient = createAuthApiClient({
   baseUrl: mobileEnv.EXPO_PUBLIC_API_URL,
 })
 
+// ── Persistent BLE runtime storage (survives app kills) ──
+function getBleRuntimePath(): string {
+  const baseDir = (FileSystem as Record<string, unknown>).documentDirectory as string | null
+  return `${baseDir ?? ""}ble-session-runtime.json`
+}
+
+async function saveBleRuntime(data: BluetoothSessionCreateResponse): Promise<void> {
+  try {
+    await FileSystem.writeAsStringAsync(getBleRuntimePath(), JSON.stringify(data))
+    console.log("[BLE-STORE] Saved runtime for session", data.session.id)
+  } catch (e) {
+    console.warn("[BLE-STORE] Failed to save runtime:", e)
+  }
+}
+
+async function loadBleRuntime(): Promise<BluetoothSessionCreateResponse | null> {
+  try {
+    const path = getBleRuntimePath()
+    const info = await FileSystem.getInfoAsync(path)
+    if (!info.exists) return null
+    const raw = await FileSystem.readAsStringAsync(path)
+    const parsed = JSON.parse(raw) as BluetoothSessionCreateResponse
+    console.log("[BLE-STORE] Loaded runtime for session", parsed.session.id)
+    return parsed
+  } catch (e) {
+    console.warn("[BLE-STORE] Failed to load runtime:", e)
+    return null
+  }
+}
+
+async function clearBleRuntime(): Promise<void> {
+  try {
+    const path = getBleRuntimePath()
+    const info = await FileSystem.getInfoAsync(path)
+    if (info.exists) {
+      await FileSystem.deleteAsync(path, { idempotent: true })
+      console.log("[BLE-STORE] Cleared runtime")
+    }
+  } catch (e) {
+    console.warn("[BLE-STORE] Failed to clear runtime:", e)
+  }
+}
+
+// Compute elapsed seconds from a startedAt ISO timestamp
+function computeElapsedSeconds(startedAt: string | null): number {
+  if (!startedAt) return 0
+  const diff = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000)
+  return Math.max(0, diff)
+}
+
+// Extract a human-readable error message from API errors
+function extractApiErrorMessage(err: unknown, fallback: string): string {
+  if (err && typeof err === "object" && "details" in err) {
+    const details = (err as { details: unknown }).details
+    if (details && typeof details === "object" && "message" in details) {
+      return String((details as { message: unknown }).message)
+    }
+    if (typeof details === "string") return details
+    return JSON.stringify(details)
+  }
+  if (err instanceof Error) return err.message
+  return fallback
+}
+
 export function TeacherBluetoothSessionCreateScreen(props: {
   classroomId: string
   lectureId: string
@@ -42,7 +107,7 @@ export function TeacherBluetoothSessionCreateScreen(props: {
     "preflight",
   )
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const didCreate = useRef(false)
+  const didRun = useRef(false)
   const isEnding = useRef(false)
 
   const runtime = createdSessionId
@@ -69,6 +134,7 @@ export function TeacherBluetoothSessionCreateScreen(props: {
     },
     onSuccess: async () => {
       await advertiser.stop()
+      await clearBleRuntime()
       if (createdSessionId) {
         await queryClient.setQueryData(teacherQueryKeys.bluetoothRuntime(createdSessionId), null)
         await invalidateTeacherExperienceQueries(queryClient, {
@@ -79,6 +145,40 @@ export function TeacherBluetoothSessionCreateScreen(props: {
       }
     },
   })
+
+  // ── Resume an existing session from stored runtime ──
+  const resumeSession = useCallback(
+    (storedRuntime: BluetoothSessionCreateResponse) => {
+      const sid = storedRuntime.session.id
+      console.log("[BLE] Resuming session:", sid)
+      setCreatedSessionId(sid)
+      queryClient.setQueryData(teacherQueryKeys.bluetoothRuntime(sid), storedRuntime)
+      setElapsedSeconds(computeElapsedSeconds(storedRuntime.session.startedAt))
+      setPhase("broadcasting")
+    },
+    [queryClient],
+  )
+
+  // ── Create a brand new session ──
+  const createNewSession = useCallback(async () => {
+    try {
+      const created = await createSessionMutation.mutateAsync({
+        classroomId: props.classroomId,
+        ...(props.lectureId ? { lectureId: props.lectureId } : {}),
+      })
+      setCreatedSessionId(created.session.id)
+      queryClient.setQueryData(teacherQueryKeys.bluetoothRuntime(created.session.id), created)
+      await saveBleRuntime(created)
+      setPhase("broadcasting")
+    } catch (err) {
+      console.error("[BLE-CREATE] Session creation failed:", err)
+      const msg = extractApiErrorMessage(err, "Failed to create session")
+      setPhase("error")
+      setErrorMsg(msg)
+      didRun.current = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mutation and queryClient refs are stable
+  }, [session, props.classroomId, props.lectureId])
 
   const requestBluetoothPermissions = useCallback(async (): Promise<boolean> => {
     if (Platform.OS !== "android" || (Platform.Version ?? 0) < 31) return true
@@ -91,12 +191,7 @@ export function TeacherBluetoothSessionCreateScreen(props: {
       const allGranted = Object.values(results).every(
         (r) => r === PermissionsAndroid.RESULTS.GRANTED,
       )
-      console.log(
-        "[BLE-PERM] Permission results:",
-        JSON.stringify(results),
-        "allGranted:",
-        allGranted,
-      )
+      console.log("[BLE-PERM] allGranted:", allGranted)
       return allGranted
     } catch (e) {
       console.error("[BLE-PERM] Permission request failed:", e)
@@ -104,83 +199,117 @@ export function TeacherBluetoothSessionCreateScreen(props: {
     }
   }, [])
 
-  const createSession = useCallback(async () => {
-    const token = getTeacherAccessToken(session)
-    try {
-      const created = await createSessionMutation.mutateAsync({
-        classroomId: props.classroomId,
-        ...(props.lectureId ? { lectureId: props.lectureId } : {}),
-      })
-      setCreatedSessionId(created.session.id)
-      queryClient.setQueryData(teacherQueryKeys.bluetoothRuntime(created.session.id), created)
-      setPhase("broadcasting")
-    } catch (err) {
-      console.error("[BLE-CREATE] Session creation failed:", err)
-      // AuthApiClientError stores the real message in `details`, not `message`
-      let msg = "Failed to create session"
-      if (err && typeof err === "object" && "details" in err) {
-        const details = (err as { details: unknown }).details
-        if (details && typeof details === "object" && "message" in details) {
-          msg = String((details as { message: unknown }).message)
-        } else if (typeof details === "string") {
-          msg = details
-        } else {
-          msg = JSON.stringify(details)
-        }
-      } else if (err instanceof Error) {
-        msg = err.message
-      }
-      console.error("[BLE-CREATE] Extracted error message:", msg)
-      const isAlreadyActive =
-        msg.toLowerCase().includes("already active") || msg.toLowerCase().includes("already exists")
+  // ── Main preflight: check BT → try resume → or create new ──
+  const runPreflight = useCallback(async () => {
+    if (!session || !props.classroomId) return
+    didRun.current = true
+    setPhase("preflight")
+    setErrorMsg(null)
 
-      if (isAlreadyActive) {
+    try {
+      // Step 1: Bluetooth permissions
+      const granted = await requestBluetoothPermissions()
+      if (!granted) {
+        setPhase("error")
+        setErrorMsg("Bluetooth permissions are required. Grant 'Nearby devices' permission in Settings.")
+        didRun.current = false
+        return
+      }
+
+      // Step 2: Bluetooth availability
+      const availability = await AttendEaseBluetooth.getAvailability()
+      if (!canStartBluetoothAdvertising(availability)) {
+        const reason = !availability.supported
+          ? "Bluetooth is not supported on this device."
+          : !availability.poweredOn
+            ? "Bluetooth is turned off. Please turn on Bluetooth and try again."
+            : "Bluetooth advertising permission is required. Grant 'Nearby devices' permission in Settings."
+        setPhase("error")
+        setErrorMsg(reason)
+        didRun.current = false
+        return
+      }
+
+      setPhase("creating")
+      const token = getTeacherAccessToken(session)
+
+      // Step 3: Try to resume from stored runtime first
+      const storedRuntime = await loadBleRuntime()
+      if (storedRuntime) {
+        console.log("[BLE] Found stored runtime for session:", storedRuntime.session.id)
         try {
+          // Verify the session is still live on the server
           const liveSessions = await authClient.listLiveAttendanceSessions(token, {
             classroomId: props.classroomId,
             mode: "BLUETOOTH",
           })
-          const existing = liveSessions[0]
-          if (existing) {
-            await authClient.endAttendanceSession(token, existing.id)
+          const stillLive = liveSessions.find((s) => s.id === storedRuntime.session.id)
+          if (stillLive) {
+            // Session is still live → resume it
+            resumeSession(storedRuntime)
+            return
+          }
+          // Session ended while we were away → clear stale runtime
+          console.log("[BLE] Stored session no longer live, clearing")
+          await clearBleRuntime()
+        } catch (err) {
+          // Network error checking live sessions — still try to resume
+          // (the advertiser will work even if we can't verify server state)
+          console.warn("[BLE] Could not verify session status, resuming optimistically:", err)
+          resumeSession(storedRuntime)
+          return
+        }
+      }
+
+      // Step 4: No stored runtime or session expired — check for any stale live sessions
+      try {
+        const liveSessions = await authClient.listLiveAttendanceSessions(token, {
+          classroomId: props.classroomId,
+          mode: "BLUETOOTH",
+        })
+        for (const stale of liveSessions) {
+          console.log("[BLE] Ending stale session without stored runtime:", stale.id)
+          try {
+            await authClient.endAttendanceSession(token, stale.id)
             await invalidateTeacherExperienceQueries(queryClient, {
               classroomId: props.classroomId,
-              sessionId: existing.id,
+              sessionId: stale.id,
             })
+          } catch (endErr) {
+            console.warn("[BLE] Failed to end stale session:", stale.id, endErr)
           }
-          const retry = await createSessionMutation.mutateAsync({
-            classroomId: props.classroomId,
-            ...(props.lectureId ? { lectureId: props.lectureId } : {}),
-          })
-          setCreatedSessionId(retry.session.id)
-          queryClient.setQueryData(teacherQueryKeys.bluetoothRuntime(retry.session.id), retry)
-          setPhase("broadcasting")
-        } catch (retryErr) {
-          setPhase("error")
-          setErrorMsg(
-            retryErr instanceof Error
-              ? retryErr.message
-              : "Failed to create session after ending previous one.",
-          )
-          didCreate.current = false
         }
-      } else {
-        setPhase("error")
-        setErrorMsg(msg)
-        didCreate.current = false
+      } catch (listErr) {
+        console.warn("[BLE] Failed to list live sessions (continuing to create):", listErr)
       }
+
+      // Step 5: Create a new session
+      await createNewSession()
+    } catch (err) {
+      console.error("[BLE-PREFLIGHT] Unexpected error:", err)
+      setPhase("error")
+      setErrorMsg(err instanceof Error ? err.message : "Could not start Bluetooth session.")
+      didRun.current = false
     }
-  }, [session, props.classroomId, props.lectureId, createSessionMutation, queryClient])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refs and stable callbacks only
+  }, [session, props.classroomId, props.lectureId])
 
   const handleBackPress = useCallback(() => {
     if (phase === "broadcasting" && createdSessionId) {
       Alert.alert(
-        "End Attendance Session?",
-        "If you leave, the session will end and students won't be able to mark attendance.",
+        "Leave Session",
+        "The session will keep running in the background. Students can still mark attendance. You can return to this session from the lectures list.",
         [
-          { text: "Stay", style: "cancel" },
+          { text: "Stay Here", style: "cancel" },
           {
-            text: "End & Leave",
+            text: "Keep Running & Leave",
+            onPress: () => {
+              // Just navigate back — session stays live on server, stored runtime persists
+              router.back()
+            },
+          },
+          {
+            text: "End Session & Leave",
             style: "destructive",
             onPress: () => {
               if (isEnding.current) return
@@ -197,53 +326,12 @@ export function TeacherBluetoothSessionCreateScreen(props: {
     }
   }, [phase, createdSessionId, router, endSessionMutation])
 
-  const runPreflight = useCallback(() => {
-    if (!session || !props.classroomId) return
-    didCreate.current = true
-    setPhase("preflight")
-    setErrorMsg(null)
-
-    requestBluetoothPermissions()
-      .then((granted) => {
-        if (!granted) {
-          setPhase("error")
-          setErrorMsg(
-            "Bluetooth permissions are required. Grant 'Nearby devices' permission in Settings.",
-          )
-          didCreate.current = false
-          return
-        }
-        return AttendEaseBluetooth.getAvailability()
-      })
-      .then((availability) => {
-        if (!availability) return
-        if (!canStartBluetoothAdvertising(availability)) {
-          const reason = !availability.supported
-            ? "Bluetooth is not supported on this device."
-            : !availability.poweredOn
-              ? "Bluetooth is turned off. Please turn on Bluetooth and try again."
-              : "Bluetooth advertising permission is required. Grant 'Nearby devices' permission in Settings."
-          setPhase("error")
-          setErrorMsg(reason)
-          didCreate.current = false
-          return
-        }
-
-        setPhase("creating")
-        return createSession()
-      })
-      .catch((err) => {
-        setPhase("error")
-        setErrorMsg(err instanceof Error ? err.message : "Could not check Bluetooth availability.")
-        didCreate.current = false
-      })
-  }, [session, props.classroomId, requestBluetoothPermissions, createSession])
-
-  // Auto-run preflight on mount
+  // Auto-run preflight once on mount (ref guard prevents re-runs)
   useEffect(() => {
-    if (!session || !props.classroomId || didCreate.current) return
-    runPreflight()
-  }, [session, props.classroomId, runPreflight])
+    if (!session || !props.classroomId || didRun.current) return
+    void runPreflight()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally run only on mount; didRun ref prevents re-entry
+  }, [session, props.classroomId])
 
   // Intercept Android hardware back button during broadcasting
   useEffect(() => {
@@ -256,7 +344,7 @@ export function TeacherBluetoothSessionCreateScreen(props: {
     return () => subscription.remove()
   }, [phase, createdSessionId, handleBackPress])
 
-  // Timer
+  // Timer — ticks every second during broadcasting
   useEffect(() => {
     if (phase !== "broadcasting") return
     const interval = setInterval(() => setElapsedSeconds((s) => s + 1), 1000)
@@ -309,8 +397,8 @@ export function TeacherBluetoothSessionCreateScreen(props: {
       }}
       onGoBack={handleBackPress}
       onRetryPreflight={() => {
-        didCreate.current = false
-        runPreflight()
+        didRun.current = false
+        void runPreflight()
       }}
     />
   )

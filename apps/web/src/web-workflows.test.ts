@@ -30,7 +30,6 @@ import {
 describe("web workflow helpers", () => {
   it("keeps the main teacher and admin workflow routes aligned", () => {
     expect(teacherWorkflowRoutes.classroomCreate).toBe("/teacher/classrooms/new")
-    expect(teacherWorkflowRoutes.sessionStart).toBe("/teacher/sessions/start")
     expect(teacherWorkflowRoutes.classroomDetail("classroom_1")).toBe(
       "/teacher/classrooms/classroom_1",
     )

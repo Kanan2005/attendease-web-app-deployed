@@ -68,9 +68,9 @@ export function buildTeacherClassroomDetailPageModel(classroomId: string): WebPo
     actions: [
       buildAction("/teacher/classrooms", "Back To Classrooms", "Return to the classroom hub list."),
       buildAction(
-        `/teacher/sessions/start?classroomId=${classroomId}`,
-        "Start QR Attendance",
-        "Open the short QR + GPS setup flow with this classroom preselected.",
+        `/teacher/classrooms/${classroomId}/lectures`,
+        "Open Lectures",
+        "View lecture sessions, add a new lecture, and start attendance from within the classroom.",
       ),
       buildAction(
         `/teacher/classrooms/${classroomId}/roster`,

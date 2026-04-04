@@ -1,6 +1,11 @@
-import { buildAdminDashboardPageModel } from "../../../../src/web-portal"
-import { WebPortalPage } from "../../../../src/web-shell"
+import { cookies } from "next/headers"
 
-export default function AdminDashboardPage() {
-  return <WebPortalPage model={buildAdminDashboardPageModel()} />
+import { readWebPortalSession } from "../../../../src/web-portal"
+import { AdminDashboardWorkspace } from "../../../../src/admin-workflows-client/admin-dashboard"
+
+export default async function AdminDashboardPage() {
+  const cookieStore = await cookies()
+  const session = readWebPortalSession(cookieStore)
+
+  return <AdminDashboardWorkspace accessToken={session?.accessToken ?? null} />
 }

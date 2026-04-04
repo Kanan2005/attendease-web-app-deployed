@@ -39,7 +39,14 @@ export function TeacherClassroomLecturesScreen(props: { classroomId: string }) {
   const lectureMutation = useTeacherCreateLectureMutation(props.classroomId)
   const classroomContext = teacherRoutes.classroomContext(props.classroomId)
   const [title, setTitle] = useState("")
-  const [lectureDate, setLectureDate] = useState(new Date().toISOString().split("T")[0] ?? "")
+  // Use local date (not UTC) so "today" matches the teacher's timezone
+  const [lectureDate, setLectureDate] = useState(() => {
+    const now = new Date()
+    const y = now.getFullYear()
+    const m = String(now.getMonth() + 1).padStart(2, "0")
+    const d = String(now.getDate()).padStart(2, "0")
+    return `${y}-${m}-${d}`
+  })
   const [showCreateForm, setShowCreateForm] = useState(false)
 
   const sessionsQuery = useTeacherAttendanceSessionsQuery()
@@ -108,11 +115,12 @@ export function TeacherClassroomLecturesScreen(props: { classroomId: string }) {
     )
   }
 
+  // Sort by creation time descending so newest lectures appear first
   const sorted = [...lectures]
     .map((lecture, idx) => ({ lecture, idx }))
     .sort((a, b) => {
       const d =
-        new Date(b.lecture.lectureDate).getTime() - new Date(a.lecture.lectureDate).getTime()
+        new Date(b.lecture.createdAt).getTime() - new Date(a.lecture.createdAt).getTime()
       return d !== 0 ? d : b.idx - a.idx
     })
 
@@ -209,9 +217,8 @@ export function TeacherClassroomLecturesScreen(props: { classroomId: string }) {
           ) : (
             sorted.map(({ lecture, idx }, i) => {
               const num = idx + 1
-              const dateStr = formatDateTime(
-                lecture.actualStartAt ?? lecture.plannedStartAt ?? lecture.lectureDate,
-              )
+              // Always show the lecture creation timestamp
+              const dateStr = formatDateTime(lecture.createdAt)
               const isCompleted = lecture.status === "COMPLETED"
               const isActive = lecture.status === "OPEN_FOR_ATTENDANCE"
               const hasSession = isActive || isCompleted

@@ -1,5 +1,5 @@
 import type { ClassroomRosterListQuery } from "@attendease/contracts"
-import { useQueries, useQuery } from "@tanstack/react-query"
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import { getMobileAttendanceListPollInterval } from "../attendance-live"
 import {
@@ -20,6 +20,17 @@ export function useTeacherMeQuery() {
     queryKey: teacherQueryKeys.me(),
     enabled: Boolean(session),
     queryFn: async () => authClient.me(getTeacherAccessToken(session)),
+  })
+}
+
+/** Fetches the full profile (includes department, designation, employeeCode). */
+export function useTeacherProfileQuery() {
+  const { session } = useTeacherSession()
+
+  return useQuery({
+    queryKey: teacherQueryKeys.profile(),
+    enabled: Boolean(session),
+    queryFn: async () => authClient.getProfile(getTeacherAccessToken(session)),
   })
 }
 
@@ -208,5 +219,24 @@ export function useTeacherAttendanceSessionsQuery() {
     enabled: Boolean(session),
     queryFn: async () => authClient.listAttendanceSessions(getTeacherAccessToken(session)),
     refetchInterval: (query) => getMobileAttendanceListPollInterval(query.state.data ?? null),
+  })
+}
+
+/** Mutation to update the teacher's profile (display name, department, etc.). */
+export function useTeacherUpdateProfileMutation() {
+  const { session } = useTeacherSession()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: {
+      displayName?: string
+      department?: string | null
+      designation?: string | null
+      employeeCode?: string | null
+    }) => authClient.updateProfile(getTeacherAccessToken(session), payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: teacherQueryKeys.me() })
+      void queryClient.invalidateQueries({ queryKey: teacherQueryKeys.profile() })
+    },
   })
 }

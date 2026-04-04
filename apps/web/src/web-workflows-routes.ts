@@ -4,7 +4,6 @@ export const teacherWorkflowRoutes = {
   classroomCreate: "/teacher/classrooms/new",
   semesters: "/teacher/semesters",
   imports: "/teacher/imports",
-  sessionStart: "/teacher/sessions/start",
   sessionHistory: "/teacher/sessions/history",
   classroomDetail(classroomId: string) {
     return `/teacher/classrooms/${classroomId}`
@@ -40,10 +39,11 @@ export const teacherWorkflowRoutes = {
 
 export const adminWorkflowRoutes = {
   dashboard: "/admin/dashboard",
-  studentSupport: "/admin/devices?view=support",
-  semesters: "/admin/semesters",
+  students: "/admin/students",
+  teachers: "/admin/teachers",
   devices: "/admin/devices",
-  imports: "/admin/imports",
+  classrooms: "/admin/classrooms",
+  semesters: "/admin/semesters",
 } as const
 
 export const webWorkflowQueryKeys = {
@@ -131,11 +131,20 @@ export const webWorkflowQueryKeys = {
   semesters(filters?: Record<string, string | undefined>) {
     return ["web-workflows", "semesters", filters ?? {}] as const
   },
+  adminDashboardStats() {
+    return ["web-workflows", "admin-dashboard-stats"] as const
+  },
   adminStudents(filters?: Record<string, string | undefined>) {
     return ["web-workflows", "admin-students", filters ?? {}] as const
   },
   adminStudentDetail(studentId: string) {
     return ["web-workflows", "admin-student-detail", studentId] as const
+  },
+  adminTeachers(filters?: Record<string, string | undefined>) {
+    return ["web-workflows", "admin-teachers", filters ?? {}] as const
+  },
+  adminTeacherDetail(teacherId: string) {
+    return ["web-workflows", "admin-teacher-detail", teacherId] as const
   },
   adminClassrooms(filters?: Record<string, string | undefined>) {
     return ["web-workflows", "admin-classrooms", filters ?? {}] as const

@@ -3,8 +3,9 @@ import type {
   AuthSessionResponse,
   TeacherRegistrationRequest,
 } from "@attendease/contracts"
+import { AuthApiClientError } from "@attendease/auth"
 import { useQueryClient } from "@tanstack/react-query"
-import { createContext, useContext, useState } from "react"
+import { createContext, useContext, useEffect, useRef, useState } from "react"
 import type { ReactNode } from "react"
 
 import { createMobileAuthBootstrap } from "./auth"
@@ -106,6 +107,32 @@ export function TeacherSessionProvider(props: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSessionResponse | null>(null)
   const [status, setStatus] = useState<TeacherSessionStatus>("idle")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  // v2.0: Auto-sign-out on 401 — subscribe to the query cache and detect expired
+  // teacher tokens globally. Clears the session so the layout gate redirects to sign-in.
+  const signOutRef = useRef<(() => void) | null>(null)
+  signOutRef.current = () => {
+    setSession(null)
+    setStatus("signed_out")
+    setErrorMessage(null)
+    setDraft(bootstrap.defaultDraft)
+    queryClient.removeQueries({ queryKey: ["teacher"] })
+  }
+
+  useEffect(() => {
+    const cache = queryClient.getQueryCache()
+    const unsubscribe = cache.subscribe((event) => {
+      if (event.type !== "updated" || event.action.type !== "error") return
+      const error = event.action.error
+      if (error instanceof AuthApiClientError && error.status === 401) {
+        const queryKey = event.query.queryKey
+        if (Array.isArray(queryKey) && queryKey[0] === "teacher") {
+          signOutRef.current?.()
+        }
+      }
+    })
+    return unsubscribe
+  }, [queryClient])
 
   async function signIn(nextDraft: TeacherSessionDraft = draft) {
     setStatus("bootstrapping")

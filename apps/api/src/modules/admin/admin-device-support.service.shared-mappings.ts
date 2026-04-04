@@ -51,6 +51,8 @@ export class AdminDeviceSupportServiceSharedMappings extends AdminDeviceSupportS
       createdAt: student.createdAt.toISOString(),
       programName: student.studentProfile?.programName ?? null,
       currentSemester: student.studentProfile?.currentSemester ?? null,
+      parentEmail: student.studentProfile?.parentEmail ?? null,
+      lastActiveSessionAt: null,
     }
   }
 
@@ -279,6 +281,9 @@ export class AdminDeviceSupportServiceSharedMappings extends AdminDeviceSupportS
       semesterStatus: enrollment.courseOffering.semester.status,
       joinedAt: enrollment.joinedAt.toISOString(),
       droppedAt: enrollment.droppedAt?.toISOString() ?? null,
+      totalSessions: 0,
+      attendedSessions: 0,
+      attendancePercentage: null,
     }
   }
 

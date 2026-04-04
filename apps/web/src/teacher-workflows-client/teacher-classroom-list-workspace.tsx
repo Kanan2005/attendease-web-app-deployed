@@ -10,25 +10,33 @@ import { useState } from "react"
 import { buildTeacherWebClassroomListCards } from "../teacher-classroom-management"
 import { teacherWorkflowRoutes, webWorkflowQueryKeys } from "../web-workflows"
 
-import { WorkflowBanner, WorkflowStateCard, bootstrap, workflowStyles } from "./shared"
+import { WorkflowBanner, WorkflowStateCard, bootstrap, useAuthRedirect, workflowStyles } from "./shared"
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 16, scale: 0.98 },
+  hidden: { opacity: 0, y: 20, scale: 0.96 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
-      delay: i * 0.05,
-      duration: 0.35,
+      delay: i * 0.06,
+      duration: 0.4,
       ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
     },
   }),
 }
 
+const cardHover = {
+  y: -6,
+  scale: 1.02,
+  transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
+}
+
 export function TeacherClassroomListWorkspace(props: {
   accessToken: string | null
 }) {
+  useAuthRedirect(props.accessToken)
+
   const [statusFilter, setStatusFilter] = useState<CourseOfferingStatus | "ALL">("ALL")
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const queryClient = useQueryClient()
@@ -59,19 +67,21 @@ export function TeacherClassroomListWorkspace(props: {
     : []
 
   return (
-    <div style={{ display: "grid", gap: 32 }}>
+    <div style={{ display: "grid", gap: 28 }}>
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "flex-end",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 12,
         }}
       >
-        <div>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
           <h1
             style={{
               margin: 0,
-              fontSize: 28,
+              fontSize: 24,
               fontWeight: 700,
               color: webTheme.colors.text,
               letterSpacing: "-0.025em",
@@ -79,11 +89,11 @@ export function TeacherClassroomListWorkspace(props: {
           >
             Classrooms
           </h1>
-          <p style={{ margin: "6px 0 0", color: webTheme.colors.textMuted, fontSize: 14 }}>
-            {classroomsQuery.isLoading
-              ? "Loading…"
-              : `${classroomCards.length} classroom${classroomCards.length !== 1 ? "s" : ""} available`}
-          </p>
+          {!classroomsQuery.isLoading ? (
+            <span style={{ fontSize: 13, color: webTheme.colors.textSubtle }}>
+              {classroomCards.length}
+            </span>
+          ) : null}
         </div>
 
         <Link
@@ -93,18 +103,20 @@ export function TeacherClassroomListWorkspace(props: {
             ...workflowStyles.primaryButton,
             display: "inline-flex",
             alignItems: "center",
-            gap: 6,
+            gap: 5,
+            padding: "8px 18px",
+            fontSize: 13,
             background: webTheme.gradients.accentButton,
             color: "#fff",
             boxShadow: webTheme.shadow.glow,
           }}
         >
-          <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
+          <span style={{ fontSize: 15, lineHeight: 1 }}>+</span>
           New classroom
         </Link>
       </div>
 
-      {!props.accessToken ? <WorkflowStateCard message="Sign in to load your classrooms." /> : null}
+      {/* Auth redirect is handled by useAuthRedirect — no dead "sign in" card */}
 
       {classroomsQuery.isLoading ? (
         <div
@@ -119,9 +131,9 @@ export function TeacherClassroomListWorkspace(props: {
               key={i}
               className="skeleton"
               style={{
-                borderRadius: webTheme.radius.card,
-                background: webTheme.colors.surfaceRaised,
-                border: `1px solid ${webTheme.colors.border}`,
+                borderRadius: 18,
+                background: "var(--ae-card-surface)",
+                border: "1px solid var(--ae-card-border)",
                 height: 180,
               }}
             />
@@ -167,7 +179,8 @@ export function TeacherClassroomListWorkspace(props: {
               fontSize: 17,
               fontWeight: 600,
               color: webTheme.colors.text,
-              margin: "0 0 6px",
+              marginTop: 0,
+              marginBottom: 6,
             }}
           >
             No classrooms yet
@@ -188,19 +201,21 @@ export function TeacherClassroomListWorkspace(props: {
                 variants={cardVariants}
                 initial="hidden"
                 animate="visible"
+                whileHover={cardHover}
                 style={{ height: "100%" }}
               >
                 <div
                   className="ui-card-link"
                   style={{
-                    borderRadius: webTheme.radius.card,
-                    border: `1px solid ${webTheme.colors.border}`,
-                    background: webTheme.colors.surfaceRaised,
+                    borderRadius: 18,
+                    border: "1px solid var(--ae-card-border)",
+                    background: "var(--ae-card-surface)",
                     position: "relative",
                     overflow: "hidden",
                     height: "100%",
                     display: "flex",
                     flexDirection: "column",
+                    boxShadow: "var(--ae-card-shadow)",
                   }}
                 >
                   <div
@@ -208,10 +223,22 @@ export function TeacherClassroomListWorkspace(props: {
                       position: "absolute",
                       top: 0,
                       left: 0,
+                      width: "60%",
+                      height: "60%",
+                      background: "var(--ae-card-glow)",
+                      pointerEvents: "none",
+                    }}
+                  />
+                  <div
+                    className="ui-card-accent-bar"
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
                       right: 0,
                       height: 3,
                       background: webTheme.gradients.accentButton,
-                      opacity: 0.6,
+                      transition: "opacity 0.3s ease",
                     }}
                   />
 
@@ -230,18 +257,22 @@ export function TeacherClassroomListWorkspace(props: {
                     <div>
                       <span
                         style={{
-                          color: webTheme.colors.textSubtle,
-                          fontSize: 12,
-                          fontWeight: 600,
-                          letterSpacing: "0.06em",
+                          color: webTheme.colors.accent,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          letterSpacing: "0.08em",
                           textTransform: "uppercase",
+                          opacity: 0.7,
                         }}
                       >
                         {classroom.courseCode}
                       </span>
                       <h3
                         style={{
-                          margin: "4px 0 0",
+                          marginTop: 4,
+                          marginRight: 0,
+                          marginBottom: 0,
+                          marginLeft: 0,
                           fontSize: 18,
                           fontWeight: 600,
                           color: webTheme.colors.text,
@@ -268,32 +299,27 @@ export function TeacherClassroomListWorkspace(props: {
 
                   <div
                     style={{
+                      marginTop: "auto",
+                      marginRight: 20,
+                      marginBottom: 0,
+                      marginLeft: 20,
+                      height: 1,
+                      background: "var(--ae-divider-gradient)",
+                    }}
+                  />
+                  <div
+                    style={{
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
                       padding: "12px 24px 16px",
-                      margin: "0 24px",
-                      marginTop: "auto",
-                      borderTop: `1px solid ${webTheme.colors.border}`,
                     }}
                   >
                     <div
                       style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}
                     >
+                      {/* v2.0: Removed attendanceModeLabel pill from here — mode is shown per-session in the lectures tab instead */}
                       <span style={workflowStyles.pill}>{classroom.statusLabel}</span>
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 500,
-                          color: webTheme.colors.textSubtle,
-                          background: webTheme.colors.surfaceMuted,
-                          border: `1px solid ${webTheme.colors.border}`,
-                          borderRadius: 4,
-                          padding: "2px 7px",
-                        }}
-                      >
-                        {classroom.attendanceModeLabel}
-                      </span>
                       {classroom.joinCodeLabel !== "No active join code" ? (
                         <span
                           style={{

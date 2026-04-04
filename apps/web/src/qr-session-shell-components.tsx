@@ -82,7 +82,7 @@ export function QrSessionRosterPanel(props: {
           className="ui-secondary-btn"
           style={{
             background: "transparent",
-            border: `1px solid ${webTheme.colors.border}`,
+            border: "1px solid var(--ae-card-border)",
             borderRadius: 8,
             padding: "4px 12px",
             fontSize: 12,
@@ -156,8 +156,8 @@ export function QrSessionRosterPanel(props: {
                 alignItems: "center",
                 padding: "10px 14px",
                 borderRadius: 10,
-                border: `1px solid ${webTheme.colors.border}`,
-                background: webTheme.colors.surfaceTint,
+                border: "1px solid var(--ae-card-border)",
+                background: "var(--ae-card-surface)",
               }}
             >
               <div style={{ minWidth: 0 }}>

@@ -1,10 +1,10 @@
 import { TeacherReportsWorkspace } from "../../../../src/teacher-workflows-client"
 import { buildTeacherReportsPageModel } from "../../../../src/web-portal"
-import { getWebPortalSession } from "../../../../src/web-session"
+import { requireWebPortalSession } from "../../../../src/web-session"
 import { WebPortalPage, WebSectionCard } from "../../../../src/web-shell"
 
 export default async function TeacherReportsPage() {
-  const session = await getWebPortalSession()
+  const session = await requireWebPortalSession("/teacher/reports")
 
   return (
     <WebPortalPage model={buildTeacherReportsPageModel()}>
@@ -12,7 +12,7 @@ export default async function TeacherReportsPage() {
         title="Report workspace"
         description="Review course rollups, student follow-up, and day-wise trends from one shared filter scope."
       >
-        <TeacherReportsWorkspace accessToken={session?.accessToken ?? null} />
+        <TeacherReportsWorkspace accessToken={session.accessToken} />
       </WebSectionCard>
     </WebPortalPage>
   )

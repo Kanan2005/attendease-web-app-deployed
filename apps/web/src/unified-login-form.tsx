@@ -23,7 +23,8 @@ export function UnifiedLoginForm(props: {
   const formRef = useRef<HTMLFormElement>(null)
 
   const formAction = mode === "teacher" ? "/login/password" : "/admin/login/password"
-  const nextPath = mode === "teacher" ? "/teacher/dashboard" : "/admin/dashboard"
+  const nextFromUrl = searchParams?.get("next")
+  const nextPath = nextFromUrl || (mode === "teacher" ? "/teacher/dashboard" : "/admin/dashboard")
 
   const errorMessage = useMemo(() => {
     switch (props.error) {

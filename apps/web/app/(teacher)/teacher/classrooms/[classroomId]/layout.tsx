@@ -14,6 +14,7 @@ const layoutBootstrap = createWebAuthBootstrap(process.env as Record<string, str
 
 const tabs = [
   { href: "/lectures", label: "Sessions", icon: "📋" },
+  { href: "/schedule", label: "Schedule", icon: "📅" },
   { href: "/roster", label: "Students", icon: "👥" },
   { href: "/stream", label: "Announcements", icon: "📢" },
   { href: "/reports", label: "Reports", icon: "📊" },
@@ -67,7 +68,7 @@ export default function ClassroomDetailLayout(props: {
   )
 
   return (
-    <div style={{ display: "grid", gap: 24 }}>
+    <div style={{ display: "grid", gap: 20 }}>
       <Link
         href="/teacher/classrooms"
         className="ui-back-link"
@@ -78,166 +79,187 @@ export default function ClassroomDetailLayout(props: {
           display: "inline-flex",
           alignItems: "center",
           gap: 6,
-          marginBottom: -12,
+          marginBottom: -8,
         }}
       >
         <span aria-hidden>←</span> Back to classrooms
       </Link>
 
-      {classroom ? (
+      {/* Header + tab bar merged into one visual block */}
+      <div
+        style={{
+          borderRadius: 16,
+          border: "1px solid var(--ae-card-border)",
+          background: "var(--ae-card-surface)",
+          boxShadow: "var(--ae-card-shadow)",
+          overflow: "hidden",
+          position: "relative",
+        }}
+      >
+        {/* Accent bar */}
         <div
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            flexWrap: "wrap",
-            gap: 16,
-            padding: "20px 24px",
-            borderRadius: webTheme.radius.card,
-            background: webTheme.colors.surfaceRaised,
-            border: `1px solid ${webTheme.colors.border}`,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 3,
+            background: webTheme.gradients.accentButton,
           }}
-        >
-          <div style={{ display: "grid", gap: 4 }}>
-            <span
-              style={{
-                color: webTheme.colors.accent,
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-              }}
-            >
-              {classroom.courseCode ?? classroom.code}
-            </span>
-            <h2
-              style={{
-                margin: 0,
-                fontSize: 22,
-                fontWeight: 700,
-                color: webTheme.colors.text,
-                letterSpacing: "-0.02em",
-              }}
-            >
-              {classroom.classroomTitle ?? classroom.displayTitle}
-            </h2>
-            <p
-              style={{
-                margin: 0,
-                fontSize: 13,
-                color: webTheme.colors.textMuted,
-              }}
-            >
+        />
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "var(--ae-card-glow)",
+            pointerEvents: "none",
+          }}
+        />
+
+        {classroom ? (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              flexWrap: "wrap",
+              gap: 12,
+              padding: "20px 24px 16px",
+              position: "relative",
+              zIndex: 1,
+            }}
+          >
+            <div style={{ display: "grid", gap: 2 }}>
+              <span
+                style={{
+                  color: webTheme.colors.accent,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  opacity: 0.8,
+                }}
+              >
+                {classroom.courseCode ?? classroom.code}
+              </span>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color: webTheme.colors.text,
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                {classroom.classroomTitle ?? classroom.displayTitle}
+              </h2>
               {[classroom.semesterTitle, classroom.classTitle, classroom.subjectTitle]
                 .filter(Boolean)
-                .join(" · ") ||
-                classroom.semesterLabel ||
-                ""}
-            </p>
-          </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+                .join(" · ") || classroom.semesterLabel ? (
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 12,
+                    color: webTheme.colors.textMuted,
+                    marginTop: 2,
+                  }}
+                >
+                  {[classroom.semesterTitle, classroom.classTitle, classroom.subjectTitle]
+                    .filter(Boolean)
+                    .join(" · ") ||
+                    classroom.semesterLabel ||
+                    ""}
+                </p>
+              ) : null}
+            </div>
             {classroom.activeJoinCode?.code ? (
               <span
                 style={{
                   fontSize: 12,
                   fontWeight: 600,
                   color: webTheme.colors.textMuted,
-                  background: webTheme.colors.surfaceMuted,
-                  border: `1px solid ${webTheme.colors.border}`,
-                  borderRadius: 6,
-                  padding: "4px 10px",
+                  background: "rgba(167, 139, 250, 0.08)",
+                  border: "1px solid rgba(167, 139, 250, 0.15)",
+                  borderRadius: 999,
+                  padding: "4px 12px",
                   fontFamily: "monospace",
+                  backdropFilter: "blur(8px)",
+                  WebkitBackdropFilter: "blur(8px)",
+                  position: "relative",
+                  zIndex: 1,
                 }}
                 title="Join code"
               >
                 {classroom.activeJoinCode.code}
               </span>
             ) : null}
-            <Link
-              href="/teacher/sessions/start"
-              className="ui-primary-btn"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "8px 16px",
-                borderRadius: 8,
-                fontSize: 13,
-                fontWeight: 600,
-                color: "#fff",
-                background: webTheme.gradients.accentButton,
-                textDecoration: "none",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Start Session
-            </Link>
           </div>
-        </div>
-      ) : null}
+        ) : null}
 
-      <nav
-        role="tablist"
-        className="ae-tab-bar"
-        style={{
-          display: "flex",
-          gap: 2,
-          borderBottom: `1px solid ${webTheme.colors.border}`,
-          background: webTheme.colors.surfaceRaised,
-          borderRadius: "12px 12px 0 0",
-          padding: "0 8px",
-        }}
-      >
-        {tabs.map((tab) => {
-          const tabPrefix = basePath + tab.href
-          const isActive = pathname.startsWith(tabPrefix)
-          const href = isActive ? pathname : resolveTabHref(tab.href)
+        <nav
+          role="tablist"
+          className="ae-tab-bar"
+          style={{
+            display: "flex",
+            gap: 0,
+            borderTop: "1px solid var(--ae-card-border)",
+            padding: "0 12px",
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
+          {tabs.map((tab) => {
+            const tabPrefix = basePath + tab.href
+            const isActive = pathname.startsWith(tabPrefix)
+            const href = isActive ? pathname : resolveTabHref(tab.href)
 
-          return (
-            <Link
-              key={tab.href}
-              href={href}
-              role="tab"
-              aria-selected={isActive}
-              aria-current={isActive ? "page" : undefined}
-              className="ui-tab-link"
-              style={{
-                position: "relative",
-                padding: "14px 24px",
-                textDecoration: "none",
-                color: isActive ? webTheme.colors.text : webTheme.colors.textSubtle,
-                fontSize: 14,
-                fontWeight: isActive ? 600 : 500,
-                letterSpacing: "-0.01em",
-                transition: `color ${webTheme.animation.fast}`,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-              }}
-            >
-              <span style={{ fontSize: 13 }}>{tab.icon}</span>
-              {tab.label}
-              {isActive ? (
-                <motion.div
-                  layoutId="tab-indicator"
-                  style={{
-                    position: "absolute",
-                    bottom: -1,
-                    left: 8,
-                    right: 8,
-                    height: 2,
-                    background: webTheme.gradients.accentButton,
-                    borderRadius: 999,
-                  }}
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
-              ) : null}
-            </Link>
-          )
-        })}
-      </nav>
+            return (
+              <Link
+                key={tab.href}
+                href={href}
+                role="tab"
+                aria-selected={isActive}
+                aria-current={isActive ? "page" : undefined}
+                className="ui-tab-link"
+                style={{
+                  position: "relative",
+                  padding: "12px 20px",
+                  textDecoration: "none",
+                  color: isActive ? webTheme.colors.text : webTheme.colors.textSubtle,
+                  fontSize: 13,
+                  fontWeight: isActive ? 600 : 500,
+                  letterSpacing: "-0.01em",
+                  transition: `color ${webTheme.animation.fast}, background-color 0.2s ease`,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  zIndex: 1,
+                }}
+              >
+                {tab.label}
+                {isActive ? (
+                  <motion.div
+                    layoutId="tab-indicator"
+                    style={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: 12,
+                      right: 12,
+                      height: 2,
+                      background: webTheme.gradients.accentButton,
+                      borderRadius: 999,
+                    }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                ) : null}
+              </Link>
+            )
+          })}
+        </nav>
+      </div>
 
-      <div>{props.children}</div>
+      <div style={{ paddingBottom: 48 }}>{props.children}</div>
     </div>
   )
 }

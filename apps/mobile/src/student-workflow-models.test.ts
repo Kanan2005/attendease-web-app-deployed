@@ -583,6 +583,7 @@ describe("student workflow models", () => {
           mode: "QR_GPS",
           timestamp: "2026-03-14T09:30:00.000Z",
           requiresTrustedDevice: true,
+          isMarked: false,
         },
       ],
       bluetoothCandidates: [],
@@ -644,6 +645,7 @@ describe("student workflow models", () => {
           mode: "QR_GPS",
           timestamp: "2026-03-14T09:30:00.000Z",
           requiresTrustedDevice: true,
+          isMarked: false,
         },
       ],
       gateModel: {

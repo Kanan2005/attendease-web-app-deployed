@@ -17,6 +17,110 @@ import type {
   SemesterVisibilityRow,
 } from "./web-workflows-types"
 
+const WEEKDAY_LABELS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+const WEEKDAY_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+export function weekdayLabel(weekday: number): string {
+  return WEEKDAY_LABELS[(weekday - 1) % 7] ?? `Day ${weekday}`
+}
+
+export function weekdayShortLabel(weekday: number): string {
+  return WEEKDAY_SHORT[(weekday - 1) % 7] ?? `D${weekday}`
+}
+
+export function minutesToTimeString(minutes: number): string {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  const hour12 = ((h + 11) % 12) + 1
+  const suffix = h >= 12 ? "PM" : "AM"
+  return `${hour12}:${String(m).padStart(2, "0")} ${suffix}`
+}
+
+export function minutesToHHMM(minutes: number): string {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`
+}
+
+export function hhmmToMinutes(hhmm: string): number {
+  const [h, m] = hhmm.split(":").map(Number)
+  return (h ?? 0) * 60 + (m ?? 0)
+}
+
+export function durationLabel(startMinutes: number, endMinutes: number): string {
+  const diff = endMinutes - startMinutes
+  if (diff <= 0) return ""
+  if (diff % 60 === 0) return `${diff / 60} hr`
+  if (diff < 60) return `${diff} min`
+  const hrs = Math.floor(diff / 60)
+  const mins = diff % 60
+  return `${hrs} hr ${mins} min`
+}
+
+export interface WeekCalendarEvent {
+  id: string
+  weekday: number
+  startMinutes: number
+  endMinutes: number
+  label: string
+  locationLabel: string | null
+  type: "slot" | "one-off" | "cancelled" | "rescheduled"
+  slotId: string | null
+  exceptionId: string | null
+}
+
+export function buildWeekCalendarEvents(schedule: ClassroomSchedule): WeekCalendarEvent[] {
+  const events: WeekCalendarEvent[] = []
+
+  for (const slot of schedule.scheduleSlots) {
+    if (slot.status !== "ACTIVE") continue
+    events.push({
+      id: `slot-${slot.id}`,
+      weekday: slot.weekday,
+      startMinutes: slot.startMinutes,
+      endMinutes: slot.endMinutes,
+      label: minutesToTimeString(slot.startMinutes) + " - " + minutesToTimeString(slot.endMinutes),
+      locationLabel: slot.locationLabel,
+      type: "slot",
+      slotId: slot.id,
+      exceptionId: null,
+    })
+  }
+
+  for (const exc of schedule.scheduleExceptions) {
+    const dayOfWeek = new Date(exc.effectiveDate).getUTCDay()
+    const weekday = dayOfWeek === 0 ? 7 : dayOfWeek
+
+    if (exc.exceptionType === "ONE_OFF" && exc.startMinutes != null && exc.endMinutes != null) {
+      events.push({
+        id: `exc-${exc.id}`,
+        weekday,
+        startMinutes: exc.startMinutes,
+        endMinutes: exc.endMinutes,
+        label: minutesToTimeString(exc.startMinutes) + " - " + minutesToTimeString(exc.endMinutes),
+        locationLabel: exc.locationLabel,
+        type: "one-off",
+        slotId: null,
+        exceptionId: exc.id,
+      })
+    }
+  }
+
+  return events
+}
+
+export const DURATION_OPTIONS = [
+  { value: 30, label: "30 min" },
+  { value: 45, label: "45 min" },
+  { value: 60, label: "1 hr" },
+  { value: 90, label: "1.5 hr" },
+  { value: 120, label: "2 hr" },
+]
+
+export const CALENDAR_START_HOUR = 7
+export const CALENDAR_END_HOUR = 21
+export const HOUR_HEIGHT_PX = 60
+
 export function createScheduleDraftState(schedule: ClassroomSchedule): ScheduleDraftState {
   return {
     slots: schedule.scheduleSlots.map((slot) => ({
@@ -171,11 +275,18 @@ export function buildScheduleSavePayload(input: {
       ]
     })
 
+  // Exceptions present in original but removed from draft = deletes
+  const draftExceptionIds = new Set(input.draft.exceptions.filter((e) => e.id).map((e) => e.id))
+  const exceptionDeletes = input.original.scheduleExceptions
+    .filter((e) => !draftExceptionIds.has(e.id))
+    .map((e) => ({ exceptionId: e.id }))
+
   const hasChanges =
     weeklySlotCreates.length > 0 ||
     weeklySlotUpdates.length > 0 ||
     exceptionCreates.length > 0 ||
-    exceptionUpdates.length > 0
+    exceptionUpdates.length > 0 ||
+    exceptionDeletes.length > 0
 
   if (!hasChanges) {
     return null
@@ -186,6 +297,7 @@ export function buildScheduleSavePayload(input: {
     ...(weeklySlotUpdates.length > 0 ? { weeklySlotUpdates } : {}),
     ...(exceptionCreates.length > 0 ? { exceptionCreates } : {}),
     ...(exceptionUpdates.length > 0 ? { exceptionUpdates } : {}),
+    ...(exceptionDeletes.length > 0 ? { exceptionDeletes } : {}),
     ...(input.note?.trim() ? { note: input.note.trim() } : {}),
   }
 }

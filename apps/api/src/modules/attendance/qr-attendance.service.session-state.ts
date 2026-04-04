@@ -175,7 +175,6 @@ export async function expireTimedOutActiveSessions(
   const timedOutSessions = await context.database.prisma.attendanceSession.findMany({
     where: {
       courseOfferingId: classroomId,
-      mode: "QR_GPS",
       status: "ACTIVE",
       scheduledEndAt: {
         lte: now,
