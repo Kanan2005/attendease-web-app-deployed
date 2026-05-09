@@ -328,7 +328,7 @@ export class AdminRecordsService {
 
     const offeringIds = offerings.map((o) => o.id)
 
-    const [summaries, lastSessions] = await Promise.all([
+    const [summaries, lastSessions, recordCountsByOffering] = await Promise.all([
       this.database.prisma.analyticsStudentCourseSummary.findMany({
         where: { courseOfferingId: { in: offeringIds } },
         select: {
@@ -344,6 +344,24 @@ export class AdminRecordsService {
         _max: { startedAt: true },
         _count: { _all: true },
       }),
+      // Fallback: raw AttendanceRecord counts per course offering for when
+      // the analytics summary table hasn't been populated yet.
+      (async () => {
+        const raw = await this.database.prisma.$queryRawUnsafe<
+          Array<{ courseOfferingId: string; total: bigint; present: bigint }>
+        >(
+          `SELECT s."courseOfferingId", COUNT(*)::bigint AS total, COUNT(*) FILTER (WHERE r.status = 'PRESENT')::bigint AS present FROM attendance_records r JOIN attendance_sessions s ON s.id = r."sessionId" WHERE s."courseOfferingId" = ANY($1) GROUP BY s."courseOfferingId"`,
+          offeringIds,
+        )
+        const map = new Map<string, { total: number; present: number }>()
+        for (const row of raw) {
+          map.set(row.courseOfferingId, {
+            total: Number(row.total),
+            present: Number(row.present),
+          })
+        }
+        return map
+      })(),
     ])
 
     const summariesByOffering = new Map<
@@ -370,13 +388,22 @@ export class AdminRecordsService {
     const courses: AdminRecordsCourseSummary[] = offerings.map((offering) => {
       const offeringSummaries = summariesByOffering.get(offering.id) ?? []
       const studentSet = new Set<string>(offeringSummaries.map((s) => s.studentId))
-      const aggregate: AggregateBucket = offeringSummaries.reduce(
+      let aggregate: AggregateBucket = offeringSummaries.reduce(
         (acc, summary) => ({
           totalSessions: acc.totalSessions + summary.totalSessions,
           presentSessions: acc.presentSessions + summary.presentSessions,
         }),
         { totalSessions: 0, presentSessions: 0 },
       )
+
+      // Fallback to raw AttendanceRecord counts when analytics is empty
+      if (aggregate.totalSessions === 0) {
+        const raw = recordCountsByOffering.get(offering.id)
+        if (raw && raw.total > 0) {
+          aggregate = { totalSessions: raw.total, presentSessions: raw.present }
+        }
+      }
+
       const meta = sessionsMetaByOffering.get(offering.id)
 
       return {
