@@ -8,6 +8,8 @@ import { AdminDashboardController } from "./admin-dashboard.controller.js"
 import { AdminDashboardService } from "./admin-dashboard.service.js"
 import { AdminDeviceSupportController } from "./admin-device-support.controller.js"
 import { AdminDeviceSupportService } from "./admin-device-support.service.js"
+import { AdminRecordsController } from "./admin-records.controller.js"
+import { AdminRecordsService } from "./admin-records.service.js"
 import { AdminStudentsController } from "./admin-students.controller.js"
 import { AdminTeachersController } from "./admin-teachers.controller.js"
 import { AdminTeachersService } from "./admin-teachers.service.js"
@@ -20,12 +22,14 @@ import { AdminTeachersService } from "./admin-teachers.service.js"
     AdminStudentsController,
     AdminTeachersController,
     AdminClassroomsController,
+    AdminRecordsController,
   ],
   providers: [
     AdminDashboardService,
     AdminDeviceSupportService,
     AdminTeachersService,
     AdminAcademicGovernanceService,
+    AdminRecordsService,
   ],
   exports: [AdminDeviceSupportService, AdminAcademicGovernanceService],
 })
