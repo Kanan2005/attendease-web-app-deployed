@@ -61,10 +61,23 @@ export class AdminDashboardService {
 
     const totalSessionsAcrossEnrollments = attendanceTotals._sum.totalSessions ?? 0
     const presentSessionsAcrossEnrollments = attendanceTotals._sum.presentSessions ?? 0
-    const averageAttendancePercent =
+    let averageAttendancePercent: number | null =
       totalSessionsAcrossEnrollments === 0
         ? null
         : round1((presentSessionsAcrossEnrollments / totalSessionsAcrossEnrollments) * 100)
+
+    // Fallback: when the analytics summary table hasn't been populated yet
+    // (e.g. analytics worker hasn't processed events, or data was seeded
+    // directly), compute average attendance from raw AttendanceRecord rows.
+    if (averageAttendancePercent === null) {
+      const [totalRecords, presentRecords] = await Promise.all([
+        prisma.attendanceRecord.count(),
+        prisma.attendanceRecord.count({ where: { status: "PRESENT" } }),
+      ])
+      if (totalRecords > 0) {
+        averageAttendancePercent = round1((presentRecords / totalRecords) * 100)
+      }
+    }
 
     return {
       students: studentCounts,
