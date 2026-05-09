@@ -372,6 +372,7 @@ model User {
   actedSecurityEvents             SecurityEvent[]                 @relation("SecurityEventActor")
   administeredActions             AdminActionLog[]                @relation("AdminActionAdminUser")
   targetedActions                 AdminActionLog[]                @relation("AdminActionTargetUser")
+  systemSettingsUpdated           SystemSetting[]                 @relation("SystemSettingUpdatedBy")
 
   @@map("users")
 }
@@ -1313,4 +1314,20 @@ model OutboxEvent {
   @@index([aggregateType, aggregateId, createdAt])
   @@index([topic, status, availableAt])
   @@map("outbox_events")
+}
+
+// Institution-wide defaults editable from /admin/settings/system. Each row
+// is keyed by a stable string (e.g. "system.gpsRadiusMeters") and stores a
+// JSON value. Reads are non-blocking: if a key is missing the API falls
+// back to a hard-coded default. Writes are made by an admin and produce an
+// AdminActionLog row of type SYSTEM_SETTING_UPDATE.
+model SystemSetting {
+  key             String   @id
+  value           Json
+  updatedByUserId String?
+  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now())
+  updatedBy       User?    @relation("SystemSettingUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+
+  @@map("system_settings")
 }

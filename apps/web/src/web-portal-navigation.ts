@@ -35,6 +35,11 @@ export const adminPortalNavigation: WebPortalNavItem[] = [
     description: "Generate Excel reports for students, teachers, or specific courses.",
   },
   {
+    href: "/admin/settings",
+    label: "Settings",
+    description: "Academic, system defaults, admin team, and password management.",
+  },
+  {
     href: "/admin/students",
     label: "Students",
     description: "Search, view, and manage student accounts and statuses.",

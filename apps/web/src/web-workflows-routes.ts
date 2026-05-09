@@ -65,6 +65,7 @@ export const adminWorkflowRoutes = {
   },
   communication: "/admin/communication",
   reports: "/admin/reports",
+  settings: "/admin/settings",
 } as const
 
 export const webWorkflowQueryKeys = {
@@ -205,6 +206,15 @@ export const webWorkflowQueryKeys = {
   },
   adminRecentReports() {
     return ["web-workflows", "admin-reports", "recent"] as const
+  },
+  adminSettingsAcademic() {
+    return ["web-workflows", "admin-settings", "academic"] as const
+  },
+  adminSettingsSystem() {
+    return ["web-workflows", "admin-settings", "system"] as const
+  },
+  adminSettingsAdmins() {
+    return ["web-workflows", "admin-settings", "admins"] as const
   },
   profile() {
     return ["web-workflows", "profile"] as const

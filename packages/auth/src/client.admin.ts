@@ -23,6 +23,16 @@ import {
   type AdminReportJobSummary,
   type AdminReportRecentListResponse,
   type AdminRevokeDeviceBindingRequest,
+  type AdminSettingsAcademicResponse,
+  type AdminSettingsAdminInviteRequest,
+  type AdminSettingsAdminInviteResponse,
+  type AdminSettingsAdminListResponse,
+  type AdminSettingsAdminRevokeRequest,
+  type AdminSettingsAdminRevokeResponse,
+  type AdminSettingsChangePasswordRequest,
+  type AdminSettingsChangePasswordResponse,
+  type AdminSettingsSystemResponse,
+  type AdminSettingsSystemUpdateRequest,
   type AdminStudentManagementDetail,
   type AdminStudentManagementSearchQuery,
   type AdminStudentManagementSummary,
@@ -67,6 +77,16 @@ import {
   adminRecordsTeacherListResponseSchema,
   adminReportJobSummarySchema,
   adminReportRecentListResponseSchema,
+  adminSettingsAcademicResponseSchema,
+  adminSettingsAdminInviteRequestSchema,
+  adminSettingsAdminInviteResponseSchema,
+  adminSettingsAdminListResponseSchema,
+  adminSettingsAdminRevokeRequestSchema,
+  adminSettingsAdminRevokeResponseSchema,
+  adminSettingsChangePasswordRequestSchema,
+  adminSettingsChangePasswordResponseSchema,
+  adminSettingsSystemResponseSchema,
+  adminSettingsSystemUpdateRequestSchema,
   adminStudentManagementDetailSchema,
   adminStudentManagementSearchQuerySchema,
   adminStudentManagementSummariesResponseSchema,
@@ -456,6 +476,72 @@ export function buildAuthClientAdminMethods(request: AuthApiRequest) {
         method: "GET",
         token,
         parse: adminReportRecentListResponseSchema.parse,
+      })
+    },
+    getAdminSettingsAcademic(token: string): Promise<AdminSettingsAcademicResponse> {
+      return request("/admin/settings/academic", {
+        method: "GET",
+        token,
+        parse: adminSettingsAcademicResponseSchema.parse,
+      })
+    },
+    getAdminSettingsSystem(token: string): Promise<AdminSettingsSystemResponse> {
+      return request("/admin/settings/system", {
+        method: "GET",
+        token,
+        parse: adminSettingsSystemResponseSchema.parse,
+      })
+    },
+    updateAdminSettingsSystem(
+      token: string,
+      payload: AdminSettingsSystemUpdateRequest,
+    ): Promise<AdminSettingsSystemResponse> {
+      return request("/admin/settings/system", {
+        method: "PATCH",
+        token,
+        payload: adminSettingsSystemUpdateRequestSchema.parse(payload),
+        parse: adminSettingsSystemResponseSchema.parse,
+      })
+    },
+    listAdminSettingsAdmins(token: string): Promise<AdminSettingsAdminListResponse> {
+      return request("/admin/settings/admins", {
+        method: "GET",
+        token,
+        parse: adminSettingsAdminListResponseSchema.parse,
+      })
+    },
+    inviteAdminSettingsAdmin(
+      token: string,
+      payload: AdminSettingsAdminInviteRequest,
+    ): Promise<AdminSettingsAdminInviteResponse> {
+      return request("/admin/settings/admins/invite", {
+        method: "POST",
+        token,
+        payload: adminSettingsAdminInviteRequestSchema.parse(payload),
+        parse: adminSettingsAdminInviteResponseSchema.parse,
+      })
+    },
+    revokeAdminSettingsAdmin(
+      token: string,
+      userId: string,
+      payload: AdminSettingsAdminRevokeRequest = {},
+    ): Promise<AdminSettingsAdminRevokeResponse> {
+      return request(`/admin/settings/admins/${userId}`, {
+        method: "DELETE",
+        token,
+        payload: adminSettingsAdminRevokeRequestSchema.parse(payload),
+        parse: adminSettingsAdminRevokeResponseSchema.parse,
+      })
+    },
+    changeAdminOwnPassword(
+      token: string,
+      payload: AdminSettingsChangePasswordRequest,
+    ): Promise<AdminSettingsChangePasswordResponse> {
+      return request("/admin/settings/security/change-password", {
+        method: "POST",
+        token,
+        payload: adminSettingsChangePasswordRequestSchema.parse(payload),
+        parse: adminSettingsChangePasswordResponseSchema.parse,
       })
     },
   }

@@ -18,6 +18,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+#### Admin Panel Phase 5 — Settings (Academic / System / Admins / Security) (`packages/db/prisma/schema.prisma`, `packages/db/prisma/migrations/20260509130000_admin_system_settings/migration.sql`, `packages/contracts/src/admin-settings.ts`, `apps/api/src/modules/admin/admin-settings.{service,controller,integration.test}.ts`, `apps/api/src/modules/admin/admin.module.ts`, `packages/auth/src/client.admin.ts`, `apps/web/src/admin-workflows-client/admin-settings.tsx`, `apps/web/app/(admin)/admin/settings/page.tsx`, `apps/web/src/web-{portal-navigation,workflows-routes,portal.test}.ts`, `apps/web/src/admin-workflows-client/shared.tsx`)
+
+- New `SystemSetting` table (migration `20260509130000_admin_system_settings`) — `{ key string @id, value Json, updatedByUserId, updatedAt }`. Editable institution-wide defaults that new course offerings can inherit.
+- New endpoints under `/admin/settings`:
+  - `GET /admin/settings/academic` — read-only counts: branches with student counts, departments with teacher counts, semester status counts, class/section counts.
+  - `GET /admin/settings/system` — current values for `gpsRadiusMeters`, `qrRotationWindowSeconds`, `bluetoothRotationWindowSeconds`, `defaultAttendanceMode`, `lowAttendanceThresholdPercent`. Falls back to hard-coded defaults when a key is missing.
+  - `PATCH /admin/settings/system` — partial upsert; rejects empty body. Writes `AdminActionLog` row of type `SYSTEM_SETTING_UPDATE`.
+  - `GET /admin/settings/admins` — lists all users with the ADMIN role plus `isSelf` flag.
+  - `POST /admin/settings/admins/invite` — creates the user (or reuses an existing one), generates a strong 12-char temp password (omits visually-similar chars, dash-formatted `XXXX-XXXX-XXXX`), hashes via `@attendease/auth/password`, persists `UserCredential` + `UserRole(ADMIN)`. Returns the temp password ONCE so the inviter can share it. Writes `ADMIN_INVITE` audit row. Sets `alreadyHadAccount` / `alreadyAdmin` flags so the UI explains what just happened.
+  - `DELETE /admin/settings/admins/:userId` — removes the ADMIN role only; user record stays. Refuses to remove the caller's own role or the very last admin in the institution. Writes `ADMIN_ROLE_REVOKE` audit row with optional reason.
+  - `POST /admin/settings/security/change-password` — verifies current password, hashes new, updates `UserCredential.passwordHash` + `passwordChangedAt`. No email infra required.
+- Frontend: `/admin/settings` workspace with four tabs (Academic / System / Admins / Security). System tab uses optimistic dirty-tracking so only changed keys are PATCHed. Admins tab shows the temp password in a monospace code block with **Email this temp password via Gmail** button (prefills `mail.google.com/mail/?view=cm` URL with the new admin's email + body containing the temp password) and **Copy password**. Security tab requires current + new + confirm with client-side mismatch hint.
+- Integration tests cover: academic counts, system defaults round-trip with audit row, empty-update rejection, fresh admin invite + login with temp password, re-invite existing admin (`alreadyHadAccount` + `alreadyAdmin` flags), self-revoke 403, peer revoke + audit row, change own password + new login works + old fails, and unauthenticated rejection.
+- `Field` shared component now accepts `email` and `password` input types in addition to `text`/`number`.
+
 #### Admin Panel Phase 4 — Reports (Excel exports) (`packages/db/prisma/migrations/20260509120000_admin_reports_export_job_types/migration.sql`, `packages/contracts/src/admin-reports.ts`, `packages/export/src/xlsx.ts`, `apps/api/src/modules/admin/admin-reports.{service,controller,integration.test}.ts`, `apps/api/src/modules/exports/{exports.module.ts,export-storage.service.ts}`, `apps/worker/src/jobs/export-job.processor.ts`, `packages/auth/src/client.admin.ts`, `apps/web/src/admin-workflows-client/admin-reports.tsx`, `apps/web/app/(admin)/admin/reports/page.tsx`, `apps/web/src/web-{portal-navigation,workflows-routes,portal.test}.ts`)
 
 - Three new XLSX endpoints under `/admin/reports`:

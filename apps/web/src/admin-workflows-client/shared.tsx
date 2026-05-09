@@ -203,7 +203,7 @@ export function Field(props: {
   label: string
   value: string
   onChange: (value: string) => void
-  type?: "text" | "number"
+  type?: "text" | "number" | "email" | "password"
 }) {
   return (
     <label style={{ display: "grid", gap: 6 }}>
