@@ -32,8 +32,102 @@ export const adminDashboardStatsSchema = z.object({
   }),
   pendingDeviceRequests: z.number().int().nonnegative(),
   recentSecurityEvents: z.array(adminSecurityEventSummarySchema),
+  // Phase 6 insights — added in a backwards-compatible way.
+  insights: z.object({
+    averageAttendancePercent: z.number().nullable(),
+    lowAttendanceStudentCount: z.number().int().nonnegative(),
+    lowAttendanceThresholdPercent: z.number().int().min(40).max(100),
+    sessionsLast7Days: z.number().int().nonnegative(),
+    sessionsPrior7Days: z.number().int().nonnegative(),
+  }),
 })
 export type AdminDashboardStats = z.infer<typeof adminDashboardStatsSchema>
+
+// ---------------------------------------------------------------------------
+// Phase 6 — Sessions trend graph.
+// ---------------------------------------------------------------------------
+
+export const adminDashboardSessionsRangeSchema = z.enum(["weekly", "monthly", "yearly"])
+export type AdminDashboardSessionsRange = z.infer<typeof adminDashboardSessionsRangeSchema>
+
+export const adminDashboardSessionsGraphQuerySchema = z.object({
+  range: adminDashboardSessionsRangeSchema.default("weekly"),
+})
+export type AdminDashboardSessionsGraphQuery = z.infer<
+  typeof adminDashboardSessionsGraphQuerySchema
+>
+
+export const adminDashboardSessionsGraphPointSchema = z.object({
+  bucketStart: z.string().datetime(),
+  label: z.string(),
+  sessionCount: z.number().int().nonnegative(),
+})
+export type AdminDashboardSessionsGraphPoint = z.infer<
+  typeof adminDashboardSessionsGraphPointSchema
+>
+
+export const adminDashboardSessionsGraphResponseSchema = z.object({
+  range: adminDashboardSessionsRangeSchema,
+  points: z.array(adminDashboardSessionsGraphPointSchema),
+  totalSessions: z.number().int().nonnegative(),
+})
+export type AdminDashboardSessionsGraphResponse = z.infer<
+  typeof adminDashboardSessionsGraphResponseSchema
+>
+
+// ---------------------------------------------------------------------------
+// Phase 6 — Branch comparison bar chart.
+// ---------------------------------------------------------------------------
+
+export const adminDashboardBranchAttendanceRowSchema = z.object({
+  branch: z.string(),
+  studentCount: z.number().int().nonnegative(),
+  averageAttendancePercent: z.number().nullable(),
+})
+export type AdminDashboardBranchAttendanceRow = z.infer<
+  typeof adminDashboardBranchAttendanceRowSchema
+>
+
+export const adminDashboardBranchComparisonResponseSchema = z.object({
+  branches: z.array(adminDashboardBranchAttendanceRowSchema),
+})
+export type AdminDashboardBranchComparisonResponse = z.infer<
+  typeof adminDashboardBranchComparisonResponseSchema
+>
+
+// ---------------------------------------------------------------------------
+// Phase 6 — Course leaderboard (top / bottom by attendance %).
+// ---------------------------------------------------------------------------
+
+export const adminDashboardLeaderboardDirectionSchema = z.enum(["top", "bottom"])
+export type AdminDashboardLeaderboardDirection = z.infer<
+  typeof adminDashboardLeaderboardDirectionSchema
+>
+
+export const adminDashboardLeaderboardQuerySchema = z.object({
+  direction: adminDashboardLeaderboardDirectionSchema.default("bottom"),
+  limit: z.coerce.number().int().min(1).max(20).default(5),
+})
+export type AdminDashboardLeaderboardQuery = z.infer<typeof adminDashboardLeaderboardQuerySchema>
+
+export const adminDashboardLeaderboardEntrySchema = z.object({
+  courseOfferingId: z.string(),
+  code: z.string(),
+  displayTitle: z.string(),
+  teacherName: z.string(),
+  studentCount: z.number().int().nonnegative(),
+  averageAttendancePercent: z.number(),
+  sessionsConducted: z.number().int().nonnegative(),
+})
+export type AdminDashboardLeaderboardEntry = z.infer<typeof adminDashboardLeaderboardEntrySchema>
+
+export const adminDashboardLeaderboardResponseSchema = z.object({
+  direction: adminDashboardLeaderboardDirectionSchema,
+  entries: z.array(adminDashboardLeaderboardEntrySchema),
+})
+export type AdminDashboardLeaderboardResponse = z.infer<
+  typeof adminDashboardLeaderboardResponseSchema
+>
 
 export const adminTeacherSummarySchema = z.object({
   id: z.string().min(1),

@@ -6,6 +6,11 @@ import {
   type AdminCommunicationLogDispatchRequest,
   type AdminCommunicationLogDispatchResponse,
   type AdminCourseReportRequest,
+  type AdminDashboardBranchComparisonResponse,
+  type AdminDashboardLeaderboardQuery,
+  type AdminDashboardLeaderboardResponse,
+  type AdminDashboardSessionsGraphQuery,
+  type AdminDashboardSessionsGraphResponse,
   type AdminDashboardStats,
   type AdminDelinkStudentDevicesRequest,
   type AdminDelinkStudentDevicesResponse,
@@ -63,6 +68,11 @@ import {
   adminCommunicationLogDispatchRequestSchema,
   adminCommunicationLogDispatchResponseSchema,
   adminCourseReportRequestSchema,
+  adminDashboardBranchComparisonResponseSchema,
+  adminDashboardLeaderboardQuerySchema,
+  adminDashboardLeaderboardResponseSchema,
+  adminDashboardSessionsGraphQuerySchema,
+  adminDashboardSessionsGraphResponseSchema,
   adminDashboardStatsSchema,
   adminDelinkStudentDevicesResponseSchema,
   adminDeviceSupportDetailSchema,
@@ -123,6 +133,39 @@ export function buildAuthClientAdminMethods(request: AuthApiRequest) {
         method: "GET",
         token,
         parse: adminDashboardStatsSchema.parse,
+      })
+    },
+    getAdminDashboardSessionsGraph(
+      token: string,
+      filters: Partial<AdminDashboardSessionsGraphQuery> = {},
+    ): Promise<AdminDashboardSessionsGraphResponse> {
+      const query = adminDashboardSessionsGraphQuerySchema.parse(filters)
+      return request("/admin/dashboard/sessions-graph", {
+        method: "GET",
+        token,
+        query: toQuery(query),
+        parse: adminDashboardSessionsGraphResponseSchema.parse,
+      })
+    },
+    getAdminDashboardBranchComparison(
+      token: string,
+    ): Promise<AdminDashboardBranchComparisonResponse> {
+      return request("/admin/dashboard/branch-comparison", {
+        method: "GET",
+        token,
+        parse: adminDashboardBranchComparisonResponseSchema.parse,
+      })
+    },
+    getAdminDashboardLeaderboard(
+      token: string,
+      filters: Partial<AdminDashboardLeaderboardQuery> = {},
+    ): Promise<AdminDashboardLeaderboardResponse> {
+      const query = adminDashboardLeaderboardQuerySchema.parse(filters)
+      return request("/admin/dashboard/course-leaderboard", {
+        method: "GET",
+        token,
+        query: toQuery(query),
+        parse: adminDashboardLeaderboardResponseSchema.parse,
       })
     },
     listAdminTeachers(

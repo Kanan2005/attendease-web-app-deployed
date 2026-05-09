@@ -156,6 +156,15 @@ export const webWorkflowQueryKeys = {
   adminDashboardStats() {
     return ["web-workflows", "admin-dashboard-stats"] as const
   },
+  adminDashboardSessionsGraph(range: string) {
+    return ["web-workflows", "admin-dashboard-sessions", range] as const
+  },
+  adminDashboardBranchComparison() {
+    return ["web-workflows", "admin-dashboard-branches"] as const
+  },
+  adminDashboardLeaderboard(direction: string) {
+    return ["web-workflows", "admin-dashboard-leaderboard", direction] as const
+  },
   adminStudents(filters?: Record<string, string | undefined>) {
     return ["web-workflows", "admin-students", filters ?? {}] as const
   },

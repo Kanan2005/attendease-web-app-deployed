@@ -18,6 +18,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+#### Admin Panel Phase 6 — Dashboard polish + insights (`packages/contracts/src/admin-dashboard.ts`, `apps/api/src/modules/admin/admin-dashboard.{service,controller}.ts`, `packages/auth/src/client.admin.ts`, `apps/web/src/admin-workflows-client/admin-dashboard.tsx`, `apps/web/src/web-workflows-routes.ts`)
+
+- Three new dashboard endpoints:
+  - `GET /admin/dashboard/sessions-graph?range=weekly|monthly|yearly` — bucketed session counts (7 daily / 4 weekly / 12 monthly buckets) with labels.
+  - `GET /admin/dashboard/branch-comparison` — average attendance % per branch from `AnalyticsStudentCourseSummary`, sorted by best to worst.
+  - `GET /admin/dashboard/course-leaderboard?direction=top|bottom&limit=5` — sorted by per-course aggregated attendance %.
+- `/admin/dashboard/stats` now returns an `insights` block with `averageAttendancePercent`, `lowAttendanceStudentCount` (driven by the `system.lowAttendanceThresholdPercent` Phase 5 setting, defaults to 75%), `lowAttendanceThresholdPercent`, `sessionsLast7Days`, `sessionsPrior7Days` (for week-over-week deltas).
+- Frontend dashboard fully redesigned with UX-first hierarchy:
+  - **Hero stats row** (6 cards) leads with the most actionable numbers: average attendance, students below threshold (links to `/admin/communication` with red accent + "Email them →" CTA when > 0), pending devices (warning accent + "Review →" CTA when > 0), sessions last 7 days (with Δ% vs prior week), active courses, students.
+  - **Sessions trend** card with a small inline SVG line chart and `7d / 4w / 12mo` segmented tabs. No chart library — pure SVG. Shows total sessions in range as the subtitle.
+  - **Branch comparison** card with horizontal bars, color-coded (green ≥ 85%, blue ≥ 70%, amber ≥ 55%, red < 55%).
+  - **Course leaderboard** card defaulting to **Bottom 5** (most actionable) with a one-click switch to Top 5; rank chip + course code/title + teacher + student/session counts + colored attendance %.
+  - **Recent security events** kept but compacted to 5 rows with badge chips.
+  - Dropped the redundant Quick Actions grid — the sidebar already covers it.
+- Three new query keys (`adminDashboardSessionsGraph`, `adminDashboardBranchComparison`, `adminDashboardLeaderboard`) and three new auth-client methods (`getAdminDashboardSessionsGraph`, `getAdminDashboardBranchComparison`, `getAdminDashboardLeaderboard`).
+- `insights.lowAttendanceThresholdPercent` reads from the Phase 5 `SystemSetting` row `system.lowAttendanceThresholdPercent` so changing it from `/admin/settings/system` immediately changes the dashboard "Below X%" card.
+
 #### Admin Panel Phase 5 — Settings (Academic / System / Admins / Security) (`packages/db/prisma/schema.prisma`, `packages/db/prisma/migrations/20260509130000_admin_system_settings/migration.sql`, `packages/contracts/src/admin-settings.ts`, `apps/api/src/modules/admin/admin-settings.{service,controller,integration.test}.ts`, `apps/api/src/modules/admin/admin.module.ts`, `packages/auth/src/client.admin.ts`, `apps/web/src/admin-workflows-client/admin-settings.tsx`, `apps/web/app/(admin)/admin/settings/page.tsx`, `apps/web/src/web-{portal-navigation,workflows-routes,portal.test}.ts`, `apps/web/src/admin-workflows-client/shared.tsx`)
 
 - New `SystemSetting` table (migration `20260509130000_admin_system_settings`) — `{ key string @id, value Json, updatedByUserId, updatedAt }`. Editable institution-wide defaults that new course offerings can inherit.

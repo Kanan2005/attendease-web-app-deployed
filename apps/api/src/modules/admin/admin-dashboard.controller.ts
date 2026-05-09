@@ -1,6 +1,14 @@
-import { adminDashboardStatsSchema } from "@attendease/contracts"
-import { Controller, Get, Inject, Logger, UseGuards } from "@nestjs/common"
+import {
+  adminDashboardBranchComparisonResponseSchema,
+  adminDashboardLeaderboardQuerySchema,
+  adminDashboardLeaderboardResponseSchema,
+  adminDashboardSessionsGraphQuerySchema,
+  adminDashboardSessionsGraphResponseSchema,
+  adminDashboardStatsSchema,
+} from "@attendease/contracts"
+import { Controller, Get, Inject, Logger, Query, UseGuards } from "@nestjs/common"
 
+import { parseWithSchema } from "../../shared/zod.js"
 import { AuthGuard } from "../auth/auth.guard.js"
 import { Roles } from "../auth/roles.decorator.js"
 import { RolesGuard } from "../auth/roles.guard.js"
@@ -26,5 +34,30 @@ export class AdminDashboardController {
       this.logger.error("Failed to get dashboard stats", error)
       throw error
     }
+  }
+
+  @Get("sessions-graph")
+  async getSessionsGraph(@Query() query: unknown) {
+    return adminDashboardSessionsGraphResponseSchema.parse(
+      await this.adminDashboardService.getSessionsGraph(
+        parseWithSchema(adminDashboardSessionsGraphQuerySchema, query ?? {}),
+      ),
+    )
+  }
+
+  @Get("branch-comparison")
+  async getBranchComparison() {
+    return adminDashboardBranchComparisonResponseSchema.parse(
+      await this.adminDashboardService.getBranchComparison(),
+    )
+  }
+
+  @Get("course-leaderboard")
+  async getLeaderboard(@Query() query: unknown) {
+    return adminDashboardLeaderboardResponseSchema.parse(
+      await this.adminDashboardService.getLeaderboard(
+        parseWithSchema(adminDashboardLeaderboardQuerySchema, query ?? {}),
+      ),
+    )
   }
 }
