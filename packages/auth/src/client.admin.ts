@@ -1,6 +1,10 @@
 import {
   type AdminApproveReplacementDeviceRequest,
   type AdminApproveReplacementDeviceResponse,
+  type AdminCommunicationAudiencePreviewRequest,
+  type AdminCommunicationAudiencePreviewResponse,
+  type AdminCommunicationLogDispatchRequest,
+  type AdminCommunicationLogDispatchResponse,
   type AdminDashboardStats,
   type AdminDelinkStudentDevicesRequest,
   type AdminDelinkStudentDevicesResponse,
@@ -39,6 +43,10 @@ import {
   type StudentSupportCaseSummary,
   type StudentSupportSearchQuery,
   adminApproveReplacementDeviceResponseSchema,
+  adminCommunicationAudiencePreviewRequestSchema,
+  adminCommunicationAudiencePreviewResponseSchema,
+  adminCommunicationLogDispatchRequestSchema,
+  adminCommunicationLogDispatchResponseSchema,
   adminDashboardStatsSchema,
   adminDelinkStudentDevicesResponseSchema,
   adminDeviceSupportDetailSchema,
@@ -376,6 +384,28 @@ export function buildAuthClientAdminMethods(request: AuthApiRequest) {
         method: "GET",
         token,
         parse: adminUsersTeacherProfileSchema.parse,
+      })
+    },
+    previewAdminCommunicationAudience(
+      token: string,
+      payload: AdminCommunicationAudiencePreviewRequest,
+    ): Promise<AdminCommunicationAudiencePreviewResponse> {
+      return request("/admin/communication/audience-preview", {
+        method: "POST",
+        token,
+        payload: adminCommunicationAudiencePreviewRequestSchema.parse(payload),
+        parse: adminCommunicationAudiencePreviewResponseSchema.parse,
+      })
+    },
+    logAdminCommunicationDispatch(
+      token: string,
+      payload: AdminCommunicationLogDispatchRequest,
+    ): Promise<AdminCommunicationLogDispatchResponse> {
+      return request("/admin/communication/log-dispatch", {
+        method: "POST",
+        token,
+        payload: adminCommunicationLogDispatchRequestSchema.parse(payload),
+        parse: adminCommunicationLogDispatchResponseSchema.parse,
       })
     },
   }

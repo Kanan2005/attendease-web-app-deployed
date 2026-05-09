@@ -25,6 +25,11 @@ export const adminPortalNavigation: WebPortalNavItem[] = [
     description: "Browse and manage students and teachers; toggle attendance access.",
   },
   {
+    href: "/admin/communication",
+    label: "Communication",
+    description: "Email students or parents through Gmail or your default mail app.",
+  },
+  {
     href: "/admin/students",
     label: "Students",
     description: "Search, view, and manage student accounts and statuses.",

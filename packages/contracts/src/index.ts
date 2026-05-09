@@ -2,6 +2,7 @@ import { z } from "zod"
 
 export * from "./academic"
 export * from "./admin-dashboard"
+export * from "./admin-communication"
 export * from "./admin-records"
 export * from "./admin-users"
 export * from "./analytics"

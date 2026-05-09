@@ -18,6 +18,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+#### Admin Panel Phase 3 — Communication (Gmail compose + native mailto:) (`packages/contracts/src/admin-communication.ts`, `apps/api/src/modules/admin/admin-communication.{service,controller,integration.test}.ts`, `apps/api/src/modules/admin/admin.module.ts`, `packages/auth/src/client.admin.ts`, `apps/web/src/web-portal-navigation.ts`, `apps/web/src/web-workflows-routes.ts`, `apps/web/src/admin-workflows-client/admin-communication-composer.tsx`, `apps/web/app/(admin)/admin/communication/page.tsx`)
+
+- New `/admin/communication` workspace: filter audience → preview count + sample → compose subject + body → click "Open in Gmail" or "Open in default mail app".
+- `POST /admin/communication/audience-preview` resolves recipients from filters: `audience` (STUDENT or PARENT), `degree`, `branch`, `currentSemester`, `courseOfferingId`, `attendanceThresholdPercent` + `attendanceComparator` (BELOW or ABOVE). Returns count, sample, and full email list.
+- Safety guard: rejects with 400 if no filters are provided so the entire institution cannot be emailed by accident.
+- Parent audience pulls `StudentProfile.parentEmail`; students without one are counted as `missingEmailCount`.
+- Frontend builds Gmail compose URL (`https://mail.google.com/mail/?view=cm&fs=1&bcc=...&su=...&body=...`) with recipients chunked at 100 per tab to stay under URL length limits, and a `mailto:?bcc=...` URL that triggers the OS default mail client (Outlook, Apple Mail, etc.). All recipients are placed in BCC so they cannot see each other.
+- `POST /admin/communication/log-dispatch` writes an `AdminActionLog` row with action `COMMUNICATION_GMAIL_DISPATCH_PREPARED` whenever the admin clicks Send (channel: GMAIL or MAILTO, recipient count, subject preview, filters summary). No outbound mail leaves the server — sending happens in the admin's mail client.
+- Audit log row of type `COMMUNICATION_AUDIENCE_PREVIEW` is written on every preview call.
+- Integration tests cover: filter-required guard, course-scoped student preview, parent-mode missing-email handling, attendance threshold filter, dispatch logging, and unauthenticated rejection.
+
 #### Admin Panel Phase 2 — Users (Students + Teachers + Profile + Disable attendance) (`packages/contracts/src/admin-users.ts`, `apps/api/src/modules/admin/admin-users.{service,controller,integration.test}.ts`, `apps/api/src/modules/admin/admin.module.ts`, `packages/auth/src/client.admin.ts`, `apps/web/src/web-portal-navigation.ts`, `apps/web/src/web-workflows-routes.ts`, `apps/web/src/admin-workflows-client/admin-users-{students,teachers,tabs,student-profile,teacher-profile}.tsx`, `apps/web/app/(admin)/admin/users/**`)
 
 - New `/admin/users` workspace with Students/Teachers tabs (URL-synced via `?tab=`).

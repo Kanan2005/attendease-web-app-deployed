@@ -63,6 +63,7 @@ export const adminWorkflowRoutes = {
   usersTeacherProfile(teacherId: string) {
     return `/admin/users/teachers/${teacherId}`
   },
+  communication: "/admin/communication",
 } as const
 
 export const webWorkflowQueryKeys = {

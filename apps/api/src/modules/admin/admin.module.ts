@@ -4,6 +4,8 @@ import { AcademicModule } from "../academic/academic.module.js"
 import { DevicesModule } from "../devices/devices.module.js"
 import { AdminAcademicGovernanceService } from "./admin-classroom-governance.service.js"
 import { AdminClassroomsController } from "./admin-classrooms.controller.js"
+import { AdminCommunicationController } from "./admin-communication.controller.js"
+import { AdminCommunicationService } from "./admin-communication.service.js"
 import { AdminDashboardController } from "./admin-dashboard.controller.js"
 import { AdminDashboardService } from "./admin-dashboard.service.js"
 import { AdminDeviceSupportController } from "./admin-device-support.controller.js"
@@ -26,6 +28,7 @@ import { AdminUsersService } from "./admin-users.service.js"
     AdminClassroomsController,
     AdminRecordsController,
     AdminUsersController,
+    AdminCommunicationController,
   ],
   providers: [
     AdminDashboardService,
@@ -34,6 +37,7 @@ import { AdminUsersService } from "./admin-users.service.js"
     AdminAcademicGovernanceService,
     AdminRecordsService,
     AdminUsersService,
+    AdminCommunicationService,
   ],
   exports: [AdminDeviceSupportService, AdminAcademicGovernanceService],
 })
