@@ -462,26 +462,42 @@ export class AdminReportsService {
 
     try {
       const artifact = await input.build()
-      const inlineMode = this.storage.inlineFallbackEnabled
-      const objectKey = inlineMode
-        ? `inline:${job.id}/${artifact.fileName}`
-        : `admin-reports/${input.auth.userId}/${job.id}/${artifact.fileName}`
-
+      const forceInline = this.storage.inlineFallbackEnabled
       let inlineDataUrl: string | undefined
-      if (inlineMode) {
-        // Skip the S3 upload entirely. The bytes are embedded into the job's
-        // filterSnapshot below so the admin (and the recent-reports listing)
-        // can download the file directly from a `data:` URL.
+      let objectKey = `admin-reports/${input.auth.userId}/${job.id}/${artifact.fileName}`
+
+      if (forceInline) {
+        // Operator opted into inline mode via STORAGE_INLINE_FALLBACK=true.
+        objectKey = `inline:${job.id}/${artifact.fileName}`
         inlineDataUrl = this.storage.buildInlineDataUrl({
           body: new Uint8Array(artifact.buffer),
           contentType: XLSX_CONTENT_TYPE,
         })
       } else {
-        await this.storage.uploadObject({
-          objectKey,
-          body: new Uint8Array(artifact.buffer),
-          contentType: XLSX_CONTENT_TYPE,
-        })
+        try {
+          await this.storage.uploadObject({
+            objectKey,
+            body: new Uint8Array(artifact.buffer),
+            contentType: XLSX_CONTENT_TYPE,
+          })
+        } catch (uploadError) {
+          // Resilience: if the S3-compatible storage rejects the upload
+          // (typically because of misconfigured/expired credentials or an
+          // unreachable endpoint), automatically fall back to embedding the
+          // file as a data: URL inside the job record. Keeps the admin
+          // report flow working even when the storage backend is broken.
+          const message = uploadError instanceof Error ? uploadError.message : String(uploadError)
+          // eslint-disable-next-line no-console
+          console.warn("[admin-reports] storage upload failed; falling back to inline data URL", {
+            jobId: job.id,
+            error: message,
+          })
+          objectKey = `inline:${job.id}/${artifact.fileName}`
+          inlineDataUrl = this.storage.buildInlineDataUrl({
+            body: new Uint8Array(artifact.buffer),
+            contentType: XLSX_CONTENT_TYPE,
+          })
+        }
       }
 
       const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
