@@ -9,6 +9,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 
+#### Dashboard average attendance fallback (`apps/api/src/modules/admin/admin-dashboard.service.ts`)
+
+- When the `analytics_student_course_summary` table is empty (analytics worker hasn't run, or data was seeded directly), the dashboard now falls back to computing average attendance from raw `AttendanceRecord` counts instead of showing "—".
+
+### Changed
+
+#### Records: show "Classes taken" instead of "Students" for teacher rows (`packages/contracts/src/admin-records.ts`, `apps/api/src/modules/admin/admin-records.service.ts`, `apps/web/src/admin-workflows-client/admin-records-teachers.tsx`)
+
+- In the Records → Department → Teacher table, replaced the "Students" column with "Classes taken" (count of finalized attendance sessions per teacher).
+- Added `classesTaken` field to the `AdminRecordsTeacherSummary` contract.
+- API queries `attendanceSession.groupBy` on `teacherId` for ENDED/EXPIRED sessions.
+
+### Fixed
+
 #### Archived course offerings now hidden from student classroom listing (`apps/api/src/modules/academic/roster.service.ts`, `apps/api/src/modules/academic/classroom-roster.integration.test.ts`)
 
 - `roster.service.ts:listStudentClassrooms` previously returned every enrollment regardless of the underlying course offering status, so an archived course still showed up on the student's mobile dashboard even though new attendance sessions, announcements, and roster mutations were already blocked server-side.
