@@ -7,10 +7,6 @@ import {
   type AdminDeviceSupportDetail,
   type AdminDeviceSupportSearchQuery,
   type AdminDeviceSupportSummary,
-  type AdminRevokeDeviceBindingRequest,
-  type AdminStudentManagementDetail,
-  type AdminStudentManagementSearchQuery,
-  type AdminStudentManagementSummary,
   type AdminRecordsArchiveRequest,
   type AdminRecordsArchiveResponse,
   type AdminRecordsCourseListResponse,
@@ -19,11 +15,23 @@ import {
   type AdminRecordsDepartmentListResponse,
   type AdminRecordsStudentListResponse,
   type AdminRecordsTeacherListResponse,
+  type AdminRevokeDeviceBindingRequest,
+  type AdminStudentManagementDetail,
+  type AdminStudentManagementSearchQuery,
+  type AdminStudentManagementSummary,
   type AdminTeacherDetail,
   type AdminTeacherSearchQuery,
   type AdminTeacherSummary,
   type AdminUpdateStudentStatusRequest,
   type AdminUpdateStudentStatusResponse,
+  type AdminUsersAttendanceToggleRequest,
+  type AdminUsersAttendanceToggleResponse,
+  type AdminUsersStudentListQuery,
+  type AdminUsersStudentListResponse,
+  type AdminUsersStudentProfile,
+  type AdminUsersTeacherListQuery,
+  type AdminUsersTeacherListResponse,
+  type AdminUsersTeacherProfile,
   type ApproveReplacementStudentDeviceRequest,
   type ApproveReplacementStudentDeviceResponse,
   type RevokeStudentDeviceRegistrationRequest,
@@ -35,9 +43,6 @@ import {
   adminDelinkStudentDevicesResponseSchema,
   adminDeviceSupportDetailSchema,
   adminDeviceSupportSummariesResponseSchema,
-  adminStudentManagementDetailSchema,
-  adminStudentManagementSearchQuerySchema,
-  adminStudentManagementSummariesResponseSchema,
   adminRecordsArchiveRequestSchema,
   adminRecordsArchiveResponseSchema,
   adminRecordsCourseListResponseSchema,
@@ -46,11 +51,22 @@ import {
   adminRecordsDepartmentListResponseSchema,
   adminRecordsStudentListResponseSchema,
   adminRecordsTeacherListResponseSchema,
+  adminStudentManagementDetailSchema,
+  adminStudentManagementSearchQuerySchema,
+  adminStudentManagementSummariesResponseSchema,
   adminTeacherDetailSchema,
   adminTeacherListResponseSchema,
   adminTeacherSearchQuerySchema,
   adminUpdateStudentStatusRequestSchema,
   adminUpdateStudentStatusResponseSchema,
+  adminUsersAttendanceToggleRequestSchema,
+  adminUsersAttendanceToggleResponseSchema,
+  adminUsersStudentListQuerySchema,
+  adminUsersStudentListResponseSchema,
+  adminUsersStudentProfileSchema,
+  adminUsersTeacherListQuerySchema,
+  adminUsersTeacherListResponseSchema,
+  adminUsersTeacherProfileSchema,
   approveReplacementStudentDeviceRequestSchema,
   approveReplacementStudentDeviceResponseSchema,
   authOperationSuccessSchema,
@@ -221,9 +237,7 @@ export function buildAuthClientAdminMethods(request: AuthApiRequest) {
         parse: approveReplacementStudentDeviceResponseSchema.parse,
       })
     },
-    listAdminRecordsDepartments(
-      token: string,
-    ): Promise<AdminRecordsDepartmentListResponse> {
+    listAdminRecordsDepartments(token: string): Promise<AdminRecordsDepartmentListResponse> {
       return request("/admin/records/departments", {
         method: "GET",
         token,
@@ -234,14 +248,11 @@ export function buildAuthClientAdminMethods(request: AuthApiRequest) {
       token: string,
       department: string,
     ): Promise<AdminRecordsTeacherListResponse> {
-      return request(
-        `/admin/records/departments/${encodeURIComponent(department)}/teachers`,
-        {
-          method: "GET",
-          token,
-          parse: adminRecordsTeacherListResponseSchema.parse,
-        },
-      )
+      return request(`/admin/records/departments/${encodeURIComponent(department)}/teachers`, {
+        method: "GET",
+        token,
+        parse: adminRecordsTeacherListResponseSchema.parse,
+      })
     },
     listAdminRecordsCoursesByTeacher(
       token: string,
@@ -297,6 +308,74 @@ export function buildAuthClientAdminMethods(request: AuthApiRequest) {
         token,
         payload: adminRecordsArchiveRequestSchema.parse(payload),
         parse: adminRecordsArchiveResponseSchema.parse,
+      })
+    },
+    listAdminUsersStudents(
+      token: string,
+      filters: Partial<AdminUsersStudentListQuery> = {},
+    ): Promise<AdminUsersStudentListResponse> {
+      const query = adminUsersStudentListQuerySchema.parse(filters)
+      return request("/admin/users/students", {
+        method: "GET",
+        token,
+        query: toQuery(query),
+        parse: adminUsersStudentListResponseSchema.parse,
+      })
+    },
+    getAdminUsersStudentProfile(
+      token: string,
+      studentId: string,
+    ): Promise<AdminUsersStudentProfile> {
+      return request(`/admin/users/students/${studentId}`, {
+        method: "GET",
+        token,
+        parse: adminUsersStudentProfileSchema.parse,
+      })
+    },
+    disableAdminUsersStudentAttendance(
+      token: string,
+      studentId: string,
+      payload: AdminUsersAttendanceToggleRequest = {},
+    ): Promise<AdminUsersAttendanceToggleResponse> {
+      return request(`/admin/users/students/${studentId}/attendance-disable`, {
+        method: "POST",
+        token,
+        payload: adminUsersAttendanceToggleRequestSchema.parse(payload),
+        parse: adminUsersAttendanceToggleResponseSchema.parse,
+      })
+    },
+    enableAdminUsersStudentAttendance(
+      token: string,
+      studentId: string,
+      payload: AdminUsersAttendanceToggleRequest = {},
+    ): Promise<AdminUsersAttendanceToggleResponse> {
+      return request(`/admin/users/students/${studentId}/attendance-enable`, {
+        method: "POST",
+        token,
+        payload: adminUsersAttendanceToggleRequestSchema.parse(payload),
+        parse: adminUsersAttendanceToggleResponseSchema.parse,
+      })
+    },
+    listAdminUsersTeachers(
+      token: string,
+      filters: Partial<AdminUsersTeacherListQuery> = {},
+    ): Promise<AdminUsersTeacherListResponse> {
+      const query = adminUsersTeacherListQuerySchema.parse(filters)
+      return request("/admin/users/teachers", {
+        method: "GET",
+        token,
+        query: toQuery(query),
+        parse: adminUsersTeacherListResponseSchema.parse,
+      })
+    },
+    getAdminUsersTeacherProfile(
+      token: string,
+      teacherId: string,
+    ): Promise<AdminUsersTeacherProfile> {
+      return request(`/admin/users/teachers/${teacherId}`, {
+        method: "GET",
+        token,
+        parse: adminUsersTeacherProfileSchema.parse,
       })
     },
   }

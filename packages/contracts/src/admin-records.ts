@@ -102,7 +102,9 @@ export const adminRecordsCourseSearchResponseSchema = z.object({
   query: z.string().min(1),
   hits: z.array(adminRecordsCourseSearchHitSchema),
 })
-export type AdminRecordsCourseSearchResponse = z.infer<typeof adminRecordsCourseSearchResponseSchema>
+export type AdminRecordsCourseSearchResponse = z.infer<
+  typeof adminRecordsCourseSearchResponseSchema
+>
 
 export const adminRecordsStudentAttendanceStatusSchema = z.enum(["LOW", "NORMAL"])
 export type AdminRecordsStudentAttendanceStatus = z.infer<
@@ -137,9 +139,7 @@ export const adminRecordsStudentListResponseSchema = z.object({
   lowAttendanceThresholdPercent: percentSchema,
   students: z.array(adminRecordsStudentSummarySchema),
 })
-export type AdminRecordsStudentListResponse = z.infer<
-  typeof adminRecordsStudentListResponseSchema
->
+export type AdminRecordsStudentListResponse = z.infer<typeof adminRecordsStudentListResponseSchema>
 
 export const adminRecordsArchiveRequestSchema = z.object({
   reason: z.string().trim().min(1).max(280).optional(),

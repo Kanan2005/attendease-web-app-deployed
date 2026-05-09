@@ -9,6 +9,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+#### Admin Panel Phase 2 — Users (Students + Teachers + Profile + Disable attendance) (`packages/contracts/src/admin-users.ts`, `apps/api/src/modules/admin/admin-users.{service,controller,integration.test}.ts`, `apps/api/src/modules/admin/admin.module.ts`, `packages/auth/src/client.admin.ts`, `apps/web/src/web-portal-navigation.ts`, `apps/web/src/web-workflows-routes.ts`, `apps/web/src/admin-workflows-client/admin-users-{students,teachers,tabs,student-profile,teacher-profile}.tsx`, `apps/web/app/(admin)/admin/users/**`)
+
+- New `/admin/users` workspace with Students/Teachers tabs (URL-synced via `?tab=`).
+- `GET /admin/users/students` with filters: `query`, `degree`, `branch`, `currentSemester`, `sectionId`, `attendanceDisabled`. Returns aggregated attendance percentages per student.
+- `GET /admin/users/students/:studentId` returns full profile + per-course attendance breakdown via `AnalyticsStudentCourseSummary`.
+- `POST /admin/users/students/:studentId/attendance-disable` and `…/attendance-enable` flip `StudentProfile.attendanceDisabled` (idempotent — no duplicate audit rows on no-op) and write `AdminActionLog` rows of type `STUDENT_ATTENDANCE_DISABLE` / `STUDENT_ATTENDANCE_ENABLE`.
+- `GET /admin/users/teachers` with filters: `query`, `department`. Returns course/student aggregates per teacher.
+- `GET /admin/users/teachers/:teacherId` returns profile with course list + attendance summaries.
+- Frontend: filter forms, profile pages with stat cards, and disable/enable button with reason prompt.
+- Integration tests cover filter combinations, profile aggregation, disable/enable round-trip with audit log assertions, and unauthenticated rejection.
+- "Users" added to admin sidebar between "Records" and "Students" (existing Students/Teachers entries preserved for device-support flow).
+
+#### Admin Panel Phase 1 — Records explorer (Department → Teacher → Course → Students drilldown)
+
+- Migration `20260509073000_admin_panel_action_log_enum_extensions` extends `AdminActionType` enum with values pre-staged for all admin panel phases.
+- New contracts in `packages/contracts/src/admin-records.ts` for the full hierarchy.
+- Backend service+controller (`apps/api/src/modules/admin/admin-records.{service,controller}.ts`) exposes 5 GETs (departments, teachers in dept, courses by teacher, students in course, course-code search) and 2 POSTs (archive/unarchive a course offering with `AdminActionLog` rows).
+- Frontend: 5 new client components and 4 SSR routes under `/admin/records/**`, with breadcrumb, debounced course-code search, and archive/unarchive UI.
+
 #### Auto-apply DB migrations on Render deploy (`apps/api/Dockerfile`, `apps/api/package.json`)
 
 - Added `start:prod` script to `apps/api/package.json` that runs `pnpm --filter @attendease/db migrate:deploy` before launching the API (`tsx dist/apps/api/src/main.js`).

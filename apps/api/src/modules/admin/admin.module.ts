@@ -13,6 +13,8 @@ import { AdminRecordsService } from "./admin-records.service.js"
 import { AdminStudentsController } from "./admin-students.controller.js"
 import { AdminTeachersController } from "./admin-teachers.controller.js"
 import { AdminTeachersService } from "./admin-teachers.service.js"
+import { AdminUsersController } from "./admin-users.controller.js"
+import { AdminUsersService } from "./admin-users.service.js"
 
 @Module({
   imports: [DevicesModule, AcademicModule],
@@ -23,6 +25,7 @@ import { AdminTeachersService } from "./admin-teachers.service.js"
     AdminTeachersController,
     AdminClassroomsController,
     AdminRecordsController,
+    AdminUsersController,
   ],
   providers: [
     AdminDashboardService,
@@ -30,6 +33,7 @@ import { AdminTeachersService } from "./admin-teachers.service.js"
     AdminTeachersService,
     AdminAcademicGovernanceService,
     AdminRecordsService,
+    AdminUsersService,
   ],
   exports: [AdminDeviceSupportService, AdminAcademicGovernanceService],
 })

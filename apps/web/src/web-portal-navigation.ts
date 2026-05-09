@@ -20,6 +20,11 @@ export const adminPortalNavigation: WebPortalNavItem[] = [
     description: "Drill into departments, teachers, courses, and students.",
   },
   {
+    href: "/admin/users",
+    label: "Users",
+    description: "Browse and manage students and teachers; toggle attendance access.",
+  },
+  {
     href: "/admin/students",
     label: "Students",
     description: "Search, view, and manage student accounts and statuses.",

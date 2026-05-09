@@ -99,6 +99,7 @@ describe("web portal models", () => {
     expect(adminPortalNavigation.map((item) => item.href)).toEqual([
       "/admin/dashboard",
       "/admin/records",
+      "/admin/users",
       "/admin/students",
       "/admin/teachers",
       "/admin/devices",

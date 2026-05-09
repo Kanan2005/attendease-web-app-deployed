@@ -54,6 +54,15 @@ export const adminWorkflowRoutes = {
   recordsCourse(department: string, teacherId: string, courseOfferingId: string) {
     return `/admin/records/${encodeURIComponent(department)}/${teacherId}/${courseOfferingId}`
   },
+  users: "/admin/users",
+  usersStudents: "/admin/users?tab=students",
+  usersTeachers: "/admin/users?tab=teachers",
+  usersStudentProfile(studentId: string) {
+    return `/admin/users/students/${studentId}`
+  },
+  usersTeacherProfile(teacherId: string) {
+    return `/admin/users/teachers/${teacherId}`
+  },
 } as const
 
 export const webWorkflowQueryKeys = {
@@ -179,6 +188,18 @@ export const webWorkflowQueryKeys = {
   },
   adminRecordsCourseSearch(query: string) {
     return ["web-workflows", "admin-records", "course-search", query] as const
+  },
+  adminUsersStudents(filters?: Record<string, string | undefined>) {
+    return ["web-workflows", "admin-users", "students", filters ?? {}] as const
+  },
+  adminUsersStudentProfile(studentId: string) {
+    return ["web-workflows", "admin-users", "student-profile", studentId] as const
+  },
+  adminUsersTeachers(filters?: Record<string, string | undefined>) {
+    return ["web-workflows", "admin-users", "teachers", filters ?? {}] as const
+  },
+  adminUsersTeacherProfile(teacherId: string) {
+    return ["web-workflows", "admin-users", "teacher-profile", teacherId] as const
   },
   profile() {
     return ["web-workflows", "profile"] as const
