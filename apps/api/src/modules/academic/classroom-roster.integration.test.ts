@@ -920,6 +920,74 @@ describe("Classroom roster integration", () => {
     expect(storedJob.status).toBe("UPLOADED")
   })
 
+  it("hides archived course offerings from the student classroom listing and restores them on unarchive", async () => {
+    const studentSession = await login({
+      email: authIntegrationFixtures.studentOne.email,
+      password: authIntegrationFixtures.studentOne.password,
+      platform: "MOBILE",
+      requestedRole: "STUDENT",
+      device: authIntegrationFixtures.studentOne.device,
+    })
+
+    const offeringId = developmentSeedIds.courseOfferings.math
+    const original = await getPrisma().courseOffering.findUniqueOrThrow({
+      where: { id: offeringId },
+    })
+
+    try {
+      // Baseline: while ACTIVE, the course should appear in the listing.
+      const beforeResponse = await request("GET", "/students/me/classrooms", {
+        token: studentSession.tokens.accessToken,
+      })
+      expect(beforeResponse.statusCode).toBe(200)
+      const beforeRows = studentClassroomsResponseSchema.parse(beforeResponse.body)
+      expect(beforeRows.some((row) => row.id === offeringId)).toBe(true)
+
+      // Archive directly via Prisma to simulate teacher/admin archive action.
+      await getPrisma().courseOffering.update({
+        where: { id: offeringId },
+        data: { status: "ARCHIVED", archivedAt: new Date() },
+      })
+
+      const archivedResponse = await request("GET", "/students/me/classrooms", {
+        token: studentSession.tokens.accessToken,
+      })
+      expect(archivedResponse.statusCode).toBe(200)
+      const archivedRows = studentClassroomsResponseSchema.parse(archivedResponse.body)
+      expect(archivedRows.some((row) => row.id === offeringId)).toBe(false)
+
+      // Explicit classroomStatus filter for archived still surfaces the row
+      // (admin / records page rely on this behavior).
+      const explicitArchivedResponse = await request(
+        "GET",
+        "/students/me/classrooms?classroomStatus=ARCHIVED",
+        { token: studentSession.tokens.accessToken },
+      )
+      expect(explicitArchivedResponse.statusCode).toBe(200)
+      const explicitRows = studentClassroomsResponseSchema.parse(explicitArchivedResponse.body)
+      expect(explicitRows.some((row) => row.id === offeringId)).toBe(true)
+
+      // Unarchive → reappears in default listing.
+      await getPrisma().courseOffering.update({
+        where: { id: offeringId },
+        data: { status: "ACTIVE", archivedAt: null },
+      })
+
+      const restoredResponse = await request("GET", "/students/me/classrooms", {
+        token: studentSession.tokens.accessToken,
+      })
+      expect(restoredResponse.statusCode).toBe(200)
+      const restoredRows = studentClassroomsResponseSchema.parse(restoredResponse.body)
+      expect(restoredRows.some((row) => row.id === offeringId)).toBe(true)
+    } finally {
+      // Always restore the seed row so other tests are unaffected.
+      await getPrisma().courseOffering.update({
+        where: { id: offeringId },
+        data: { status: original.status, archivedAt: original.archivedAt },
+      })
+    }
+  })
+
   async function createTeacherClassroom(input: {
     teacherToken: string
     subjectCode: string

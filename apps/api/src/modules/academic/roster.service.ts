@@ -327,7 +327,10 @@ export class RosterService {
     return enrollments
       .filter((enrollment) =>
         filters.classroomStatus === undefined
-          ? true
+          ? // Default: hide archived course offerings so students stop seeing
+            // courses on their dashboard once a teacher or admin archives them.
+            // Unarchiving restores visibility automatically on next refresh.
+            enrollment.courseOffering.status !== "ARCHIVED"
           : enrollment.courseOffering.status === filters.classroomStatus,
       )
       .map((enrollment) => toStudentClassroomMembershipSummary(enrollment))

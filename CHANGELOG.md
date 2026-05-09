@@ -7,6 +7,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased] — v2.0
 
+### Fixed
+
+#### Archived course offerings now hidden from student classroom listing (`apps/api/src/modules/academic/roster.service.ts`, `apps/api/src/modules/academic/classroom-roster.integration.test.ts`)
+
+- `roster.service.ts:listStudentClassrooms` previously returned every enrollment regardless of the underlying course offering status, so an archived course still showed up on the student's mobile dashboard even though new attendance sessions, announcements, and roster mutations were already blocked server-side.
+- Default behavior changed: when `classroomStatus` is not specified by the caller, the listing now excludes course offerings with `status === "ARCHIVED"`. Unarchiving restores visibility automatically on the next refresh.
+- Explicit `classroomStatus=ARCHIVED` requests still return archived courses (admin/records flows rely on this).
+- Regression test covers ACTIVE → ARCHIVED → ACTIVE round-trip plus the explicit-filter escape hatch, and restores the seed row in `finally` to keep the suite hermetic.
+
 ### Added
 
 #### Admin Panel Phase 2 — Users (Students + Teachers + Profile + Disable attendance) (`packages/contracts/src/admin-users.ts`, `apps/api/src/modules/admin/admin-users.{service,controller,integration.test}.ts`, `apps/api/src/modules/admin/admin.module.ts`, `packages/auth/src/client.admin.ts`, `apps/web/src/web-portal-navigation.ts`, `apps/web/src/web-workflows-routes.ts`, `apps/web/src/admin-workflows-client/admin-users-{students,teachers,tabs,student-profile,teacher-profile}.tsx`, `apps/web/app/(admin)/admin/users/**`)
