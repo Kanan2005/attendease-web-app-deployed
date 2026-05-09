@@ -18,6 +18,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+#### End-to-end test suites (web + mobile + cross-phase backend) (`TESTING.md`, `apps/api/src/test/admin-journey.e2e.test.ts`, `apps/api/src/modules/admin/admin-dashboard.integration.test.ts`, `apps/web/playwright.config.ts`, `apps/web/e2e/admin-journey.spec.ts`, `apps/web/e2e/tsconfig.json`, `apps/web/package.json`, `apps/mobile/e2e/run-attendance-e2e.sh`)
+
+- **Backend cross-phase regression net** at `apps/api/src/test/admin-journey.e2e.test.ts`. Single Vitest workflow walks every Phase 1 → 6 admin flow against a real (per-suite throwaway) Postgres: login → archive course (Phase 1) → verify it disappears from `/students/me/classrooms` (Phase 1 ↔ student visibility cross-check) → unarchive → disable+enable student attendance with idempotency check (Phase 2) → audience preview (Phase 3) → generate course XLSX (Phase 4) → bump `lowAttendanceThresholdPercent` (Phase 5) → invite admin + login as them (Phase 5) → self-revoke 403 → confirm dashboard threshold reflects Phase 5 change (Phase 5 ↔ 6 cross-check). Catches the class of regressions where one phase silently breaks another.
+- **Phase 6 dashboard integration test** at `apps/api/src/modules/admin/admin-dashboard.integration.test.ts`: insights block schema, Phase 5 threshold ↔ Phase 6 dashboard wiring, sessions-graph weekly returns 7 daily buckets summing to total, monthly returns 4 weekly, yearly returns 12 monthly, branch-comparison best-to-worst sort, leaderboard top vs bottom direction, limit param honoured, unauth 401.
+- **Web browser E2E (Playwright)** at `apps/web/e2e/admin-journey.spec.ts` with `apps/web/playwright.config.ts`. Tests login → dashboard hero/charts → records drilldown → users filter+profile → communication preview → reports generation → settings threshold change reflected on dashboard → admin invite temp-password card → sidebar covers all routes. New scripts `pnpm --filter @attendease/web test:e2e` and `:e2e:ui`. Auto-spawns the Next.js dev server, expects API at `localhost:4000`. Documented credentials override and `PLAYWRIGHT_NO_WEB_SERVER` escape hatch.
+- **Mobile student attendance E2E** at `apps/mobile/e2e/run-attendance-e2e.sh`: adb+uiautomator script that walks landing → student sign-in → typed credentials → classrooms list → drill into classroom → pull-to-refresh → sign-out path. Saves screenshots and uiautomator dumps to `/tmp/attendease_attendance_e2e/`. Complements the existing landing-page suite at `run-e2e.sh`.
+- **Top-level `TESTING.md`** documents the three layers, what each catches, prerequisites, and a recommended pre-merge checklist. Single source of truth for "how do I run the tests".
+- New dev dependency: `@playwright/test` in `apps/web` (existing `pnpm` workspace, no monorepo-wide changes).
+
 #### Admin Panel Phase 6 — Dashboard polish + insights (`packages/contracts/src/admin-dashboard.ts`, `apps/api/src/modules/admin/admin-dashboard.{service,controller}.ts`, `packages/auth/src/client.admin.ts`, `apps/web/src/admin-workflows-client/admin-dashboard.tsx`, `apps/web/src/web-workflows-routes.ts`)
 
 - Three new dashboard endpoints:
