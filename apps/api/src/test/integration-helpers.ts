@@ -9,6 +9,7 @@ import {
   buildDevelopmentDeviceFixture,
   buildDevelopmentStudentRegistrationFixture,
   buildDevelopmentTeacherRegistrationFixture,
+  addParentEmailMigrationPath,
   courseOfferingLabelColumnsMigrationPath,
   createPrismaClient,
   defaultDatabaseUrl,
@@ -167,6 +168,7 @@ function getCombinedMigrationSql(): string {
     fs.readFileSync(destructiveActionAuditSemanticsMigrationPath, "utf8"),
     fs.readFileSync(studentProfileDegreeBranchMigrationPath, "utf8"),
     fs.readFileSync(courseOfferingLabelColumnsMigrationPath, "utf8"),
+    fs.readFileSync(addParentEmailMigrationPath, "utf8"),
   ].join("\n\n")
 }
 

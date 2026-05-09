@@ -522,6 +522,50 @@ describe("Auth integration", () => {
     expect(foreignEnrollmentResponse.statusCode).toBe(404)
   })
 
+  it("returns a structured validation error with issues when the password is too short", async () => {
+    const response = await request("POST", "/auth/login", {
+      payload: {
+        email: authIntegrationFixtures.teacher.email,
+        password: "Ab1!",
+        platform: "WEB",
+        requestedRole: "TEACHER",
+      },
+    })
+
+    expect(response.statusCode).toBe(400)
+    const body = response.body as {
+      statusCode: number
+      message: string
+      issues?: { path: string[]; message: string }[]
+    }
+    expect(body.message).toBe("Invalid request payload.")
+    expect(body.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: expect.arrayContaining(["password"]),
+          message: expect.stringContaining("8"),
+        }),
+      ]),
+    )
+  })
+
+  it("returns a readable error message when registering with an already-used email", async () => {
+    const response = await request("POST", "/auth/register/teacher", {
+      payload: {
+        email: authIntegrationFixtures.teacher.email,
+        password: "TeacherResetPass123!",
+        displayName: "Duplicate Teacher",
+        platform: "WEB",
+      },
+    })
+
+    expect(response.statusCode).toBe(409)
+    const body = response.body as { message: string }
+    expect(body.message).toBeTruthy()
+    expect(typeof body.message).toBe("string")
+    expect(body.message.length).toBeGreaterThan(5)
+  })
+
   it("rejects incomplete student registration payloads before creating an account", async () => {
     const email = `student.missing-device.${Date.now()}@attendease.dev`
 
@@ -813,6 +857,147 @@ describe("Auth integration", () => {
 
     expect(blockedUser).toBeNull()
     expect(googleOidcService.verifyExchange).toHaveBeenCalledTimes(2)
+  })
+
+  it("revokes the previous session when the same user logs in again (single-session enforcement)", async () => {
+    const loginA = await request("POST", "/auth/login", {
+      payload: {
+        email: authIntegrationFixtures.teacher.email,
+        password: authIntegrationFixtures.teacher.password,
+        platform: "WEB",
+        requestedRole: "TEACHER",
+      },
+    })
+    expect(loginA.statusCode).toBe(201)
+    const sessionA = authSessionResponseSchema.parse(loginA.body)
+
+    const loginB = await request("POST", "/auth/login", {
+      payload: {
+        email: authIntegrationFixtures.teacher.email,
+        password: authIntegrationFixtures.teacher.password,
+        platform: "WEB",
+        requestedRole: "TEACHER",
+      },
+    })
+    expect(loginB.statusCode).toBe(201)
+    const sessionB = authSessionResponseSchema.parse(loginB.body)
+
+    expect(sessionA.user.sessionId).not.toBe(sessionB.user.sessionId)
+
+    const meWithOldToken = await request("GET", "/auth/me", {
+      token: sessionA.tokens.accessToken,
+    })
+    expect(meWithOldToken.statusCode).toBe(401)
+
+    const meWithNewToken = await request("GET", "/auth/me", {
+      token: sessionB.tokens.accessToken,
+    })
+    expect(meWithNewToken.statusCode).toBe(200)
+  })
+
+  it("marks the old session as REVOKED in the database after re-login", async () => {
+    const loginA = await request("POST", "/auth/login", {
+      payload: {
+        email: authIntegrationFixtures.teacher.email,
+        password: authIntegrationFixtures.teacher.password,
+        platform: "WEB",
+        requestedRole: "TEACHER",
+      },
+    })
+    const sessionA = authSessionResponseSchema.parse(loginA.body)
+
+    await request("POST", "/auth/login", {
+      payload: {
+        email: authIntegrationFixtures.teacher.email,
+        password: authIntegrationFixtures.teacher.password,
+        platform: "WEB",
+        requestedRole: "TEACHER",
+      },
+    })
+
+    const oldSession = await getPrisma().authSession.findUnique({
+      where: { id: sessionA.user.sessionId },
+    })
+
+    expect(oldSession?.status).toBe("REVOKED")
+    expect(oldSession?.revokedAt).toBeInstanceOf(Date)
+  })
+
+  it("revokes the old session's refresh tokens after re-login", async () => {
+    const loginA = await request("POST", "/auth/login", {
+      payload: {
+        email: authIntegrationFixtures.teacher.email,
+        password: authIntegrationFixtures.teacher.password,
+        platform: "WEB",
+        requestedRole: "TEACHER",
+      },
+    })
+    const sessionA = authSessionResponseSchema.parse(loginA.body)
+
+    await request("POST", "/auth/login", {
+      payload: {
+        email: authIntegrationFixtures.teacher.email,
+        password: authIntegrationFixtures.teacher.password,
+        platform: "WEB",
+        requestedRole: "TEACHER",
+      },
+    })
+
+    const staleRefresh = await request("POST", "/auth/refresh", {
+      payload: {
+        refreshToken: sessionA.tokens.refreshToken,
+        requestedRole: "TEACHER",
+      },
+    })
+
+    expect(staleRefresh.statusCode).toBe(401)
+  })
+
+  it("enforces single-session for students across mobile logins", async () => {
+    const suffix = Date.now()
+    const email = `student.session.${suffix}@attendease.dev`
+    const installId = `install-session-${suffix}`
+    const device = {
+      installId,
+      platform: "ANDROID" as const,
+      publicKey: `session-test-public-key-${suffix}`,
+    }
+
+    const regResponse = await request("POST", "/auth/register/student", {
+      payload: {
+        email,
+        password: "StudentSessionPass123!",
+        displayName: "Student Session Test",
+        platform: "MOBILE",
+        device,
+      },
+    })
+    expect(regResponse.statusCode).toBe(201)
+    const regSession = studentRegistrationResponseSchema.parse(regResponse.body)
+
+    const loginResponse = await request("POST", "/auth/login", {
+      payload: {
+        email,
+        password: "StudentSessionPass123!",
+        platform: "MOBILE",
+        requestedRole: "STUDENT",
+        device,
+      },
+    })
+    expect(loginResponse.statusCode).toBe(201)
+    const loginSession = authSessionResponseSchema.parse(loginResponse.body)
+
+    expect(regSession.user.sessionId).not.toBe(loginSession.user.sessionId)
+
+    const meWithRegToken = await request("GET", "/auth/me", {
+      token: regSession.tokens.accessToken,
+    })
+    expect(meWithRegToken.statusCode).toBe(401)
+
+    const meWithLoginToken = await request("GET", "/auth/me", {
+      token: loginSession.tokens.accessToken,
+    })
+    expect(meWithLoginToken.statusCode).toBe(200)
   })
 
   it("rejects Google exchange identities whose email is not verified", async () => {

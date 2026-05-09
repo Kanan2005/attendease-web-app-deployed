@@ -67,3 +67,7 @@ export const courseOfferingLabelColumnsMigrationPath = path.resolve(
   currentDirectory,
   "../prisma/migrations/20260315001400_add_course_offering_label_columns/migration.sql",
 )
+export const addParentEmailMigrationPath = path.resolve(
+  currentDirectory,
+  "../prisma/migrations/20260403054537_add_parent_email/migration.sql",
+)
