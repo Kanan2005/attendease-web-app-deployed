@@ -119,6 +119,9 @@
 
 ## 🆕 Recently completed
 
+- [x] 2026-05-09 — **Render cold-start UX fix**. Symptom: login form stuck on "Signing in..." for ~50s on first sign-in. Root cause: Render free tier suspends container after ~15 min idle; cold start ~50s. Fixes:
+  1. `.github/workflows/keep-alive.yml` — pings `/health` every 13 min via cron + `workflow_dispatch`. Free, runs on GitHub-hosted runner.
+  2. `apps/web/src/unified-login-form.tsx` — fires `fetch(/health)` on mount to warm the API while user types creds. Adds delayed UI hint ("Server is warming up...") if submit takes >5s.
 - [x] 2026-05-09 — Netlify build succeeds at commit `8b61628`. All routes including `/admin/teachers`, `/admin/dashboard`, `/admin/students` return 200. Web app on new repo confirmed serving latest code.
 
 ---

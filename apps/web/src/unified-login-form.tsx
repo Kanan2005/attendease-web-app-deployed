@@ -3,7 +3,7 @@
 import { webTheme } from "@attendease/ui-web"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import { WebThemeToggle } from "./web-nav"
 
@@ -20,7 +20,37 @@ export function UnifiedLoginForm(props: {
   const [mode, setMode] = useState<LoginMode>(initialMode)
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [showWarmupHint, setShowWarmupHint] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
+
+  // Warm up the API on mount to mitigate Render free-tier cold starts (~50s).
+  // By the time the user types and submits, the API container is awake.
+  useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    if (!apiUrl) {
+      return
+    }
+    const controller = new AbortController()
+    fetch(`${apiUrl}/health`, {
+      method: "GET",
+      mode: "cors",
+      signal: controller.signal,
+      cache: "no-store",
+    }).catch(() => {
+      // Best-effort warmup — ignore network errors
+    })
+    return () => controller.abort()
+  }, [])
+
+  // Show a "warming up" hint if submission takes longer than 5s (cold-start scenario)
+  useEffect(() => {
+    if (!submitting) {
+      setShowWarmupHint(false)
+      return
+    }
+    const timer = setTimeout(() => setShowWarmupHint(true), 5000)
+    return () => clearTimeout(timer)
+  }, [submitting])
 
   const formAction = mode === "teacher" ? "/login/password" : "/admin/login/password"
   const nextFromUrl = searchParams?.get("next")
@@ -337,6 +367,19 @@ export function UnifiedLoginForm(props: {
               "Sign in"
             )}
           </button>
+
+          {submitting && showWarmupHint ? (
+            <p
+              style={{
+                margin: 0,
+                fontSize: 12,
+                color: webTheme.colors.textMuted,
+                textAlign: "center",
+              }}
+            >
+              Server is warming up — first sign-in after a quiet period can take up to a minute.
+            </p>
+          ) : null}
         </form>
 
         {mode === "teacher" ? (

@@ -1,0 +1,30 @@
+name: Keep API Warm
+
+# Pings the Render API /health endpoint every 13 minutes to prevent the free-tier
+# container from sleeping (Render suspends after ~15 min idle, cold-start ~50s).
+# 13 minutes leaves a 2-minute safety margin.
+
+on:
+  schedule:
+    - cron: "*/13 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping API health endpoint
+        run: |
+          set -e
+          URL="https://attendease-api-4h45.onrender.com/health"
+          echo "Pinging $URL"
+          # Allow up to 90s for cold starts; treat any 2xx as success.
+          HTTP_CODE=$(curl -s -o /tmp/body.txt -w "%{http_code}" --max-time 90 "$URL" || echo "000")
+          echo "HTTP $HTTP_CODE"
+          cat /tmp/body.txt || true
+          echo
+          case "$HTTP_CODE" in
+            2*) echo "OK"; exit 0 ;;
+            *) echo "Failed (got $HTTP_CODE)"; exit 1 ;;
+          esac
