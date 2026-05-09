@@ -215,9 +215,9 @@ export class AdminRecordsService {
     }
 
     const allOfferingIds = offerings.map((o) => o.id)
-    const summaries =
+    const [summaries, sessionCounts] = await Promise.all([
       allOfferingIds.length > 0
-        ? await this.database.prisma.analyticsStudentCourseSummary.findMany({
+        ? this.database.prisma.analyticsStudentCourseSummary.findMany({
             where: { courseOfferingId: { in: allOfferingIds } },
             select: {
               courseOfferingId: true,
@@ -226,7 +226,24 @@ export class AdminRecordsService {
               presentSessions: true,
             },
           })
-        : []
+        : [],
+      // Count finalized attendance sessions per teacher (= "classes taken")
+      teacherIds.length > 0
+        ? this.database.prisma.attendanceSession.groupBy({
+            by: ["teacherId"],
+            where: {
+              teacherId: { in: teacherIds },
+              status: { in: ["ENDED", "EXPIRED"] },
+            },
+            _count: true,
+          })
+        : [],
+    ])
+
+    const classesTakenByTeacher = new Map<string, number>()
+    for (const row of sessionCounts) {
+      classesTakenByTeacher.set(row.teacherId, row._count)
+    }
 
     const summariesByOffering = new Map<
       string,
@@ -268,6 +285,7 @@ export class AdminRecordsService {
         activeCourseCount,
         archivedCourseCount,
         studentCount: studentSet.size,
+        classesTaken: classesTakenByTeacher.get(teacher.id) ?? 0,
         averageAttendancePercent: computePercent(aggregate),
       }
     })

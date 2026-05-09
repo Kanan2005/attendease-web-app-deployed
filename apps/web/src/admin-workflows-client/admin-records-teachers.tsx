@@ -47,7 +47,7 @@ export function AdminRecordsTeachersWorkspace(props: {
                   <th style={styles.th}>Employee code</th>
                   <th style={styles.th}>Courses</th>
                   <th style={styles.th}>Active / Archived</th>
-                  <th style={styles.th}>Students</th>
+                  <th style={styles.th}>Classes taken</th>
                   <th style={styles.th}>Avg attendance</th>
                 </tr>
               </thead>
@@ -74,7 +74,7 @@ export function AdminRecordsTeachersWorkspace(props: {
                     <td style={styles.td}>
                       {teacher.activeCourseCount} / {teacher.archivedCourseCount}
                     </td>
-                    <td style={styles.td}>{teacher.studentCount}</td>
+                    <td style={styles.td}>{teacher.classesTaken}</td>
                     <td style={styles.td}>
                       <PercentBadge value={teacher.averageAttendancePercent} />
                     </td>

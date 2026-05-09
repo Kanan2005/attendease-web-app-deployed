@@ -44,6 +44,7 @@ export const adminRecordsTeacherSummarySchema = z.object({
   activeCourseCount: nonNegativeInt,
   archivedCourseCount: nonNegativeInt,
   studentCount: nonNegativeInt,
+  classesTaken: nonNegativeInt,
   averageAttendancePercent: percentSchema.nullable(),
 })
 export type AdminRecordsTeacherSummary = z.infer<typeof adminRecordsTeacherSummarySchema>
