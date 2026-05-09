@@ -9,6 +9,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+#### Auto-apply DB migrations on Render deploy (`apps/api/Dockerfile`, `apps/api/package.json`)
+
+- Added `start:prod` script to `apps/api/package.json` that runs `pnpm --filter @attendease/db migrate:deploy` before launching the API (`tsx dist/apps/api/src/main.js`).
+- Updated Dockerfile `CMD` from `pnpm start` to `pnpm run start:prod` so production deploys auto-apply pending Prisma migrations on every container start.
+- Prevents the class of bugs where a migration is committed in source but never applied to the production Neon DB (e.g., `parentEmail` column missing → `/admin/students` 500).
+- Idempotent: `prisma migrate deploy` skips already-applied migrations, safe on every restart.
+- Local `pnpm dev` and `pnpm start` are unchanged.
+
 #### Admin UI Overhaul — Full Rebuild (Phase 1–4)
 
 ##### Backend — New API Endpoints & Contracts (`packages/contracts/src/admin-dashboard.ts`, `apps/api/src/modules/admin/admin-dashboard.controller.ts`, `apps/api/src/modules/admin/admin-dashboard.service.ts`, `apps/api/src/modules/admin/admin-teachers.controller.ts`, `apps/api/src/modules/admin/admin-teachers.service.ts`, `apps/api/src/modules/admin/admin.module.ts`)

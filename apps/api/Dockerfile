@@ -41,4 +41,4 @@ WORKDIR /app/apps/api
 
 EXPOSE 4000
 
-CMD ["pnpm", "start"]
+CMD ["pnpm", "run", "start:prod"]
