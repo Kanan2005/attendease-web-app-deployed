@@ -30,3 +30,7 @@ mailpit-data
 
 # Local deployment artifacts
 deploy-*.zip
+
+# Local backups & user notes
+*.bak
+*.docx
