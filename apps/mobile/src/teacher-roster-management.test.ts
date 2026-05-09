@@ -92,19 +92,10 @@ describe("teacher roster management helpers", () => {
   })
 
   it("derives roster actions from membership state and permissions", () => {
+    // Teachers on mobile can only Remove students. Status changes (Mark Pending,
+    // Activate, Block) are admin-only operations performed from the web admin
+    // panel, so this helper intentionally returns only REMOVE actions.
     expect(buildTeacherRosterMemberActions(createRosterMember())).toEqual([
-      {
-        kind: "UPDATE",
-        label: "Mark Pending",
-        membershipStatus: "PENDING",
-        tone: "secondary",
-      },
-      {
-        kind: "UPDATE",
-        label: "Block",
-        membershipStatus: "BLOCKED",
-        tone: "danger",
-      },
       {
         kind: "REMOVE",
         label: "Remove",
@@ -126,12 +117,6 @@ describe("teacher roster management helpers", () => {
         }),
       ),
     ).toEqual([
-      {
-        kind: "UPDATE",
-        label: "Activate",
-        membershipStatus: "ACTIVE",
-        tone: "secondary",
-      },
       {
         kind: "REMOVE",
         label: "Remove",

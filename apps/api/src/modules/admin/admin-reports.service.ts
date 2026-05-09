@@ -466,14 +466,6 @@ export class AdminReportsService {
       let inlineDataUrl: string | undefined
       let objectKey = `admin-reports/${input.auth.userId}/${job.id}/${artifact.fileName}`
 
-      // eslint-disable-next-line no-console
-      console.log("[admin-reports] runReport invoked", {
-        jobId: job.id,
-        jobType: input.jobType,
-        forceInline,
-        inlineFallbackEnabled: this.storage.inlineFallbackEnabled,
-      })
-
       if (forceInline) {
         // Operator opted into inline mode via STORAGE_INLINE_FALLBACK=true.
         objectKey = `inline:${job.id}/${artifact.fileName}`
@@ -541,8 +533,7 @@ export class AdminReportsService {
 
       return this.toJobSummary(completed)
     } catch (error) {
-      const baseMessage = error instanceof Error ? error.message : "Failed to generate the report."
-      const message = `${baseMessage} [code v3-inline-fallback]`
+      const message = error instanceof Error ? error.message : "Failed to generate the report."
       const failed = await this.database.prisma.exportJob.update({
         where: { id: job.id },
         data: {
