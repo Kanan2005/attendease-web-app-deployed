@@ -119,6 +119,7 @@
 
 ## 🆕 Recently completed
 
+- [x] 2026-05-09 — **Admin Panel Phase 1: Records explorer**. Backend (`76e6f87`) added migration `20260509073000_admin_panel_action_log_enum_extensions` extending `AdminActionType` enum (pre-staged for all 6 phases), `packages/contracts/src/admin-records.ts` with Zod schemas, `apps/api/src/modules/admin/admin-records.{service,controller,integration.test}.ts` with 5 GET endpoints (departments, teachers in dept, courses by teacher, students in course, course-code search) + 2 POST mutations (archive/unarchive with `AdminActionLog` rows, idempotent). Frontend pending in next commit. See `/Users/anuagar2/.windsurf/plans/admin-panel-buildout-3503b3.md`.
 - [x] 2026-05-09 — **Render cold-start UX fix**. Symptom: login form stuck on "Signing in..." for ~50s on first sign-in. Root cause: Render free tier suspends container after ~15 min idle; cold start ~50s. Fixes:
   1. `.github/workflows/keep-alive.yml` — pings `/health` every 13 min via cron + `workflow_dispatch`. Free, runs on GitHub-hosted runner.
   2. `apps/web/src/unified-login-form.tsx` — fires `fetch(/health)` on mount to warm the API while user types creds. Adds delayed UI hint ("Server is warming up...") if submit takes >5s.

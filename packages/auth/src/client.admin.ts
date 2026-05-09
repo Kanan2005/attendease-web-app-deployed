@@ -11,6 +11,14 @@ import {
   type AdminStudentManagementDetail,
   type AdminStudentManagementSearchQuery,
   type AdminStudentManagementSummary,
+  type AdminRecordsArchiveRequest,
+  type AdminRecordsArchiveResponse,
+  type AdminRecordsCourseListResponse,
+  type AdminRecordsCourseSearchQuery,
+  type AdminRecordsCourseSearchResponse,
+  type AdminRecordsDepartmentListResponse,
+  type AdminRecordsStudentListResponse,
+  type AdminRecordsTeacherListResponse,
   type AdminTeacherDetail,
   type AdminTeacherSearchQuery,
   type AdminTeacherSummary,
@@ -30,6 +38,14 @@ import {
   adminStudentManagementDetailSchema,
   adminStudentManagementSearchQuerySchema,
   adminStudentManagementSummariesResponseSchema,
+  adminRecordsArchiveRequestSchema,
+  adminRecordsArchiveResponseSchema,
+  adminRecordsCourseListResponseSchema,
+  adminRecordsCourseSearchQuerySchema,
+  adminRecordsCourseSearchResponseSchema,
+  adminRecordsDepartmentListResponseSchema,
+  adminRecordsStudentListResponseSchema,
+  adminRecordsTeacherListResponseSchema,
   adminTeacherDetailSchema,
   adminTeacherListResponseSchema,
   adminTeacherSearchQuerySchema,
@@ -203,6 +219,84 @@ export function buildAuthClientAdminMethods(request: AuthApiRequest) {
         token,
         payload: approveReplacementStudentDeviceRequestSchema.parse(payload),
         parse: approveReplacementStudentDeviceResponseSchema.parse,
+      })
+    },
+    listAdminRecordsDepartments(
+      token: string,
+    ): Promise<AdminRecordsDepartmentListResponse> {
+      return request("/admin/records/departments", {
+        method: "GET",
+        token,
+        parse: adminRecordsDepartmentListResponseSchema.parse,
+      })
+    },
+    listAdminRecordsTeachersInDepartment(
+      token: string,
+      department: string,
+    ): Promise<AdminRecordsTeacherListResponse> {
+      return request(
+        `/admin/records/departments/${encodeURIComponent(department)}/teachers`,
+        {
+          method: "GET",
+          token,
+          parse: adminRecordsTeacherListResponseSchema.parse,
+        },
+      )
+    },
+    listAdminRecordsCoursesByTeacher(
+      token: string,
+      teacherId: string,
+    ): Promise<AdminRecordsCourseListResponse> {
+      return request(`/admin/records/teachers/${teacherId}/courses`, {
+        method: "GET",
+        token,
+        parse: adminRecordsCourseListResponseSchema.parse,
+      })
+    },
+    listAdminRecordsStudentsInCourse(
+      token: string,
+      courseOfferingId: string,
+    ): Promise<AdminRecordsStudentListResponse> {
+      return request(`/admin/records/courses/${courseOfferingId}/students`, {
+        method: "GET",
+        token,
+        parse: adminRecordsStudentListResponseSchema.parse,
+      })
+    },
+    searchAdminRecordsCourses(
+      token: string,
+      filters: AdminRecordsCourseSearchQuery,
+    ): Promise<AdminRecordsCourseSearchResponse> {
+      const query = adminRecordsCourseSearchQuerySchema.parse(filters)
+      return request("/admin/records/courses/search", {
+        method: "GET",
+        token,
+        query: toQuery(query),
+        parse: adminRecordsCourseSearchResponseSchema.parse,
+      })
+    },
+    archiveAdminRecordsCourse(
+      token: string,
+      courseOfferingId: string,
+      payload: AdminRecordsArchiveRequest = {},
+    ): Promise<AdminRecordsArchiveResponse> {
+      return request(`/admin/records/courses/${courseOfferingId}/archive`, {
+        method: "POST",
+        token,
+        payload: adminRecordsArchiveRequestSchema.parse(payload),
+        parse: adminRecordsArchiveResponseSchema.parse,
+      })
+    },
+    unarchiveAdminRecordsCourse(
+      token: string,
+      courseOfferingId: string,
+      payload: AdminRecordsArchiveRequest = {},
+    ): Promise<AdminRecordsArchiveResponse> {
+      return request(`/admin/records/courses/${courseOfferingId}/unarchive`, {
+        method: "POST",
+        token,
+        payload: adminRecordsArchiveRequestSchema.parse(payload),
+        parse: adminRecordsArchiveResponseSchema.parse,
       })
     },
   }

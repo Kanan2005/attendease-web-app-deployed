@@ -98,9 +98,11 @@ describe("web portal models", () => {
 
     expect(adminPortalNavigation.map((item) => item.href)).toEqual([
       "/admin/dashboard",
-      "/admin/devices?view=support",
+      "/admin/records",
+      "/admin/students",
+      "/admin/teachers",
       "/admin/devices",
-      "/admin/imports",
+      "/admin/classrooms",
       "/admin/semesters",
     ])
   })
