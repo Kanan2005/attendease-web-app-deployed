@@ -135,6 +135,7 @@ export const adminRecordsStudentListResponseSchema = z.object({
   status: adminRecordsCourseStatusSchema,
   isArchived: z.boolean(),
   studentCount: nonNegativeInt,
+  totalSessionsConducted: nonNegativeInt,
   averageAttendancePercent: percentSchema.nullable(),
   lowAttendanceCount: nonNegativeInt,
   lowAttendanceThresholdPercent: percentSchema,

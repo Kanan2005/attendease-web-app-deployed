@@ -58,17 +58,16 @@ export function AdminRecordsStudentsWorkspace(props: {
         }}
       >
         <SidePanelStat
+          label="Total sessions"
+          value={(studentsQuery.data?.totalSessionsConducted ?? 0).toString()}
+        />
+        <SidePanelStat
           label="Students"
           value={(studentsQuery.data?.studentCount ?? 0).toString()}
         />
         <SidePanelStatPercent
           label="Avg attendance"
           value={studentsQuery.data?.averageAttendancePercent ?? null}
-        />
-        <SidePanelStat
-          label={`Below ${studentsQuery.data?.lowAttendanceThresholdPercent ?? 75}%`}
-          value={(studentsQuery.data?.lowAttendanceCount ?? 0).toString()}
-          tone="danger"
         />
       </div>
       <WebSectionCard
