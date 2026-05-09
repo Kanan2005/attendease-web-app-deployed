@@ -94,9 +94,7 @@ describe("web portal models", () => {
   })
 
   it("keeps teacher and admin navigation coverage aligned with the planned route tree", () => {
-    expect(teacherPortalNavigation.map((item) => item.href)).toEqual([
-      "/teacher/classrooms",
-    ])
+    expect(teacherPortalNavigation.map((item) => item.href)).toEqual(["/teacher/classrooms"])
 
     expect(adminPortalNavigation.map((item) => item.href)).toEqual([
       "/admin/dashboard",

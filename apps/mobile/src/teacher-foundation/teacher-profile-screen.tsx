@@ -112,7 +112,14 @@ export function TeacherProfileScreen() {
 
   if (!session) {
     return (
-      <View style={{ flex: 1, backgroundColor: c.surface, justifyContent: "center", alignItems: "center" }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: c.surface,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <Text style={{ color: c.textMuted, fontSize: 15 }}>Not signed in.</Text>
       </View>
     )
@@ -218,7 +225,10 @@ export function TeacherProfileScreen() {
           </View>
 
           {/* ── Editable Fields ── */}
-          <ProfileCard title="Personal Info" subtitle="Edit your display name and department details.">
+          <ProfileCard
+            title="Personal Info"
+            subtitle="Edit your display name and department details."
+          >
             <ProfileFieldLabel icon="person-outline" label="Display name" />
             <TextInput
               value={draft.displayName}

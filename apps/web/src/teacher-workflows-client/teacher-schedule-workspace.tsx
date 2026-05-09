@@ -11,9 +11,19 @@ import {
   minutesToTimeString,
   webWorkflowQueryKeys,
 } from "../web-workflows"
-import type { ScheduleDraftState, ScheduleExceptionDraft, ScheduleSlotDraft } from "../web-workflows-types"
+import type {
+  ScheduleDraftState,
+  ScheduleExceptionDraft,
+  ScheduleSlotDraft,
+} from "../web-workflows-types"
 
-import { WorkflowBanner, WorkflowStateCard, bootstrap, useAuthRedirect, workflowStyles } from "./shared"
+import {
+  WorkflowBanner,
+  WorkflowStateCard,
+  bootstrap,
+  useAuthRedirect,
+  workflowStyles,
+} from "./shared"
 import {
   ExtraLecturePanel,
   SlotEditorPanel,
@@ -148,13 +158,21 @@ export function TeacherScheduleWorkspace(props: {
               s.startMinutes === original.startMinutes &&
               s.endMinutes === original.endMinutes
             ) {
-              return { ...s, startMinutes: firstSlot.startMinutes, endMinutes: firstSlot.endMinutes, locationLabel: firstSlot.locationLabel }
+              return {
+                ...s,
+                startMinutes: firstSlot.startMinutes,
+                endMinutes: firstSlot.endMinutes,
+                locationLabel: firstSlot.locationLabel,
+              }
             }
             return s
           }),
         }
       } else {
-        newDraft = { ...draft, slots: draft.slots.map((s) => (s.id === firstSlot.id ? firstSlot : s)) }
+        newDraft = {
+          ...draft,
+          slots: draft.slots.map((s) => (s.id === firstSlot.id ? firstSlot : s)),
+        }
       }
     }
 
@@ -253,22 +271,25 @@ export function TeacherScheduleWorkspace(props: {
   }
 
   // Called when the user clicks the pencil icon on a calendar event
-  const handleEditEvent = useCallback((event: WeekCalendarEvent) => {
-    if (!draft) return
-    if (event.type === "one-off" && event.exceptionId) {
-      const exc = draft.exceptions.find((e) => e.id === event.exceptionId)
-      if (exc) {
-        setEditor({ type: "edit-extra", exceptionDraft: exc })
-        setStatusMessage(null)
+  const handleEditEvent = useCallback(
+    (event: WeekCalendarEvent) => {
+      if (!draft) return
+      if (event.type === "one-off" && event.exceptionId) {
+        const exc = draft.exceptions.find((e) => e.id === event.exceptionId)
+        if (exc) {
+          setEditor({ type: "edit-extra", exceptionDraft: exc })
+          setStatusMessage(null)
+        }
+      } else if (event.slotId) {
+        const slot = draft.slots.find((s) => s.id === event.slotId)
+        if (slot) {
+          setEditor({ type: "edit-slot", slotDraft: slot })
+          setStatusMessage(null)
+        }
       }
-    } else if (event.slotId) {
-      const slot = draft.slots.find((s) => s.id === event.slotId)
-      if (slot) {
-        setEditor({ type: "edit-slot", slotDraft: slot })
-        setStatusMessage(null)
-      }
-    }
-  }, [draft])
+    },
+    [draft],
+  )
 
   /**
    * "All instances" means every week on the same weekday+time. Show the
@@ -321,7 +342,8 @@ export function TeacherScheduleWorkspace(props: {
             Schedule
           </h2>
           <span style={{ fontSize: 13, color: webTheme.colors.textSubtle }}>
-            {draft.slots.filter((s) => s.status === "ACTIVE").length} weekly slot{draft.slots.filter((s) => s.status === "ACTIVE").length !== 1 ? "s" : ""}
+            {draft.slots.filter((s) => s.status === "ACTIVE").length} weekly slot
+            {draft.slots.filter((s) => s.status === "ACTIVE").length !== 1 ? "s" : ""}
           </span>
         </div>
 
@@ -360,10 +382,7 @@ export function TeacherScheduleWorkspace(props: {
           hasSiblings={editorHasSiblings()}
         />
       ) : editor.type === "add-extra" ? (
-        <ExtraLecturePanel
-          onSave={handleExtraSave}
-          onCancel={() => setEditor({ type: "none" })}
-        />
+        <ExtraLecturePanel onSave={handleExtraSave} onCancel={() => setEditor({ type: "none" })} />
       ) : editor.type === "edit-extra" ? (
         <ExtraLecturePanel
           initial={editor.exceptionDraft}
@@ -418,7 +437,7 @@ function buildWeekViewEvents(draft: ScheduleDraftState, weekDates: Date[]): Week
       weekday: slot.weekday,
       startMinutes: slot.startMinutes,
       endMinutes: slot.endMinutes,
-      label: minutesToTimeString(slot.startMinutes) + " – " + minutesToTimeString(slot.endMinutes),
+      label: `${minutesToTimeString(slot.startMinutes)} – ${minutesToTimeString(slot.endMinutes)}`,
       locationLabel: slot.locationLabel || null,
       type: isCancelled ? "cancelled" : "slot",
       slotId: slot.id,
@@ -433,7 +452,8 @@ function buildWeekViewEvents(draft: ScheduleDraftState, weekDates: Date[]): Week
     const weStr = toISODateStr(weekEnd)
 
     for (const exc of draft.exceptions) {
-      if (exc.exceptionType !== "ONE_OFF" || exc.startMinutes == null || exc.endMinutes == null) continue
+      if (exc.exceptionType !== "ONE_OFF" || exc.startMinutes == null || exc.endMinutes == null)
+        continue
       const excDateStr = exc.effectiveDate.split("T")[0] ?? ""
       if (excDateStr < wsStr || excDateStr > weStr) continue
 
@@ -446,7 +466,7 @@ function buildWeekViewEvents(draft: ScheduleDraftState, weekDates: Date[]): Week
         weekday,
         startMinutes: exc.startMinutes,
         endMinutes: exc.endMinutes,
-        label: minutesToTimeString(exc.startMinutes) + " – " + minutesToTimeString(exc.endMinutes),
+        label: `${minutesToTimeString(exc.startMinutes)} – ${minutesToTimeString(exc.endMinutes)}`,
         locationLabel: exc.locationLabel || null,
         type: "one-off",
         slotId: null,

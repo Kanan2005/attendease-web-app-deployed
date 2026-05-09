@@ -162,9 +162,7 @@ export function TeacherClassroomRosterScreenContent(props: Props) {
           <Animated.View entering={FadeInDown.duration(200)} style={rs.toastContainer}>
             <View style={[rs.toast, { backgroundColor: c.successSoft }]}>
               <Ionicons name="checkmark-circle" size={17} color={c.success} />
-              <Text style={{ fontSize: 13, color: c.success, flex: 1 }}>
-                {props.rosterMessage}
-              </Text>
+              <Text style={{ fontSize: 13, color: c.success, flex: 1 }}>{props.rosterMessage}</Text>
               <Pressable onPress={() => props.onSetRosterMessage(null)} hitSlop={8}>
                 <Ionicons name="close" size={15} color={c.success} />
               </Pressable>
@@ -328,12 +326,7 @@ function StudentRow(props: {
   const pal = avatarColors[props.index % avatarColors.length]!
 
   return (
-    <View
-      style={[
-        rs.studentRow,
-        { backgroundColor: c.surfaceRaised, borderColor: c.border },
-      ]}
-    >
+    <View style={[rs.studentRow, { backgroundColor: c.surfaceRaised, borderColor: c.border }]}>
       <View style={[rs.avatar, { backgroundColor: pal.bg }]}>
         <Text style={{ fontSize: 14, fontWeight: "800", color: pal.fg }}>
           {member.studentDisplayName.charAt(0).toUpperCase()}

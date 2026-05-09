@@ -113,13 +113,15 @@ export class AdminDashboardService {
     })
 
     return events
-      .filter((event) => event.user !== null)
+      .filter((event): event is typeof event & { user: NonNullable<typeof event.user> } =>
+        event.user !== null,
+      )
       .map((event) => ({
         id: event.id,
         eventType: event.eventType,
-        userId: event.user!.id,
-        userEmail: event.user!.email,
-        userDisplayName: event.user!.displayName,
+        userId: event.user.id,
+        userEmail: event.user.email,
+        userDisplayName: event.user.displayName,
         createdAt: event.createdAt.toISOString(),
       }))
   }

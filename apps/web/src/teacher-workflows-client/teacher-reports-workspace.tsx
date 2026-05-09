@@ -53,7 +53,8 @@ const DEFAULT_PARENT_BODY = [
   "Please encourage your ward to attend classes regularly.",
 ].join("\n")
 
-const TEMPLATE_VARIABLE_HINTS = "{{studentName}}, {{classroomTitle}}, {{subjectTitle}}, {{attendancePercentage}}, {{thresholdPercent}}"
+const TEMPLATE_VARIABLE_HINTS =
+  "{{studentName}}, {{classroomTitle}}, {{subjectTitle}}, {{attendancePercentage}}, {{thresholdPercent}}"
 
 /** Substitutes {{variable}} placeholders in a template string. */
 function renderPreview(template: string, vars: Record<string, string>): string {
@@ -208,7 +209,8 @@ function ThresholdEmailComposeModal(props: {
     },
   })
 
-  const canSend = (emailStudents || emailParents) && subject.trim().length > 0 && body.trim().length > 0
+  const canSend =
+    (emailStudents || emailParents) && subject.trim().length > 0 && body.trim().length > 0
 
   const fieldLabelStyle: React.CSSProperties = {
     display: "block",
@@ -258,7 +260,8 @@ function ThresholdEmailComposeModal(props: {
             Compose notification
           </div>
           <div style={{ fontSize: 13, color: webTheme.colors.textMuted, marginTop: 2 }}>
-            {props.selectedStudents.length} student{props.selectedStudents.length === 1 ? "" : "s"} selected
+            {props.selectedStudents.length} student{props.selectedStudents.length === 1 ? "" : "s"}{" "}
+            selected
             {" · "}below {props.thresholdPercent}% attendance
           </div>
         </div>
@@ -289,7 +292,16 @@ function ThresholdEmailComposeModal(props: {
       <div style={{ padding: "20px 24px" }}>
         {/* Recipient toggles */}
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: webTheme.colors.textMuted, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: webTheme.colors.textMuted,
+              marginBottom: 8,
+              textTransform: "uppercase",
+              letterSpacing: 0.5,
+            }}
+          >
             Recipients
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -323,8 +335,9 @@ function ThresholdEmailComposeModal(props: {
               lineHeight: 1.5,
             }}
           >
-            {studentsWithoutParentEmail} student{studentsWithoutParentEmail === 1 ? " has" : "s have"}{" "}
-            no parent email on file — they will be skipped for parent emails.
+            {studentsWithoutParentEmail} student
+            {studentsWithoutParentEmail === 1 ? " has" : "s have"} no parent email on file — they
+            will be skipped for parent emails.
           </div>
         ) : null}
 
@@ -412,7 +425,13 @@ function ThresholdEmailComposeModal(props: {
                 marginBottom: showPreview ? 10 : 0,
               }}
             >
-              <span style={{ transform: showPreview ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s ease", display: "inline-block" }}>
+              <span
+                style={{
+                  transform: showPreview ? "rotate(90deg)" : "rotate(0deg)",
+                  transition: "transform 0.15s ease",
+                  display: "inline-block",
+                }}
+              >
                 ▸
               </span>
               {showPreview ? "Hide preview" : "Show preview"} — {sampleStudent.title}
@@ -426,13 +445,37 @@ function ThresholdEmailComposeModal(props: {
                   background: `${webTheme.colors.accent}06`,
                 }}
               >
-                <div style={{ fontSize: 11, fontWeight: 700, color: webTheme.colors.textMuted, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.8 }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: webTheme.colors.textMuted,
+                    marginBottom: 8,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.8,
+                  }}
+                >
                   Email preview
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: webTheme.colors.text, marginBottom: 6, lineHeight: 1.4 }}>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: webTheme.colors.text,
+                    marginBottom: 6,
+                    lineHeight: 1.4,
+                  }}
+                >
                   {previewSubject}
                 </div>
-                <div style={{ fontSize: 13, color: webTheme.colors.textMuted, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: webTheme.colors.textMuted,
+                    whiteSpace: "pre-wrap",
+                    lineHeight: 1.6,
+                  }}
+                >
                   {previewBody}
                 </div>
               </div>
@@ -574,9 +617,7 @@ export function TeacherReportsWorkspace(props: {
 
   const studentsBelowThreshold = useMemo(
     () =>
-      reportOverview.studentRows.filter(
-        (row) => row.attendancePercentage < attendanceThreshold,
-      ),
+      reportOverview.studentRows.filter((row) => row.attendancePercentage < attendanceThreshold),
     [reportOverview.studentRows, attendanceThreshold],
   )
 
@@ -787,7 +828,7 @@ export function TeacherReportsWorkspace(props: {
                 onChange={(value) => setFilters((current) => ({ ...current, toDate: value }))}
                 type="date"
               />
-              {(filters.fromDate || filters.toDate) ? (
+              {filters.fromDate || filters.toDate ? (
                 <button
                   type="button"
                   onClick={() =>
@@ -868,7 +909,7 @@ export function TeacherReportsWorkspace(props: {
                 onChange={(value) => setFilters((current) => ({ ...current, toDate: value }))}
                 type="date"
               />
-              {(filters.fromDate || filters.toDate) ? (
+              {filters.fromDate || filters.toDate ? (
                 <button
                   type="button"
                   onClick={() =>
@@ -1070,7 +1111,9 @@ export function TeacherReportsWorkspace(props: {
 
             {showComposeModal && props.accessToken && props.initialClassroomId ? (
               <ThresholdEmailComposeModal
-                selectedStudents={studentsBelowThreshold.filter((r) => selectedStudentIds.has(r.studentId))}
+                selectedStudents={studentsBelowThreshold.filter((r) =>
+                  selectedStudentIds.has(r.studentId),
+                )}
                 classroomTitle={classroomTitle}
                 thresholdPercent={attendanceThreshold}
                 accessToken={props.accessToken}

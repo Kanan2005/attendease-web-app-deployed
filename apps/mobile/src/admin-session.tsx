@@ -1,5 +1,5 @@
-import type { AuthLoginRequest, AuthSessionResponse } from "@attendease/contracts"
 import { AuthApiClientError } from "@attendease/auth"
+import type { AuthLoginRequest, AuthSessionResponse } from "@attendease/contracts"
 import { useQueryClient } from "@tanstack/react-query"
 import { createContext, useContext, useEffect, useRef, useState } from "react"
 import type { ReactNode } from "react"

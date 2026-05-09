@@ -22,17 +22,12 @@ import {
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
-import type {
-  TeacherScheduleDraft,
-  TeacherScheduleExceptionDraft,
-  TeacherScheduleSlotDraft,
-} from "../teacher-schedule-draft"
 import {
   type CalendarEvent,
-  type WeekDate,
   DURATION_OPTIONS,
   HOUR_HEIGHT,
   TIME_GUTTER_WIDTH,
+  type WeekDate,
   buildCalendarEvents,
   computeVisibleDays,
   computeVisibleHours,
@@ -43,6 +38,11 @@ import {
   weekdayFull,
   weekdayShort,
 } from "../teacher-schedule-calendar"
+import type {
+  TeacherScheduleDraft,
+  TeacherScheduleExceptionDraft,
+  TeacherScheduleSlotDraft,
+} from "../teacher-schedule-draft"
 
 // ── Editor state types ──
 
@@ -199,7 +199,9 @@ export function TeacherClassroomScheduleScreenContent(props: Props) {
       {/* Extra lecture editor modal — key forces remount between add/edit modes */}
       {(props.editorState?.mode === "add-extra" || props.editorState?.mode === "edit-extra") && (
         <ExtraEditorModal
-          key={props.editorState.mode === "edit-extra" ? `edit-${props.editorState.localId}` : "add"}
+          key={
+            props.editorState.mode === "edit-extra" ? `edit-${props.editorState.localId}` : "add"
+          }
           draft={props.draft}
           editorState={props.editorState}
           weekDates={weekDates}
@@ -311,11 +313,7 @@ function DayHeaderRow(props: { weekDates: WeekDate[]; visibleDays: number[] }) {
               {weekdayShort(wd)}
             </Text>
             <View
-              style={
-                date.isToday
-                  ? [ss.todayCircle, { backgroundColor: c.primary }]
-                  : undefined
-              }
+              style={date.isToday ? [ss.todayCircle, { backgroundColor: c.primary }] : undefined}
             >
               <Text
                 style={{
@@ -390,7 +388,9 @@ function CalendarGrid(props: {
                 height: HOUR_HEIGHT,
               }}
             >
-              <Text style={{ fontSize: 10, color: c.textSubtle, textAlign: "right", marginTop: -6 }}>
+              <Text
+                style={{ fontSize: 10, color: c.textSubtle, textAlign: "right", marginTop: -6 }}
+              >
                 {i > 0 ? minutesToTimeLabel((props.startHour + i) * 60) : ""}
               </Text>
             </View>
@@ -508,16 +508,8 @@ function EventBlock(props: {
         overflow: "hidden",
         borderWidth: isOneOff ? 1.5 : 1,
         borderStyle: isOneOff ? "dashed" : "solid",
-        borderColor: isCancelled
-          ? c.border
-          : isOneOff
-            ? c.primary
-            : "transparent",
-        backgroundColor: isCancelled
-          ? c.surfaceMuted
-          : isOneOff
-            ? `${c.primary}18`
-            : c.primarySoft,
+        borderColor: isCancelled ? c.border : isOneOff ? c.primary : "transparent",
+        backgroundColor: isCancelled ? c.surfaceMuted : isOneOff ? `${c.primary}18` : c.primarySoft,
         opacity: isCancelled ? 0.5 : 1,
       }}
     >
@@ -540,9 +532,7 @@ function EventBlock(props: {
           {event.locationLabel}
         </Text>
       ) : null}
-      {isOneOff && (
-        <Text style={{ fontSize: 7, color: c.primary, fontWeight: "600" }}>Extra</Text>
-      )}
+      {isOneOff && <Text style={{ fontSize: 7, color: c.primary, fontWeight: "600" }}>Extra</Text>}
     </Pressable>
   )
 }
@@ -740,7 +730,9 @@ function TimePicker(props: {
           formatItem={(v) => String(v).padStart(2, "0")}
           width={90}
         />
-        <Text style={{ fontSize: 28, fontWeight: "700", color: c.text, marginHorizontal: 2 }}>:</Text>
+        <Text style={{ fontSize: 28, fontWeight: "700", color: c.text, marginHorizontal: 2 }}>
+          :
+        </Text>
         <WheelColumn
           data={MINUTE_DATA}
           selected={minute}
@@ -863,7 +855,7 @@ function SlotEditorModal(props: {
 
   // For edit: find the existing slot
   const existingSlot = editLocalId
-    ? props.draft?.slots.find((s) => s.localId === editLocalId) ?? null
+    ? (props.draft?.slots.find((s) => s.localId === editLocalId) ?? null)
     : null
 
   // "Apply to all instances" only relevant for saved (server-persisted) slots
@@ -981,7 +973,10 @@ function SlotEditorModal(props: {
               placeholder="e.g. VLTC 204"
               placeholderTextColor={c.textSubtle}
               autoCapitalize="words"
-              style={[ss.textInput, { borderColor: c.border, color: c.text, backgroundColor: c.surfaceMuted }]}
+              style={[
+                ss.textInput,
+                { borderColor: c.border, color: c.text, backgroundColor: c.surfaceMuted },
+              ]}
             />
           </View>
 
@@ -1053,7 +1048,9 @@ function SlotEditorModal(props: {
                   onPress={() => setConfirmRemove(false)}
                   style={[ss.cancelRemoveBtn, { borderColor: c.border }]}
                 >
-                  <Text style={{ fontSize: 14, fontWeight: "600", color: c.textMuted }}>Cancel</Text>
+                  <Text style={{ fontSize: 14, fontWeight: "600", color: c.textMuted }}>
+                    Cancel
+                  </Text>
                 </Pressable>
               )}
             </View>
@@ -1087,7 +1084,7 @@ function ExtraEditorModal(props: {
   const editLocalId = isEdit ? (props.editorState as { localId: string }).localId : null
 
   const existing = editLocalId
-    ? props.draft?.exceptions.find((e) => e.localId === editLocalId) ?? null
+    ? (props.draft?.exceptions.find((e) => e.localId === editLocalId) ?? null)
     : null
 
   // Default to today's date for new extras
@@ -1100,7 +1097,7 @@ function ExtraEditorModal(props: {
   }, [])
 
   const [dateStr, setDateStr] = useState(
-    existing ? existing.effectiveDate.split("T")[0] ?? defaultDate : defaultDate,
+    existing ? (existing.effectiveDate.split("T")[0] ?? defaultDate) : defaultDate,
   )
   const [startMinutes, setStartMinutes] = useState(existing?.startMinutes ?? 540)
   const [duration, setDuration] = useState(
@@ -1171,7 +1168,10 @@ function ExtraEditorModal(props: {
               placeholderTextColor={c.textSubtle}
               autoCapitalize="none"
               keyboardType="numbers-and-punctuation"
-              style={[ss.textInput, { borderColor: c.border, color: c.text, backgroundColor: c.surfaceMuted }]}
+              style={[
+                ss.textInput,
+                { borderColor: c.border, color: c.text, backgroundColor: c.surfaceMuted },
+              ]}
             />
           </View>
 
@@ -1201,7 +1201,10 @@ function ExtraEditorModal(props: {
               placeholder="e.g. VLTC 204"
               placeholderTextColor={c.textSubtle}
               autoCapitalize="words"
-              style={[ss.textInput, { borderColor: c.border, color: c.text, backgroundColor: c.surfaceMuted }]}
+              style={[
+                ss.textInput,
+                { borderColor: c.border, color: c.text, backgroundColor: c.surfaceMuted },
+              ]}
             />
           </View>
 
@@ -1216,7 +1219,10 @@ function ExtraEditorModal(props: {
               placeholder="e.g. Guest lecture, makeup class"
               placeholderTextColor={c.textSubtle}
               autoCapitalize="sentences"
-              style={[ss.textInput, { borderColor: c.border, color: c.text, backgroundColor: c.surfaceMuted }]}
+              style={[
+                ss.textInput,
+                { borderColor: c.border, color: c.text, backgroundColor: c.surfaceMuted },
+              ]}
             />
           </View>
 
@@ -1253,7 +1259,9 @@ function ExtraEditorModal(props: {
                   onPress={() => setConfirmRemove(false)}
                   style={[ss.cancelRemoveBtn, { borderColor: c.border }]}
                 >
-                  <Text style={{ fontSize: 14, fontWeight: "600", color: c.textMuted }}>Cancel</Text>
+                  <Text style={{ fontSize: 14, fontWeight: "600", color: c.textMuted }}>
+                    Cancel
+                  </Text>
                 </Pressable>
               )}
             </View>

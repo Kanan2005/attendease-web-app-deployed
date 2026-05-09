@@ -119,9 +119,7 @@ export function StudentManagementWorkspaceContent(props: StudentManagementWorksp
               {props.isSearching ? "Searching..." : "Search"}
             </button>
 
-            {props.studentsLoading ? (
-              <StateCard message="Loading students..." />
-            ) : null}
+            {props.studentsLoading ? <StateCard message="Loading students..." /> : null}
             {props.studentsErrorExists ? (
               <Banner
                 tone="danger"
@@ -146,9 +144,7 @@ export function StudentManagementWorkspaceContent(props: StudentManagementWorksp
                         ...styles.rowCard,
                         textAlign: "left",
                         cursor: "pointer",
-                        borderColor: isSelected
-                          ? webTheme.colors.accent
-                          : webTheme.colors.border,
+                        borderColor: isSelected ? webTheme.colors.accent : webTheme.colors.border,
                         background: isSelected
                           ? webTheme.colors.accentSoft
                           : webTheme.colors.surfaceRaised,
@@ -263,7 +259,14 @@ function StudentDetailView(props: {
     <div style={styles.grid}>
       {/* ── Registration Info ── */}
       <div style={styles.rowCard}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 12,
+          }}
+        >
           <div>
             <div style={{ fontSize: 18, fontWeight: 700, color: webTheme.colors.text }}>
               {d.student.displayName}
@@ -273,7 +276,16 @@ function StudentDetailView(props: {
             </div>
           </div>
           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-            <StatusBadge label={formatAdminSupportLabel(d.student.status)} tone={d.student.status === "ACTIVE" ? "success" : d.student.status === "BLOCKED" ? "danger" : "neutral"} />
+            <StatusBadge
+              label={formatAdminSupportLabel(d.student.status)}
+              tone={
+                d.student.status === "ACTIVE"
+                  ? "success"
+                  : d.student.status === "BLOCKED"
+                    ? "danger"
+                    : "neutral"
+              }
+            />
           </div>
         </div>
 
@@ -290,7 +302,10 @@ function StudentDetailView(props: {
         >
           <InfoField label="Roll Number" value={d.student.rollNumber ?? "—"} />
           <InfoField label="Program" value={d.student.programName ?? "—"} />
-          <InfoField label="Semester" value={d.student.currentSemester != null ? String(d.student.currentSemester) : "—"} />
+          <InfoField
+            label="Semester"
+            value={d.student.currentSemester != null ? String(d.student.currentSemester) : "—"}
+          />
           <InfoField label="Registered" value={formatPortalDateTime(d.student.createdAt)} />
           <InfoField
             label="Last Login"
@@ -361,7 +376,9 @@ function StudentDetailView(props: {
 
       {/* ── Pending Device Requests ── */}
       <div style={styles.rowCard}>
-        <div style={{ fontWeight: 700, fontSize: 15, color: webTheme.colors.text, marginBottom: 12 }}>
+        <div
+          style={{ fontWeight: 700, fontSize: 15, color: webTheme.colors.text, marginBottom: 12 }}
+        >
           Pending Device Requests
         </div>
         {d.pendingBinding ? (
@@ -373,19 +390,31 @@ function StudentDetailView(props: {
               background: webTheme.colors.warningSoft,
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 12,
+              }}
+            >
               <div>
                 <div style={{ fontWeight: 600, color: webTheme.colors.text, fontSize: 14 }}>
                   Device replacement request
                 </div>
                 <div style={{ color: webTheme.colors.textMuted, fontSize: 13, marginTop: 4 }}>
-                  {d.pendingBinding.device.platform} · {d.pendingBinding.device.deviceModel ?? "Unknown model"} · {d.pendingBinding.device.installId}
+                  {d.pendingBinding.device.platform} ·{" "}
+                  {d.pendingBinding.device.deviceModel ?? "Unknown model"} ·{" "}
+                  {d.pendingBinding.device.installId}
                 </div>
                 <div style={{ color: webTheme.colors.textMuted, fontSize: 12, marginTop: 4 }}>
                   Requested {formatPortalDateTime(d.pendingBinding.binding.boundAt)}
                 </div>
               </div>
-              <Link href={adminWorkflowRoutes.devices} style={{ ...styles.primaryButton, fontSize: 13, padding: "8px 14px" }}>
+              <Link
+                href={adminWorkflowRoutes.devices}
+                style={{ ...styles.primaryButton, fontSize: 13, padding: "8px 14px" }}
+              >
                 Review
               </Link>
             </div>
@@ -409,10 +438,15 @@ function StudentDetailView(props: {
               Current device
             </div>
             <div style={{ color: webTheme.colors.textMuted, fontSize: 13, marginTop: 4 }}>
-              {d.activeBinding.device.platform} · {d.activeBinding.device.deviceModel ?? "Unknown model"} · {d.activeBinding.device.installId}
+              {d.activeBinding.device.platform} ·{" "}
+              {d.activeBinding.device.deviceModel ?? "Unknown model"} ·{" "}
+              {d.activeBinding.device.installId}
             </div>
             <div style={{ color: webTheme.colors.textMuted, fontSize: 12, marginTop: 2 }}>
-              Active since {formatPortalDateTime(d.activeBinding.binding.activatedAt ?? d.activeBinding.binding.boundAt)}
+              Active since{" "}
+              {formatPortalDateTime(
+                d.activeBinding.binding.activatedAt ?? d.activeBinding.binding.boundAt,
+              )}
             </div>
           </div>
         ) : null}
@@ -420,7 +454,9 @@ function StudentDetailView(props: {
 
       {/* ── Governance Actions ── */}
       <div style={styles.rowCard}>
-        <div style={{ fontWeight: 700, fontSize: 15, color: webTheme.colors.text, marginBottom: 12 }}>
+        <div
+          style={{ fontWeight: 700, fontSize: 15, color: webTheme.colors.text, marginBottom: 12 }}
+        >
           Account Actions
         </div>
         <label style={{ display: "grid", gap: 6 }}>
@@ -500,7 +536,9 @@ function ClassroomCard(props: { classroom: AdminStudentClassroomContext }) {
         background: webTheme.colors.surfaceMuted,
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+      <div
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}
+      >
         <div style={{ minWidth: 0 }}>
           <div style={{ fontWeight: 600, color: webTheme.colors.text, fontSize: 14 }}>
             {c.classroomTitle}
@@ -512,7 +550,13 @@ function ClassroomCard(props: { classroom: AdminStudentClassroomContext }) {
         <div style={{ display: "flex", gap: 6, flexShrink: 0, alignItems: "center" }}>
           <StatusBadge
             label={formatAdminSupportLabel(c.membershipStatus)}
-            tone={c.membershipStatus === "ACTIVE" ? "success" : c.membershipStatus === "DROPPED" ? "danger" : "neutral"}
+            tone={
+              c.membershipStatus === "ACTIVE"
+                ? "success"
+                : c.membershipStatus === "DROPPED"
+                  ? "danger"
+                  : "neutral"
+            }
           />
         </div>
       </div>
@@ -623,7 +667,9 @@ function StatusBadge(props: { label: string; tone: "success" | "danger" | "neutr
 function InfoField(props: { label: string; value: string }) {
   return (
     <div>
-      <div style={{ fontSize: 12, fontWeight: 500, color: webTheme.colors.textMuted, marginBottom: 2 }}>
+      <div
+        style={{ fontSize: 12, fontWeight: 500, color: webTheme.colors.textMuted, marginBottom: 2 }}
+      >
         {props.label}
       </div>
       <div style={{ fontSize: 14, fontWeight: 600, color: webTheme.colors.text }}>

@@ -69,8 +69,7 @@ export function ReportSummaryRings(props: {
         ].filter((d) => d.value > 0)
       : []
 
-  if (attendanceData.length === 0 && modeData.length === 0 && studentsData.length === 0)
-    return null
+  if (attendanceData.length === 0 && modeData.length === 0 && studentsData.length === 0) return null
 
   return (
     <div
@@ -108,12 +107,7 @@ export function ReportSummaryRings(props: {
         />
       ) : null}
       {modeData.length > 0 ? (
-        <ModeRingItem
-          label="Session modes"
-          total={totalModeSessions}
-          data={modeData}
-          colors={cc}
-        />
+        <ModeRingItem label="Session modes" total={totalModeSessions} data={modeData} colors={cc} />
       ) : null}
       {studentsData.length > 0 && m ? (
         <RingItem
@@ -134,7 +128,9 @@ function RingItem(props: {
   colors: ChartColors
 }) {
   return (
-    <div style={{ textAlign: "center", width: 160, flexShrink: 0, position: "relative", zIndex: 1 }}>
+    <div
+      style={{ textAlign: "center", width: 160, flexShrink: 0, position: "relative", zIndex: 1 }}
+    >
       <ResponsiveContainer width="100%" height={140}>
         <PieChart>
           <Pie
@@ -156,7 +152,9 @@ function RingItem(props: {
         </PieChart>
       </ResponsiveContainer>
       <div style={{ fontSize: 13, color: props.colors.textMuted, marginTop: 4 }}>{props.label}</div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: props.colors.text, marginTop: 2 }}>{props.value}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: props.colors.text, marginTop: 2 }}>
+        {props.value}
+      </div>
     </div>
   )
 }
@@ -168,7 +166,9 @@ function ModeRingItem(props: {
   colors: ChartColors
 }) {
   return (
-    <div style={{ textAlign: "center", width: 180, flexShrink: 0, position: "relative", zIndex: 1 }}>
+    <div
+      style={{ textAlign: "center", width: 180, flexShrink: 0, position: "relative", zIndex: 1 }}
+    >
       <ResponsiveContainer width="100%" height={140}>
         <PieChart>
           <Pie
@@ -200,10 +200,7 @@ function ModeRingItem(props: {
         }}
       >
         {props.data.map((entry) => (
-          <div
-            key={entry.name}
-            style={{ display: "flex", alignItems: "center", gap: 4 }}
-          >
+          <div key={entry.name} style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <span
               style={{
                 width: 8,

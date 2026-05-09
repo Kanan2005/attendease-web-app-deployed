@@ -123,8 +123,7 @@ const TABS: Array<{ key: TabKey; label: string; icon: keyof typeof Ionicons.glyp
   { key: "trends", label: "Trends", icon: "trending-up-outline" },
 ]
 
-const EMAIL_SUBJECT_TEMPLATE =
-  "Attendance below {{thresholdPercent}} for {{classroomTitle}}"
+const EMAIL_SUBJECT_TEMPLATE = "Attendance below {{thresholdPercent}} for {{classroomTitle}}"
 const EMAIL_BODY_TEMPLATE = [
   "Hello,",
   "",
@@ -424,7 +423,17 @@ export function TeacherReportsScreenContent({
       showsVerticalScrollIndicator={false}
     >
       {/* ── Header with profile icon ── */}
-      <View style={[rs.header, { paddingTop: insets.top + 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+      <View
+        style={[
+          rs.header,
+          {
+            paddingTop: insets.top + 8,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          },
+        ]}
+      >
         <Text style={[rs.heading, { color: c.text }]}>Reports</Text>
         <TeacherProfileButton />
       </View>
@@ -785,10 +794,7 @@ export function TeacherReportsScreenContent({
                               >
                                 {row.studentDisplayName}
                               </Text>
-                              <Text
-                                style={{ fontSize: 11, color: c.textMuted }}
-                                numberOfLines={1}
-                              >
+                              <Text style={{ fontSize: 11, color: c.textMuted }} numberOfLines={1}>
                                 {row.subjectTitle} · {row.presentSessions}/{row.totalSessions}{" "}
                                 present
                               </Text>
@@ -887,9 +893,7 @@ export function TeacherReportsScreenContent({
 
         {/* ── TRENDS TAB — Vertical bar chart ── */}
         {activeTab === "trends" ? (
-          <AttendanceBarChart
-            sessionTrendRows={reports.model.sessionTrendRows}
-          />
+          <AttendanceBarChart sessionTrendRows={reports.model.sessionTrendRows} />
         ) : null}
       </View>
     </ScrollView>
@@ -904,6 +908,7 @@ const CHART_DATE_WIDTH = 52
 const CHART_PCT_WIDTH = 36
 
 type ChartPoint = {
+  key: string
   dateLabel: string
   pct: number
   tone: "primary" | "success" | "warning" | "danger"
@@ -925,7 +930,8 @@ function AttendanceBarChart(props: {
   const points = useMemo<ChartPoint[]>(() => {
     const rows = [...props.sessionTrendRows]
     const fmt = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short" })
-    return rows.map((r) => ({
+    return rows.map((r, idx) => ({
+      key: r.startedAt ?? `row-${idx}`,
       dateLabel: r.startedAt ? fmt.format(new Date(r.startedAt)) : "—",
       pct: r.attendancePercentage,
       tone: r.tone,
@@ -1023,7 +1029,7 @@ function AttendanceBarChart(props: {
           const barW = Math.max(2, (pt.pct / 100) * barTrackWidth)
           return (
             <View
-              key={i}
+              key={pt.key}
               style={{
                 position: "absolute",
                 top: i * CHART_ROW_HEIGHT,
@@ -1075,7 +1081,6 @@ function AttendanceBarChart(props: {
           )
         })}
       </View>
-
     </Animated.View>
   )
 }

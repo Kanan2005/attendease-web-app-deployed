@@ -10,7 +10,13 @@ import { useState } from "react"
 import { buildTeacherWebClassroomListCards } from "../teacher-classroom-management"
 import { teacherWorkflowRoutes, webWorkflowQueryKeys } from "../web-workflows"
 
-import { WorkflowBanner, WorkflowStateCard, bootstrap, useAuthRedirect, workflowStyles } from "./shared"
+import {
+  WorkflowBanner,
+  WorkflowStateCard,
+  bootstrap,
+  useAuthRedirect,
+  workflowStyles,
+} from "./shared"
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20, scale: 0.96 },

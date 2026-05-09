@@ -119,8 +119,9 @@ export function TeacherClassroomLecturesScreen(props: { classroomId: string }) {
   const sorted = [...lectures]
     .map((lecture, idx) => ({ lecture, idx }))
     .sort((a, b) => {
-      const d =
-        new Date(b.lecture.createdAt).getTime() - new Date(a.lecture.createdAt).getTime()
+      const aTime = a.lecture.createdAt ? new Date(a.lecture.createdAt).getTime() : 0
+      const bTime = b.lecture.createdAt ? new Date(b.lecture.createdAt).getTime() : 0
+      const d = bTime - aTime
       return d !== 0 ? d : b.idx - a.idx
     })
 
@@ -217,8 +218,10 @@ export function TeacherClassroomLecturesScreen(props: { classroomId: string }) {
           ) : (
             sorted.map(({ lecture, idx }, i) => {
               const num = idx + 1
-              // Always show the lecture creation timestamp
-              const dateStr = formatDateTime(lecture.createdAt)
+              // Show the lecture creation timestamp when available
+              const dateStr = lecture.createdAt
+                ? formatDateTime(lecture.createdAt)
+                : formatDateTime(lecture.lectureDate)
               const isCompleted = lecture.status === "COMPLETED"
               const isActive = lecture.status === "OPEN_FOR_ATTENDANCE"
               const hasSession = isActive || isCompleted

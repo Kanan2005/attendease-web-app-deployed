@@ -32,12 +32,8 @@ interface SlotEditorProps {
 
 export function SlotEditorPanel(props: SlotEditorProps) {
   const isEdit = props.initial?.id != null
-  const [weekdays, setWeekdays] = useState<number[]>(
-    props.initial ? [props.initial.weekday] : [],
-  )
-  const [startTime, setStartTime] = useState(
-    minutesToHHMM(props.initial?.startMinutes ?? 540),
-  )
+  const [weekdays, setWeekdays] = useState<number[]>(props.initial ? [props.initial.weekday] : [])
+  const [startTime, setStartTime] = useState(minutesToHHMM(props.initial?.startMinutes ?? 540))
   const [duration, setDuration] = useState(
     props.initial ? props.initial.endMinutes - props.initial.startMinutes : 60,
   )
@@ -97,7 +93,15 @@ export function SlotEditorPanel(props: SlotEditorProps) {
         {/* Day of week selector */}
         {!isEdit ? (
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: webTheme.colors.textMuted, marginBottom: 6, display: "block" }}>
+            <label
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: webTheme.colors.textMuted,
+                marginBottom: 6,
+                display: "block",
+              }}
+            >
               Days of week
             </label>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -108,9 +112,7 @@ export function SlotEditorPanel(props: SlotEditorProps) {
                     key={wd}
                     type="button"
                     onClick={() =>
-                      setWeekdays((prev) =>
-                        active ? prev.filter((d) => d !== wd) : [...prev, wd],
-                      )
+                      setWeekdays((prev) => (active ? prev.filter((d) => d !== wd) : [...prev, wd]))
                     }
                     style={{
                       padding: "6px 14px",
@@ -134,7 +136,15 @@ export function SlotEditorPanel(props: SlotEditorProps) {
           </div>
         ) : (
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: webTheme.colors.textMuted, marginBottom: 6, display: "block" }}>
+            <label
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: webTheme.colors.textMuted,
+                marginBottom: 6,
+                display: "block",
+              }}
+            >
               Day
             </label>
             <span style={{ fontSize: 14, color: webTheme.colors.text }}>
@@ -145,7 +155,15 @@ export function SlotEditorPanel(props: SlotEditorProps) {
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: webTheme.colors.textMuted, marginBottom: 6, display: "block" }}>
+            <label
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: webTheme.colors.textMuted,
+                marginBottom: 6,
+                display: "block",
+              }}
+            >
               Start time
             </label>
             <input
@@ -164,7 +182,15 @@ export function SlotEditorPanel(props: SlotEditorProps) {
             />
           </div>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: webTheme.colors.textMuted, marginBottom: 6, display: "block" }}>
+            <label
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: webTheme.colors.textMuted,
+                marginBottom: 6,
+                display: "block",
+              }}
+            >
               Duration
             </label>
             <select
@@ -188,7 +214,15 @@ export function SlotEditorPanel(props: SlotEditorProps) {
             </select>
           </div>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: webTheme.colors.textMuted, marginBottom: 6, display: "block" }}>
+            <label
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: webTheme.colors.textMuted,
+                marginBottom: 6,
+                display: "block",
+              }}
+            >
               Venue / Room
             </label>
             <input
@@ -237,7 +271,9 @@ export function SlotEditorPanel(props: SlotEditorProps) {
                   border: `1px solid ${webTheme.colors.dangerBorder}`,
                   borderRadius: 10,
                   padding: "7px 16px",
-                  background: confirmingRemove ? webTheme.colors.danger : webTheme.colors.dangerSoft,
+                  background: confirmingRemove
+                    ? webTheme.colors.danger
+                    : webTheme.colors.dangerSoft,
                   color: confirmingRemove ? "#fff" : webTheme.colors.danger,
                   fontWeight: 600,
                   fontSize: 13,
@@ -390,7 +426,15 @@ export function ExtraLecturePanel(props: ExtraLectureFormProps) {
       <div style={{ padding: "16px 20px", display: "grid", gap: 16 }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }}>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: webTheme.colors.textMuted, marginBottom: 6, display: "block" }}>
+            <label
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: webTheme.colors.textMuted,
+                marginBottom: 6,
+                display: "block",
+              }}
+            >
               Date
             </label>
             <input
@@ -409,7 +453,15 @@ export function ExtraLecturePanel(props: ExtraLectureFormProps) {
             />
           </div>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: webTheme.colors.textMuted, marginBottom: 6, display: "block" }}>
+            <label
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: webTheme.colors.textMuted,
+                marginBottom: 6,
+                display: "block",
+              }}
+            >
               Start time
             </label>
             <input
@@ -428,7 +480,15 @@ export function ExtraLecturePanel(props: ExtraLectureFormProps) {
             />
           </div>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: webTheme.colors.textMuted, marginBottom: 6, display: "block" }}>
+            <label
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: webTheme.colors.textMuted,
+                marginBottom: 6,
+                display: "block",
+              }}
+            >
               Duration
             </label>
             <select
@@ -452,7 +512,15 @@ export function ExtraLecturePanel(props: ExtraLectureFormProps) {
             </select>
           </div>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: webTheme.colors.textMuted, marginBottom: 6, display: "block" }}>
+            <label
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: webTheme.colors.textMuted,
+                marginBottom: 6,
+                display: "block",
+              }}
+            >
               Venue / Room
             </label>
             <input
@@ -474,7 +542,15 @@ export function ExtraLecturePanel(props: ExtraLectureFormProps) {
         </div>
 
         <div>
-          <label style={{ fontSize: 12, fontWeight: 600, color: webTheme.colors.textMuted, marginBottom: 6, display: "block" }}>
+          <label
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: webTheme.colors.textMuted,
+              marginBottom: 6,
+              display: "block",
+            }}
+          >
             Reason (optional)
           </label>
           <input
@@ -505,7 +581,9 @@ export function ExtraLecturePanel(props: ExtraLectureFormProps) {
                   border: `1px solid ${webTheme.colors.dangerBorder}`,
                   borderRadius: 10,
                   padding: "7px 16px",
-                  background: confirmingRemove ? webTheme.colors.danger : webTheme.colors.dangerSoft,
+                  background: confirmingRemove
+                    ? webTheme.colors.danger
+                    : webTheme.colors.dangerSoft,
                   color: confirmingRemove ? "#fff" : webTheme.colors.danger,
                   fontWeight: 600,
                   fontSize: 13,

@@ -1,7 +1,7 @@
 import { cookies } from "next/headers"
 
-import { readWebPortalSession } from "../../../../src/web-portal"
 import { AdminDashboardWorkspace } from "../../../../src/admin-workflows-client/admin-dashboard"
+import { readWebPortalSession } from "../../../../src/web-portal"
 
 export default async function AdminDashboardPage() {
   const cookieStore = await cookies()

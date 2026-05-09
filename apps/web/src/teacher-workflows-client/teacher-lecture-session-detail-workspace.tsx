@@ -212,8 +212,7 @@ export function TeacherLectureSessionDetailWorkspace(props: {
   }
 
   const canInitiateStart = Boolean(
-    draft &&
-      draft.sessionDurationMinutes &&
+    draft?.sessionDurationMinutes &&
       Number(draft.sessionDurationMinutes) > 0 &&
       draft.gpsRadiusMeters &&
       Number(draft.gpsRadiusMeters) > 0,
@@ -503,8 +502,23 @@ export function TeacherLectureSessionDetailWorkspace(props: {
               </div>
             </div>
 
-            <div style={{ padding: "20px 24px", display: "grid", gap: 20, position: "relative", zIndex: 1 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
+            <div
+              style={{
+                padding: "20px 24px",
+                display: "grid",
+                gap: 20,
+                position: "relative",
+                zIndex: 1,
+              }}
+            >
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 16,
+                  alignItems: "start",
+                }}
+              >
                 <div>
                   <WorkflowField
                     label="GPS radius (meters)"

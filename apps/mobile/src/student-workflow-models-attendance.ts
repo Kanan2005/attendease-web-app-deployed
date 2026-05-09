@@ -127,7 +127,11 @@ export function buildStudentCourseDiscoveryCards(input: {
             : nextSession
               ? `Next class session: ${formatDateTimeLabel(resolveLectureTimestamp(nextSession))}`
               : "No class session is published yet.",
-        attendanceTone: (allMarked ? "success" : candidates.length > 0 ? "success" : "primary") as CardTone,
+        attendanceTone: (allMarked
+          ? "success"
+          : candidates.length > 0
+            ? "success"
+            : "primary") as CardTone,
         updatesLabel: "Open updates and schedule from the course page.",
         scheduleLabel: nextSession
           ? `Next: ${formatDateTimeLabel(resolveLectureTimestamp(nextSession))}`

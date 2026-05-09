@@ -1,7 +1,7 @@
 import { cookies } from "next/headers"
 
-import { readWebPortalSession } from "../../../../src/web-portal"
 import { AdminStudentManagementWorkspace } from "../../../../src/admin-workflows-client/student-management"
+import { readWebPortalSession } from "../../../../src/web-portal"
 
 export default async function AdminStudentsPage() {
   const cookieStore = await cookies()

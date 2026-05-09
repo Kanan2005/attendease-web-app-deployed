@@ -199,7 +199,17 @@ export function TeacherExportsScreen() {
       showsVerticalScrollIndicator={false}
     >
       {/* ── Header with profile icon ── */}
-      <View style={[es.header, { paddingTop: insets.top + 8, flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }]}>
+      <View
+        style={[
+          es.header,
+          {
+            paddingTop: insets.top + 8,
+            flexDirection: "row",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+          },
+        ]}
+      >
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={[es.heading, { color: c.text }]}>Exports</Text>
           <Text style={{ fontSize: 13, color: c.textMuted }}>

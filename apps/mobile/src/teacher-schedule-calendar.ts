@@ -22,8 +22,18 @@ export const TIME_GUTTER_WIDTH = 44
 
 const WEEKDAY_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const
 const MONTHS_SHORT = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ] as const
 
 // ── Types ──
@@ -102,7 +112,7 @@ export function getWeekDates(weekOffset: number): WeekDate[] {
       date: d,
       weekday: i + 1,
       dayNum: d.getDate(),
-      monthShort: MONTHS_SHORT[d.getMonth()]!,
+      monthShort: MONTHS_SHORT[d.getMonth()] ?? "",
       isToday: d.getTime() === today.getTime(),
       isoDate: `${y}-${mo}-${da}`,
     })
@@ -136,8 +146,8 @@ export function computeVisibleHours(events: CalendarEvent[]): {
   endHour: number
 } {
   if (events.length === 0) return { startHour: 8, endHour: 18 }
-  let min = Infinity
-  let max = -Infinity
+  let min = Number.POSITIVE_INFINITY
+  let max = Number.NEGATIVE_INFINITY
   for (const e of events) {
     if (e.startMinutes < min) min = e.startMinutes
     if (e.endMinutes > max) max = e.endMinutes

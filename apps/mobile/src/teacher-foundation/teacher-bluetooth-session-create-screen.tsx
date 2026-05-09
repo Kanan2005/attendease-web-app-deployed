@@ -211,7 +211,9 @@ export function TeacherBluetoothSessionCreateScreen(props: {
       const granted = await requestBluetoothPermissions()
       if (!granted) {
         setPhase("error")
-        setErrorMsg("Bluetooth permissions are required. Grant 'Nearby devices' permission in Settings.")
+        setErrorMsg(
+          "Bluetooth permissions are required. Grant 'Nearby devices' permission in Settings.",
+        )
         didRun.current = false
         return
       }

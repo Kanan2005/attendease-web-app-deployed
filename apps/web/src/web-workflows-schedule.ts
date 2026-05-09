@@ -17,7 +17,15 @@ import type {
   SemesterVisibilityRow,
 } from "./web-workflows-types"
 
-const WEEKDAY_LABELS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+const WEEKDAY_LABELS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+]
 const WEEKDAY_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 export function weekdayLabel(weekday: number): string {
@@ -79,7 +87,7 @@ export function buildWeekCalendarEvents(schedule: ClassroomSchedule): WeekCalend
       weekday: slot.weekday,
       startMinutes: slot.startMinutes,
       endMinutes: slot.endMinutes,
-      label: minutesToTimeString(slot.startMinutes) + " - " + minutesToTimeString(slot.endMinutes),
+      label: `${minutesToTimeString(slot.startMinutes)} - ${minutesToTimeString(slot.endMinutes)}`,
       locationLabel: slot.locationLabel,
       type: "slot",
       slotId: slot.id,
@@ -97,7 +105,7 @@ export function buildWeekCalendarEvents(schedule: ClassroomSchedule): WeekCalend
         weekday,
         startMinutes: exc.startMinutes,
         endMinutes: exc.endMinutes,
-        label: minutesToTimeString(exc.startMinutes) + " - " + minutesToTimeString(exc.endMinutes),
+        label: `${minutesToTimeString(exc.startMinutes)} - ${minutesToTimeString(exc.endMinutes)}`,
         locationLabel: exc.locationLabel,
         type: "one-off",
         slotId: null,

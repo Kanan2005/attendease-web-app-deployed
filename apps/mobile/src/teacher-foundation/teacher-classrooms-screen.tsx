@@ -119,7 +119,17 @@ export function TeacherClassroomsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* ── Header with profile icon ── */}
-        <View style={[cs.header, { paddingTop: insets.top + 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+        <View
+          style={[
+            cs.header,
+            {
+              paddingTop: insets.top + 8,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            },
+          ]}
+        >
           <View style={{ gap: 2 }}>
             <Text style={[cs.heading, { color: c.text }]}>My Classrooms</Text>
             <Text style={{ fontSize: 13, color: c.textMuted }}>

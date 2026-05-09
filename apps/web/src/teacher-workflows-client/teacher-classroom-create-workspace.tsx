@@ -215,7 +215,15 @@ export function TeacherClassroomCreateWorkspace(props: {
           </p>
         </div>
 
-        <div style={{ padding: "24px 28px", display: "grid", gap: 18, position: "relative", zIndex: 1 }}>
+        <div
+          style={{
+            padding: "24px 28px",
+            display: "grid",
+            gap: 18,
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
           <WorkflowField
             label="Course title"
             value={draft.classroomTitle}

@@ -8,9 +8,6 @@ export default async function TeacherClassroomSchedulePage(props: {
   const session = await requireWebPortalSession("/teacher/classrooms")
 
   return (
-    <TeacherScheduleWorkspace
-      accessToken={session.accessToken}
-      classroomId={params.classroomId}
-    />
+    <TeacherScheduleWorkspace accessToken={session.accessToken} classroomId={params.classroomId} />
   )
 }

@@ -22,8 +22,7 @@ export default async function HomePage(props: {
       if (requestedMode === "admin" && sessionScope !== "admin") {
         // fall through to render the login form
       } else {
-        const fallback =
-          sessionScope === "admin" ? "/admin/dashboard" : "/teacher/dashboard"
+        const fallback = sessionScope === "admin" ? "/admin/dashboard" : "/teacher/dashboard"
         const dest = resolveScopedWebPortalPath(searchParams.next, sessionScope) ?? fallback
         redirect(dest)
       }

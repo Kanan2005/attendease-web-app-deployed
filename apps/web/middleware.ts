@@ -60,8 +60,16 @@ export async function middleware(request: NextRequest) {
       expires,
     }
 
-    response.cookies.set(webSessionCookieNames.accessToken, authSession.tokens.accessToken, cookieBase)
-    response.cookies.set(webSessionCookieNames.refreshToken, authSession.tokens.refreshToken, cookieBase)
+    response.cookies.set(
+      webSessionCookieNames.accessToken,
+      authSession.tokens.accessToken,
+      cookieBase,
+    )
+    response.cookies.set(
+      webSessionCookieNames.refreshToken,
+      authSession.tokens.refreshToken,
+      cookieBase,
+    )
     response.cookies.set(webSessionCookieNames.activeRole, authSession.user.activeRole, cookieBase)
     response.cookies.set(
       webSessionCookieNames.availableRoles,

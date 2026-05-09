@@ -1,10 +1,10 @@
+import { AuthApiClientError } from "@attendease/auth"
 import type {
   AuthLoginRequest,
   AuthSessionResponse,
   DevicePlatform,
   StudentRegistrationRequest,
 } from "@attendease/contracts"
-import { AuthApiClientError } from "@attendease/auth"
 import { useQueryClient } from "@tanstack/react-query"
 import { createContext, useContext, useEffect, useRef, useState } from "react"
 import type { ReactNode } from "react"

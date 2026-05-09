@@ -4,10 +4,10 @@ import React, { useCallback, useMemo, useState } from "react"
 import { Pressable, StyleSheet, Text, View } from "react-native"
 import Animated, { FadeInDown } from "react-native-reanimated"
 
-import { formatMinutes } from "../student-workflow-models-helpers"
 import { mapStudentApiErrorToMessage } from "../student-models"
 import { studentRoutes } from "../student-routes"
 import { useStudentSession } from "../student-session"
+import { formatMinutes } from "../student-workflow-models-helpers"
 
 import { useStudentClassroomDetailData } from "./queries"
 import {
@@ -24,8 +24,18 @@ import {
 
 const DAY_ABBREV = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const
 const MONTH_NAMES = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ] as const
 
 function getMonday(date: Date): Date {
@@ -132,11 +142,7 @@ function buildWeekEntries(
     }
 
     for (const exc of dayExceptions) {
-      if (
-        exc.exceptionType === "ONE_OFF" &&
-        exc.startMinutes != null &&
-        exc.endMinutes != null
-      ) {
+      if (exc.exceptionType === "ONE_OFF" && exc.startMinutes != null && exc.endMinutes != null) {
         dayEvents.push({
           id: `exc-${exc.id}`,
           timeLabel: `${formatMinutes(exc.startMinutes)} – ${formatMinutes(exc.endMinutes)}`,
@@ -276,112 +282,102 @@ export function WeeklyScheduleView(props: {
             return !isWeekend || day.events.length > 0
           })
           .map((day, i) => (
-          <Animated.View
-            key={day.date.toISOString()}
-            entering={FadeInDown.duration(200).delay(i * 30)}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 12,
-                minHeight: 48,
-              }}
+            <Animated.View
+              key={day.date.toISOString()}
+              entering={FadeInDown.duration(200).delay(i * 30)}
             >
-              {/* Day label column */}
               <View
                 style={{
-                  width: 44,
-                  alignItems: "center",
-                  paddingTop: 2,
+                  flexDirection: "row",
+                  gap: 12,
+                  minHeight: 48,
                 }}
               >
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: "600",
-                    color: day.isToday ? c.primary : c.textMuted,
-                  }}
-                >
-                  {day.dayAbbrev}
-                </Text>
+                {/* Day label column */}
                 <View
-                  style={[
-                    ws.dateBubble,
-                    day.isToday && { backgroundColor: c.primary },
-                  ]}
+                  style={{
+                    width: 44,
+                    alignItems: "center",
+                    paddingTop: 2,
+                  }}
                 >
                   <Text
                     style={{
-                      fontSize: 16,
-                      fontWeight: "800",
-                      color: day.isToday ? "#fff" : c.text,
+                      fontSize: 12,
+                      fontWeight: "600",
+                      color: day.isToday ? c.primary : c.textMuted,
                     }}
                   >
-                    {day.dateNum}
+                    {day.dayAbbrev}
                   </Text>
-                </View>
-              </View>
-
-              {/* Events column */}
-              <View style={{ flex: 1, gap: 6, paddingBottom: 8 }}>
-                {day.events.length === 0 ? (
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 6,
-                      paddingVertical: 12,
-                      borderBottomWidth: StyleSheet.hairlineWidth,
-                      borderBottomColor: c.border,
-                    }}
-                  >
-                    <Ionicons name="sunny-outline" size={14} color={c.textSubtle} />
-                    <Text style={{ fontSize: 12, color: c.textSubtle, fontStyle: "italic" }}>
-                      No classes
+                  <View style={[ws.dateBubble, day.isToday && { backgroundColor: c.primary }]}>
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: "800",
+                        color: day.isToday ? "#fff" : c.text,
+                      }}
+                    >
+                      {day.dateNum}
                     </Text>
                   </View>
-                ) : (
-                  day.events.map((event) => {
-                    const isOneOff = event.type === "one-off"
-                    return (
-                      <View
-                        key={event.id}
-                        style={[
-                          ws.eventCard,
-                          {
-                            backgroundColor: isOneOff
-                              ? `${c.accent}12`
-                              : `${c.primary}10`,
-                            borderLeftColor: isOneOff ? c.accent : c.primary,
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            fontWeight: "600",
-                            color: isOneOff ? c.accent : c.primary,
-                          }}
-                          numberOfLines={1}
+                </View>
+
+                {/* Events column */}
+                <View style={{ flex: 1, gap: 6, paddingBottom: 8 }}>
+                  {day.events.length === 0 ? (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 6,
+                        paddingVertical: 12,
+                        borderBottomWidth: StyleSheet.hairlineWidth,
+                        borderBottomColor: c.border,
+                      }}
+                    >
+                      <Ionicons name="sunny-outline" size={14} color={c.textSubtle} />
+                      <Text style={{ fontSize: 12, color: c.textSubtle, fontStyle: "italic" }}>
+                        No classes
+                      </Text>
+                    </View>
+                  ) : (
+                    day.events.map((event) => {
+                      const isOneOff = event.type === "one-off"
+                      return (
+                        <View
+                          key={event.id}
+                          style={[
+                            ws.eventCard,
+                            {
+                              backgroundColor: isOneOff ? `${c.accent}12` : `${c.primary}10`,
+                              borderLeftColor: isOneOff ? c.accent : c.primary,
+                            },
+                          ]}
                         >
-                          {event.timeLabel}
-                        </Text>
-                        {event.locationLabel ? (
                           <Text
-                            style={{ fontSize: 11, color: c.textMuted }}
+                            style={{
+                              fontSize: 13,
+                              fontWeight: "600",
+                              color: isOneOff ? c.accent : c.primary,
+                            }}
                             numberOfLines={1}
                           >
-                            {event.locationLabel}
+                            {event.timeLabel}
                           </Text>
-                        ) : null}
-                      </View>
-                    )
-                  })
-                )}
+                          {event.locationLabel ? (
+                            <Text style={{ fontSize: 11, color: c.textMuted }} numberOfLines={1}>
+                              {event.locationLabel}
+                            </Text>
+                          ) : null}
+                        </View>
+                      )
+                    })
+                  )}
+                </View>
               </View>
-            </View>
-          </Animated.View>
-        ))
+            </Animated.View>
+          ))
       )}
     </View>
   )

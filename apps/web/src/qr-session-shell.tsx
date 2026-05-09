@@ -82,9 +82,7 @@ export function QrActiveSessionShell(props: {
       }
       await Promise.all(invalidations)
       if (result.classroomId && result.lectureId) {
-        router.push(
-          teacherWorkflowRoutes.lectureSession(result.classroomId, result.lectureId),
-        )
+        router.push(teacherWorkflowRoutes.lectureSession(result.classroomId, result.lectureId))
       } else if (result.classroomId) {
         router.push(teacherWorkflowRoutes.classroomLectures(result.classroomId))
       } else {
@@ -193,7 +191,16 @@ export function QrActiveSessionShell(props: {
               pointerEvents: "none",
             }}
           />
-          <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0, position: "relative", zIndex: 1 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              minWidth: 0,
+              position: "relative",
+              zIndex: 1,
+            }}
+          >
             <Link
               href={teacherWorkflowRoutes.activeSession(props.sessionId)}
               className="ui-back-link"
@@ -235,7 +242,16 @@ export function QrActiveSessionShell(props: {
               </h2>
             </div>
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", position: "relative", zIndex: 1 }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              flexWrap: "wrap",
+              position: "relative",
+              zIndex: 1,
+            }}
+          >
             <StatPill label="Marked" value={liveModel.liveSummaryLabel} />
             <StatPill label="QR refresh" value={liveModel.qrRefreshLabel} />
             {confirmEnd ? (
@@ -532,7 +548,9 @@ export function QrActiveSessionShell(props: {
           >
             Live roster
           </h3>
-          <div style={{ flex: 1, minHeight: 0, overflowY: "auto", position: "relative", zIndex: 1 }}>
+          <div
+            style={{ flex: 1, minHeight: 0, overflowY: "auto", position: "relative", zIndex: 1 }}
+          >
             <QrSessionRosterPanel
               rosterModel={rosterModel}
               isLoading={studentsQuery.isLoading}

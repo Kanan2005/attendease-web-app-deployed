@@ -53,6 +53,7 @@ describe("report model mapping", () => {
       present_sessions: 2,
       absent_sessions: 1,
       last_session_at: "2026-03-10T03:45:00.000Z",
+      email_sent_count: 0,
     })
 
     expect(daywise.attendancePercentage).toBe(75)

@@ -87,7 +87,7 @@ export const workflowStyles = {
     borderRadius: 999,
     padding: "4px 12px",
     background: "rgba(167, 139, 250, 0.08)",
-    border: `1px solid rgba(167, 139, 250, 0.15)`,
+    border: "1px solid rgba(167, 139, 250, 0.15)",
     color: webTheme.colors.textMuted,
     fontSize: 11,
     fontWeight: 600,

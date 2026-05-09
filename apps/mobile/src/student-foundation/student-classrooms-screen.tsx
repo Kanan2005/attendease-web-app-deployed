@@ -126,16 +126,8 @@ export function StudentClassroomsScreen() {
               : isMarkedLive
                 ? c.successSoft
                 : c.surfaceRaised
-            const cardBorder = needsMarking
-              ? c.danger
-              : isMarkedLive
-                ? c.success
-                : c.border
-            const accentColor = needsMarking
-              ? c.danger
-              : isMarkedLive
-                ? c.success
-                : c.primary
+            const cardBorder = needsMarking ? c.danger : isMarkedLive ? c.success : c.border
+            const accentColor = needsMarking ? c.danger : isMarkedLive ? c.success : c.primary
 
             return (
               <Animated.View

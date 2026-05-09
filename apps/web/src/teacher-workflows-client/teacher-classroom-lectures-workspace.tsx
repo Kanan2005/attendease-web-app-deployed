@@ -8,11 +8,7 @@ import React, { useEffect, useState } from "react"
 import { createWebAuthBootstrap } from "../auth"
 // v2.0: Imported to display attendance mode (QR+GPS / Bluetooth / Manual) per lecture session row
 import { formatTeacherWebAttendanceModeLabel } from "../teacher-classroom-management"
-import {
-  formatPortalDateTime,
-  teacherWorkflowRoutes,
-  webWorkflowQueryKeys,
-} from "../web-workflows"
+import { formatPortalDateTime, teacherWorkflowRoutes, webWorkflowQueryKeys } from "../web-workflows"
 
 import { WorkflowBanner, WorkflowField, WorkflowStateCard, workflowStyles } from "./shared"
 
@@ -127,9 +123,7 @@ export function TeacherClassroomLecturesWorkspace(props: {
           >
             Sessions
           </h2>
-          <span style={{ fontSize: 13, color: webTheme.colors.textSubtle }}>
-            {lectures.length}
-          </span>
+          <span style={{ fontSize: 13, color: webTheme.colors.textSubtle }}>{lectures.length}</span>
         </div>
         <button
           type="button"
@@ -305,131 +299,157 @@ export function TeacherClassroomLecturesWorkspace(props: {
         </div>
       ) : (
         <>
-        <style>{`@keyframes ae-live-pulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.5)}70%{box-shadow:0 0 0 7px rgba(34,197,94,0)}}`}</style>
-        <div
-          style={{
-            position: "relative",
-            borderRadius: 16,
-            overflow: "hidden",
-            border: "1px solid var(--ae-card-border)",
-            boxShadow: "var(--ae-card-shadow)",
-          }}
-        >
-          {/* Glow overlay */}
+          <style>
+            {
+              "@keyframes ae-live-pulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.5)}70%{box-shadow:0 0 0 7px rgba(34,197,94,0)}}"
+            }
+          </style>
           <div
-            aria-hidden
             style={{
-              position: "absolute",
-              inset: 0,
-              background: "var(--ae-card-glow)",
-              pointerEvents: "none",
-              zIndex: 0,
+              position: "relative",
+              borderRadius: 16,
+              overflow: "hidden",
+              border: "1px solid var(--ae-card-border)",
+              boxShadow: "var(--ae-card-shadow)",
             }}
-          />
-          {lectures.map((lecture, index) => {
-            const sessionForLecture = sessions.find((s) => s.lectureId === lecture.id)
-            const isLive = sessionForLecture?.status === "ACTIVE"
-            const isEnded = sessionForLecture?.status === "ENDED"
-            const total =
-              sessionForLecture != null
-                ? sessionForLecture.presentCount + sessionForLecture.absentCount
-                : 0
-            const attendancePct =
-              total > 0 && sessionForLecture
-                ? Math.round((sessionForLecture.presentCount / total) * 100)
-                : null
-            const detailHref = teacherWorkflowRoutes.lectureSession(props.classroomId, lecture.id)
-            const hasSession = isLive || isEnded || attendancePct != null
-            const lectureNumber = lectures.length - index
+          >
+            {/* Glow overlay */}
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "var(--ae-card-glow)",
+                pointerEvents: "none",
+                zIndex: 0,
+              }}
+            />
+            {lectures.map((lecture, index) => {
+              const sessionForLecture = sessions.find((s) => s.lectureId === lecture.id)
+              const isLive = sessionForLecture?.status === "ACTIVE"
+              const isEnded = sessionForLecture?.status === "ENDED"
+              const total =
+                sessionForLecture != null
+                  ? sessionForLecture.presentCount + sessionForLecture.absentCount
+                  : 0
+              const attendancePct =
+                total > 0 && sessionForLecture
+                  ? Math.round((sessionForLecture.presentCount / total) * 100)
+                  : null
+              const detailHref = teacherWorkflowRoutes.lectureSession(props.classroomId, lecture.id)
+              const hasSession = isLive || isEnded || attendancePct != null
+              const lectureNumber = lectures.length - index
 
-            return (
-              <React.Fragment key={lecture.id}>
-              <Link
-                href={detailHref}
-                className="ui-row-link"
-                style={{
-                  position: "relative",
-                  zIndex: 1,
-                  display: "grid",
-                  gridTemplateColumns: "1fr auto",
-                  alignItems: "center",
-                  gap: 16,
-                  padding: "16px 20px",
-                  background: "var(--ae-card-surface)",
-                  textDecoration: "none",
-                  color: "inherit",
-                  transition: "background 0.2s ease",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
-                  <div
+              return (
+                <React.Fragment key={lecture.id}>
+                  <Link
+                    href={detailHref}
+                    className="ui-row-link"
                     style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 10,
-                      background: isLive
-                        ? webTheme.colors.successSoft
-                        : hasSession
-                          ? webTheme.colors.successSoft
-                          : "rgba(167, 139, 250, 0.06)",
-                      border: `1px solid ${hasSession ? webTheme.colors.successBorder : "var(--ae-card-border)"}`,
+                      position: "relative",
+                      zIndex: 1,
                       display: "grid",
-                      placeItems: "center",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: hasSession ? webTheme.colors.success : webTheme.colors.accent,
-                      flexShrink: 0,
-                      opacity: hasSession ? 1 : 0.6,
-                      ...(isLive ? { animation: "ae-live-pulse 2s ease-in-out infinite" } : {}),
+                      gridTemplateColumns: "1fr auto",
+                      alignItems: "center",
+                      gap: 16,
+                      padding: "16px 20px",
+                      background: "var(--ae-card-surface)",
+                      textDecoration: "none",
+                      color: "inherit",
+                      transition: "background 0.2s ease",
                     }}
                   >
-                    {lectureNumber}
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: webTheme.colors.text,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {lecture.title ?? `Lecture ${lectureNumber}`}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: webTheme.colors.textMuted,
-                        marginTop: 2,
-                      }}
-                    >
-                      {sessionForLecture?.startedAt
-                        ? formatPortalDateTime(sessionForLecture.startedAt)
-                        : `Created at ${formatPortalDateTime(lecture.createdAt)}`}
-                    </div>
-                  </div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-                  {isLive ? (
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span
+                    <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
+                      <div
                         style={{
-                          fontSize: 11,
+                          width: 36,
+                          height: 36,
+                          borderRadius: 10,
+                          background: isLive
+                            ? webTheme.colors.successSoft
+                            : hasSession
+                              ? webTheme.colors.successSoft
+                              : "rgba(167, 139, 250, 0.06)",
+                          border: `1px solid ${hasSession ? webTheme.colors.successBorder : "var(--ae-card-border)"}`,
+                          display: "grid",
+                          placeItems: "center",
+                          fontSize: 13,
                           fontWeight: 700,
-                          letterSpacing: "0.05em",
-                          color: "#fff",
-                          background: webTheme.colors.success,
-                          borderRadius: 999,
-                          padding: "3px 10px",
-                          textTransform: "uppercase",
+                          color: hasSession ? webTheme.colors.success : webTheme.colors.accent,
+                          flexShrink: 0,
+                          opacity: hasSession ? 1 : 0.6,
+                          ...(isLive ? { animation: "ae-live-pulse 2s ease-in-out infinite" } : {}),
                         }}
                       >
-                        Live
-                      </span>
-                      {sessionForLecture ? (
-                        <>
+                        {lectureNumber}
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: webTheme.colors.text,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {lecture.title ?? `Lecture ${lectureNumber}`}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            color: webTheme.colors.textMuted,
+                            marginTop: 2,
+                          }}
+                        >
+                          {sessionForLecture?.startedAt
+                            ? formatPortalDateTime(sessionForLecture.startedAt)
+                            : `Created at ${formatPortalDateTime(lecture.createdAt)}`}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+                      {isLive ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              letterSpacing: "0.05em",
+                              color: "#fff",
+                              background: webTheme.colors.success,
+                              borderRadius: 999,
+                              padding: "3px 10px",
+                              textTransform: "uppercase",
+                            }}
+                          >
+                            Live
+                          </span>
+                          {sessionForLecture ? (
+                            <>
+                              <span
+                                style={{
+                                  fontSize: 11,
+                                  fontWeight: 500,
+                                  color: webTheme.colors.textMuted,
+                                  background: "rgba(167, 139, 250, 0.08)",
+                                  border: "1px solid rgba(167, 139, 250, 0.15)",
+                                  borderRadius: 999,
+                                  padding: "2px 9px",
+                                  backdropFilter: "blur(6px)",
+                                }}
+                              >
+                                {formatTeacherWebAttendanceModeLabel(sessionForLecture.mode)}
+                              </span>
+                              <span style={{ fontSize: 12, color: webTheme.colors.textMuted }}>
+                                {sessionForLecture.presentCount}/{total}
+                              </span>
+                            </>
+                          ) : null}
+                        </div>
+                      ) : hasSession && sessionForLecture ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <span
                             style={{
                               fontSize: 11,
@@ -444,210 +464,188 @@ export function TeacherClassroomLecturesWorkspace(props: {
                           >
                             {formatTeacherWebAttendanceModeLabel(sessionForLecture.mode)}
                           </span>
-                          <span style={{ fontSize: 12, color: webTheme.colors.textMuted }}>
-                            {sessionForLecture.presentCount}/{total}
-                          </span>
-                        </>
-                      ) : null}
-                    </div>
-                  ) : hasSession && sessionForLecture ? (
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 500,
-                          color: webTheme.colors.textMuted,
-                          background: "rgba(167, 139, 250, 0.08)",
-                          border: "1px solid rgba(167, 139, 250, 0.15)",
-                          borderRadius: 999,
-                          padding: "2px 9px",
-                          backdropFilter: "blur(6px)",
-                        }}
-                      >
-                        {formatTeacherWebAttendanceModeLabel(sessionForLecture.mode)}
-                      </span>
-                      {total > 0 ? (
-                        <>
-                          <span style={{ fontSize: 12, color: webTheme.colors.textMuted }}>
-                            {sessionForLecture.presentCount}/{total}
-                          </span>
-                          {attendancePct != null ? (
+                          {total > 0 ? (
+                            <>
+                              <span style={{ fontSize: 12, color: webTheme.colors.textMuted }}>
+                                {sessionForLecture.presentCount}/{total}
+                              </span>
+                              {attendancePct != null ? (
+                                <span
+                                  style={{
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    color:
+                                      attendancePct >= 75
+                                        ? webTheme.colors.success
+                                        : attendancePct >= 50
+                                          ? webTheme.colors.warning
+                                          : webTheme.colors.danger,
+                                    padding: "3px 10px",
+                                    borderRadius: 999,
+                                    background:
+                                      attendancePct >= 75
+                                        ? webTheme.colors.successSoft
+                                        : attendancePct >= 50
+                                          ? webTheme.colors.warningSoft
+                                          : webTheme.colors.dangerSoft,
+                                    border: `1px solid ${
+                                      attendancePct >= 75
+                                        ? webTheme.colors.successBorder
+                                        : attendancePct >= 50
+                                          ? webTheme.colors.warningBorder
+                                          : webTheme.colors.dangerBorder
+                                    }`,
+                                  }}
+                                >
+                                  {attendancePct}%
+                                </span>
+                              ) : null}
+                            </>
+                          ) : (
                             <span
                               style={{
-                                fontSize: 13,
+                                fontSize: 11,
                                 fontWeight: 600,
-                                color:
-                                  attendancePct >= 75
-                                    ? webTheme.colors.success
-                                    : attendancePct >= 50
-                                      ? webTheme.colors.warning
-                                      : webTheme.colors.danger,
+                                letterSpacing: "0.03em",
+                                color: webTheme.colors.textMuted,
                                 padding: "3px 10px",
                                 borderRadius: 999,
-                                background:
-                                  attendancePct >= 75
-                                    ? webTheme.colors.successSoft
-                                    : attendancePct >= 50
-                                      ? webTheme.colors.warningSoft
-                                      : webTheme.colors.dangerSoft,
-                                border: `1px solid ${
-                                  attendancePct >= 75
-                                    ? webTheme.colors.successBorder
-                                    : attendancePct >= 50
-                                      ? webTheme.colors.warningBorder
-                                      : webTheme.colors.dangerBorder
-                                }`,
+                                background: webTheme.colors.surfaceMuted,
+                                border: `1px solid ${webTheme.colors.border}`,
                               }}
                             >
-                              {attendancePct}%
+                              Completed
                             </span>
-                          ) : null}
-                        </>
+                          )}
+                        </div>
                       ) : (
                         <span
                           style={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            letterSpacing: "0.03em",
-                            color: webTheme.colors.textMuted,
-                            padding: "3px 10px",
-                            borderRadius: 999,
-                            background: webTheme.colors.surfaceMuted,
-                            border: `1px solid ${webTheme.colors.border}`,
-                          }}
-                        >
-                          Completed
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <span
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 500,
-                        color: webTheme.colors.textSubtle,
-                        padding: "3px 10px",
-                        borderRadius: 999,
-                        background: "rgba(167, 139, 250, 0.05)",
-                        border: "1px solid var(--ae-card-border)",
-                      }}
-                    >
-                      Not taken
-                    </span>
-                  )}
-                  {!hasSession ? (
-                    confirmDeleteId === lecture.id ? (
-                      <div
-                        onClick={(e) => e.preventDefault()}
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 6,
-                          padding: "4px 6px 4px 10px",
-                          borderRadius: 8,
-                          background: webTheme.colors.dangerSoft,
-                          border: `1px solid ${webTheme.colors.dangerBorder}`,
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: webTheme.colors.danger,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          Delete?
-                        </span>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            deleteLecture.mutate(lecture.id)
-                          }}
-                          className="ui-danger-action"
-                          style={{
-                            border: "none",
-                            borderRadius: 6,
-                            padding: "3px 10px",
-                            background: webTheme.colors.danger,
-                            color: "#fff",
-                            fontSize: 12,
-                            fontWeight: 600,
-                            cursor: "pointer",
-                          }}
-                        >
-                          {deleteLecture.isPending ? "..." : "Confirm"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            setConfirmDeleteId(null)
-                          }}
-                          className="ui-secondary-btn"
-                          style={{
-                            border: `1px solid var(--ae-card-border)`,
-                            borderRadius: 6,
-                            padding: "3px 10px",
-                            background: "var(--ae-card-surface)",
-                            color: webTheme.colors.textMuted,
                             fontSize: 12,
                             fontWeight: 500,
-                            cursor: "pointer",
+                            color: webTheme.colors.textSubtle,
+                            padding: "3px 10px",
+                            borderRadius: 999,
+                            background: "rgba(167, 139, 250, 0.05)",
+                            border: "1px solid var(--ae-card-border)",
                           }}
                         >
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          setConfirmDeleteId(lecture.id)
-                        }}
-                        className="ui-danger-action"
-                        aria-label={`Delete ${lecture.title ?? `Lecture ${lectureNumber}`}`}
-                        style={{
-                          width: 30,
-                          height: 30,
-                          display: "grid",
-                          placeItems: "center",
-                          border: `1px solid var(--ae-card-border)`,
-                          borderRadius: 8,
-                          padding: 0,
-                          background: "transparent",
-                          color: webTheme.colors.textSubtle,
-                          fontSize: 14,
-                          cursor: "pointer",
-                          transition: `all ${webTheme.animation.fast}`,
-                        }}
-                      >
-                        🗑
-                      </button>
-                    )
+                          Not taken
+                        </span>
+                      )}
+                      {!hasSession ? (
+                        confirmDeleteId === lecture.id ? (
+                          <div
+                            onClick={(e) => e.preventDefault()}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                              padding: "4px 6px 4px 10px",
+                              borderRadius: 8,
+                              background: webTheme.colors.dangerSoft,
+                              border: `1px solid ${webTheme.colors.dangerBorder}`,
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: webTheme.colors.danger,
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              Delete?
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                deleteLecture.mutate(lecture.id)
+                              }}
+                              className="ui-danger-action"
+                              style={{
+                                border: "none",
+                                borderRadius: 6,
+                                padding: "3px 10px",
+                                background: webTheme.colors.danger,
+                                color: "#fff",
+                                fontSize: 12,
+                                fontWeight: 600,
+                                cursor: "pointer",
+                              }}
+                            >
+                              {deleteLecture.isPending ? "..." : "Confirm"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                setConfirmDeleteId(null)
+                              }}
+                              className="ui-secondary-btn"
+                              style={{
+                                border: "1px solid var(--ae-card-border)",
+                                borderRadius: 6,
+                                padding: "3px 10px",
+                                background: "var(--ae-card-surface)",
+                                color: webTheme.colors.textMuted,
+                                fontSize: 12,
+                                fontWeight: 500,
+                                cursor: "pointer",
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              setConfirmDeleteId(lecture.id)
+                            }}
+                            className="ui-danger-action"
+                            aria-label={`Delete ${lecture.title ?? `Lecture ${lectureNumber}`}`}
+                            style={{
+                              width: 30,
+                              height: 30,
+                              display: "grid",
+                              placeItems: "center",
+                              border: "1px solid var(--ae-card-border)",
+                              borderRadius: 8,
+                              padding: 0,
+                              background: "transparent",
+                              color: webTheme.colors.textSubtle,
+                              fontSize: 14,
+                              cursor: "pointer",
+                              transition: `all ${webTheme.animation.fast}`,
+                            }}
+                          >
+                            🗑
+                          </button>
+                        )
+                      ) : null}
+                      <span style={{ fontSize: 14, color: webTheme.colors.textSubtle }}>›</span>
+                    </div>
+                  </Link>
+                  {index < lectures.length - 1 ? (
+                    <div
+                      aria-hidden
+                      style={{
+                        height: 1,
+                        background: "var(--ae-divider-gradient)",
+                        marginRight: 20,
+                        marginLeft: 20,
+                        position: "relative",
+                        zIndex: 1,
+                      }}
+                    />
                   ) : null}
-                  <span style={{ fontSize: 14, color: webTheme.colors.textSubtle }}>›</span>
-                </div>
-              </Link>
-              {index < lectures.length - 1 ? (
-                <div
-                  aria-hidden
-                  style={{
-                    height: 1,
-                    background: "var(--ae-divider-gradient)",
-                    marginRight: 20,
-                    marginLeft: 20,
-                    position: "relative",
-                    zIndex: 1,
-                  }}
-                />
-              ) : null}
-            </React.Fragment>
-          )
-          })}
-        </div>
+                </React.Fragment>
+              )
+            })}
+          </div>
         </>
       )}
     </div>

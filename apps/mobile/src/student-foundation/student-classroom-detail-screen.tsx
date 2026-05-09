@@ -15,7 +15,6 @@ import {
 } from "../student-workflow-models"
 
 import { useStudentClassroomDetailData } from "./queries"
-import { WeeklyScheduleView } from "./student-classroom-schedule-screen"
 import {
   AnnouncementRow,
   StudentCard,
@@ -29,6 +28,7 @@ import {
   formatEnum,
   styles,
 } from "./shared-ui"
+import { WeeklyScheduleView } from "./student-classroom-schedule-screen"
 
 // v2.0: 3-tab layout — Attendance (default), Posts, Schedule.
 type DetailTab = "attendance" | "posts" | "schedule"
@@ -164,10 +164,20 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                     : c.border,
             }}
           >
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 }}>
                 {unmarkedCandidates.length > 0 ? (
-                  <LivePill icon="radio-outline" label={`${unmarkedCandidates.length} Live`} bg={c.danger} />
+                  <LivePill
+                    icon="radio-outline"
+                    label={`${unmarkedCandidates.length} Live`}
+                    bg={c.danger}
+                  />
                 ) : markedCandidates.length > 0 ? (
                   <LivePill icon="checkmark-circle" label="Marked" bg={c.success} />
                 ) : null}
@@ -177,7 +187,8 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
                   style={{
                     fontSize: 16,
                     fontWeight: "800",
-                    color: attendancePct >= 75 ? c.success : attendancePct >= 50 ? c.warning : c.danger,
+                    color:
+                      attendancePct >= 75 ? c.success : attendancePct >= 50 ? c.warning : c.danger,
                   }}
                 >
                   {attendancePct}%
@@ -185,13 +196,21 @@ export function StudentClassroomDetailScreen(props: { classroomId: string }) {
               ) : null}
             </View>
             {totalRecords > 0 ? (
-              <View style={{ height: 4, borderRadius: 2, backgroundColor: c.surfaceMuted, overflow: "hidden" }}>
+              <View
+                style={{
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: c.surfaceMuted,
+                  overflow: "hidden",
+                }}
+              >
                 <View
                   style={{
                     height: 4,
                     borderRadius: 2,
                     width: `${Math.min(100, attendancePct)}%`,
-                    backgroundColor: attendancePct >= 75 ? c.success : attendancePct >= 50 ? c.warning : c.danger,
+                    backgroundColor:
+                      attendancePct >= 75 ? c.success : attendancePct >= 50 ? c.warning : c.danger,
                   }}
                 />
               </View>
@@ -305,18 +324,28 @@ function AttendanceTabContent(props: {
             </Text>
             <View style={{ flexDirection: "row", gap: 8 }}>
               {props.unmarkedCandidates.some((cand) => cand.mode === "QR_GPS") ? (
-                <Link href={studentRoutes.qrAttendanceFromClassroom(props.classroomId) as never} asChild>
+                <Link
+                  href={studentRoutes.qrAttendanceFromClassroom(props.classroomId) as never}
+                  asChild
+                >
                   <Pressable style={localStyles.scanButton}>
                     <Ionicons name="qr-code-outline" size={16} color={c.danger} />
-                    <Text style={{ fontSize: 13, fontWeight: "700", color: c.danger }}>Scan QR</Text>
+                    <Text style={{ fontSize: 13, fontWeight: "700", color: c.danger }}>
+                      Scan QR
+                    </Text>
                   </Pressable>
                 </Link>
               ) : null}
               {props.unmarkedCandidates.some((cand) => cand.mode === "BLUETOOTH") ? (
-                <Link href={studentRoutes.bluetoothAttendanceFromClassroom(props.classroomId) as never} asChild>
+                <Link
+                  href={studentRoutes.bluetoothAttendanceFromClassroom(props.classroomId) as never}
+                  asChild
+                >
                   <Pressable style={localStyles.scanButton}>
                     <Ionicons name="bluetooth-outline" size={16} color={c.danger} />
-                    <Text style={{ fontSize: 13, fontWeight: "700", color: c.danger }}>Bluetooth</Text>
+                    <Text style={{ fontSize: 13, fontWeight: "700", color: c.danger }}>
+                      Bluetooth
+                    </Text>
                   </Pressable>
                 </Link>
               ) : null}
@@ -330,9 +359,24 @@ function AttendanceTabContent(props: {
         <Animated.View entering={FadeInDown.duration(300).delay(50)}>
           <View style={{ gap: mobileTheme.spacing.sm }}>
             <View style={{ flexDirection: "row", gap: 8 }}>
-              <StatChip label="Total" value={String(props.totalRecords)} color={c.primary} bg={c.primarySoft} />
-              <StatChip label="Present" value={String(props.presentCount)} color={c.success} bg={c.successSoft} />
-              <StatChip label="Absent" value={String(props.absentCount)} color={c.danger} bg={c.dangerSoft} />
+              <StatChip
+                label="Total"
+                value={String(props.totalRecords)}
+                color={c.primary}
+                bg={c.primarySoft}
+              />
+              <StatChip
+                label="Present"
+                value={String(props.presentCount)}
+                color={c.success}
+                bg={c.successSoft}
+              />
+              <StatChip
+                label="Absent"
+                value={String(props.absentCount)}
+                color={c.danger}
+                bg={c.dangerSoft}
+              />
             </View>
           </View>
         </Animated.View>
@@ -388,7 +432,10 @@ function AttendanceTabContent(props: {
                         />
                       </View>
                       <View style={{ flex: 1, gap: 1 }}>
-                        <Text style={{ fontSize: 13, fontWeight: "500", color: c.text }} numberOfLines={1}>
+                        <Text
+                          style={{ fontSize: 13, fontWeight: "500", color: c.text }}
+                          numberOfLines={1}
+                        >
                           {record.lectureTitle ?? `Lecture ${arr.length - i}`}
                         </Text>
                         <Text style={{ fontSize: 11, color: c.textMuted }} numberOfLines={1}>
@@ -404,7 +451,11 @@ function AttendanceTabContent(props: {
                         }}
                       >
                         <Text
-                          style={{ fontSize: 10, fontWeight: "700", color: isPresent ? c.success : c.danger }}
+                          style={{
+                            fontSize: 10,
+                            fontWeight: "700",
+                            color: isPresent ? c.success : c.danger,
+                          }}
                         >
                           {isPresent ? "Present" : "Absent"}
                         </Text>
@@ -453,7 +504,10 @@ function AttendanceTabContent(props: {
                       </Text>
                     </View>
                     <View style={{ flex: 1, gap: 1 }}>
-                      <Text style={{ fontSize: 13, fontWeight: "500", color: c.text }} numberOfLines={1}>
+                      <Text
+                        style={{ fontSize: 13, fontWeight: "500", color: c.text }}
+                        numberOfLines={1}
+                      >
                         {lecture.title ?? `Lecture ${props.lectures.length - i}`}
                       </Text>
                       <Text style={{ fontSize: 11, color: c.textMuted }} numberOfLines={1}>
@@ -470,7 +524,6 @@ function AttendanceTabContent(props: {
           ) : (
             <StudentEmptyCard label="No attendance records yet." />
           )}
-
         </StudentCard>
       </Animated.View>
     </>
@@ -530,7 +583,11 @@ function ScheduleTabContent(props: {
 /* ═══════════════════════════════════════════════
  *  SMALL REUSABLE COMPONENTS
  * ═══════════════════════════════════════════════ */
-function LivePill(props: { icon: React.ComponentProps<typeof Ionicons>["name"]; label: string; bg: string }) {
+function LivePill(props: {
+  icon: React.ComponentProps<typeof Ionicons>["name"]
+  label: string
+  bg: string
+}) {
   return (
     <View
       style={{
@@ -613,7 +670,11 @@ function TabButton(props: {
           }}
         >
           <Text
-            style={{ fontSize: 9, fontWeight: "700", color: props.active ? c.primary : c.textSubtle }}
+            style={{
+              fontSize: 9,
+              fontWeight: "700",
+              color: props.active ? c.primary : c.textSubtle,
+            }}
           >
             {props.count}
           </Text>

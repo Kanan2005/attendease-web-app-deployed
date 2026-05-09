@@ -175,7 +175,15 @@ export function TeacherSessionHistoryFiltersPanel(props: {
       </div>
 
       {props.classroomsError && props.errorMessage ? (
-        <p style={{ margin: 0, fontSize: 13, color: webTheme.colors.danger, position: "relative", zIndex: 1 }}>
+        <p
+          style={{
+            margin: 0,
+            fontSize: 13,
+            color: webTheme.colors.danger,
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
           {props.errorMessage}
         </p>
       ) : null}

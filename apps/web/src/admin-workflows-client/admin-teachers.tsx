@@ -13,7 +13,10 @@ type TeacherStatusFilter = "ALL" | "ACTIVE" | "BLOCKED" | "ARCHIVED" | "PENDING"
 export function AdminTeachersWorkspace(props: { accessToken: string | null }) {
   const [query, setQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<TeacherStatusFilter>("ALL")
-  const [submittedFilters, setSubmittedFilters] = useState({ query: "", status: "ALL" as TeacherStatusFilter })
+  const [submittedFilters, setSubmittedFilters] = useState({
+    query: "",
+    status: "ALL" as TeacherStatusFilter,
+  })
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null)
 
   const teachersQuery = useQuery({
@@ -89,7 +92,13 @@ export function AdminTeachersWorkspace(props: { accessToken: string | null }) {
       ) : null}
 
       {teachersQuery.data ? (
-        <div style={{ display: "grid", gridTemplateColumns: selectedTeacherId ? "1fr 1fr" : "1fr", gap: 20 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: selectedTeacherId ? "1fr 1fr" : "1fr",
+            gap: 20,
+          }}
+        >
           <TeacherTable
             teachers={teachersQuery.data}
             selectedId={selectedTeacherId}
@@ -137,16 +146,17 @@ function TeacherTable(props: {
               onClick={() => props.onSelect(teacher.id === props.selectedId ? null : teacher.id)}
               style={{
                 cursor: "pointer",
-                background: teacher.id === props.selectedId ? webTheme.colors.surfaceMuted : "transparent",
+                background:
+                  teacher.id === props.selectedId ? webTheme.colors.surfaceMuted : "transparent",
               }}
             >
               <td style={styles.td}>
                 <div style={{ fontWeight: 600 }}>{teacher.displayName}</div>
-                <div style={{ fontSize: 12, color: webTheme.colors.textMuted }}>{teacher.email}</div>
+                <div style={{ fontSize: 12, color: webTheme.colors.textMuted }}>
+                  {teacher.email}
+                </div>
               </td>
-              <td style={{ ...styles.td, fontSize: 13 }}>
-                {teacher.department ?? "—"}
-              </td>
+              <td style={{ ...styles.td, fontSize: 13 }}>{teacher.department ?? "—"}</td>
               <td style={styles.td}>
                 <StatusBadge status={teacher.status} />
               </td>
@@ -192,7 +202,14 @@ function TeacherDetailPanel(props: {
 
       {detail.classrooms.length > 0 ? (
         <div>
-          <h4 style={{ margin: "16px 0 10px", fontSize: 14, fontWeight: 600, color: webTheme.colors.text }}>
+          <h4
+            style={{
+              margin: "16px 0 10px",
+              fontSize: 14,
+              fontWeight: 600,
+              color: webTheme.colors.text,
+            }}
+          >
             Classrooms ({detail.classrooms.length})
           </h4>
           <table style={styles.table}>
@@ -228,7 +245,15 @@ function TeacherDetailPanel(props: {
 function DetailRow(props: { label: string; value: string }) {
   return (
     <div>
-      <div style={{ fontSize: 11, fontWeight: 600, color: webTheme.colors.textMuted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          color: webTheme.colors.textMuted,
+          textTransform: "uppercase",
+          letterSpacing: "0.06em",
+        }}
+      >
         {props.label}
       </div>
       <div style={{ fontSize: 14, color: webTheme.colors.text, marginTop: 2 }}>{props.value}</div>

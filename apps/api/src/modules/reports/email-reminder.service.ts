@@ -1,12 +1,12 @@
-import type { SendThresholdEmailsRequest, SendThresholdEmailsResponse } from "@attendease/contracts"
 import type { ApiEnv } from "@attendease/config"
+import type { SendThresholdEmailsRequest, SendThresholdEmailsResponse } from "@attendease/contracts"
 import { buildEmailLogData } from "@attendease/db"
 import {
   ConsoleEmailProviderAdapter,
   type EmailProviderAdapter,
   SesEmailProviderAdapter,
-  renderLowAttendanceEmail,
   buildEmailSubjectPrefix,
+  renderLowAttendanceEmail,
 } from "@attendease/email"
 import { ForbiddenException, Inject, Injectable, Logger } from "@nestjs/common"
 

@@ -205,9 +205,7 @@ export function StudentQrAttendanceScreenContent(props: Props) {
           <View style={localStyles.iconCircle(c.warningSoft)}>
             <Ionicons name="checkmark-done-circle" size={64} color={c.warning} />
           </View>
-          <Text style={{ fontSize: 20, fontWeight: "800", color: c.warning }}>
-            Already Marked
-          </Text>
+          <Text style={{ fontSize: 20, fontWeight: "800", color: c.warning }}>Already Marked</Text>
           <Text
             style={{ fontSize: 14, color: c.textMuted, textAlign: "center", paddingHorizontal: 32 }}
           >

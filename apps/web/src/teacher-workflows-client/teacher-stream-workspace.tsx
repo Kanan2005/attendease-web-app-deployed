@@ -128,14 +128,34 @@ export function TeacherStreamWorkspace(props: {
           </h3>
         </div>
 
-        <div style={{ padding: "20px 24px", display: "grid", gap: 14, position: "relative", zIndex: 1 }}>
+        <div
+          style={{
+            padding: "20px 24px",
+            display: "grid",
+            gap: 14,
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
           {!props.accessToken ? (
             <WorkflowStateCard message="Sign in to post announcements." />
           ) : (
             <>
-              <WorkflowField label="Title" value={title} onChange={setTitle} placeholder="Optional title" />
+              <WorkflowField
+                label="Title"
+                value={title}
+                onChange={setTitle}
+                placeholder="Optional title"
+              />
               <label style={{ display: "grid", gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: webTheme.colors.textMuted, letterSpacing: "0.02em" }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: webTheme.colors.textMuted,
+                    letterSpacing: "0.02em",
+                  }}
+                >
                   Body
                 </span>
                 <textarea
@@ -201,7 +221,9 @@ export function TeacherStreamWorkspace(props: {
       {statusMessage ? <WorkflowBanner tone="info" message={statusMessage} /> : null}
 
       {/* Stream history */}
-      {announcementsQuery.isLoading ? <WorkflowStateCard message="Loading announcements..." /> : null}
+      {announcementsQuery.isLoading ? (
+        <WorkflowStateCard message="Loading announcements..." />
+      ) : null}
       {announcementsQuery.isError ? (
         <WorkflowBanner
           tone="danger"

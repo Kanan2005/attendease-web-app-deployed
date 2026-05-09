@@ -74,6 +74,7 @@ export function StudentQrAttendanceScreen(props: { classroomId?: string }) {
 
   // v2.0: Runs on mount and re-runs whenever retryCount changes (after user taps Retry/Scan Again).
   // Handles permission requests, camera loading, and GPS pre-acquisition.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: retryCount is the trigger; we intentionally re-run the effect when it changes
   useEffect(() => {
     let cancelled = false
 
@@ -172,7 +173,6 @@ export function StudentQrAttendanceScreen(props: { classroomId?: string }) {
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retryCount])
 
   // v2.0: Submits the QR payload with the pre-acquired GPS location.
@@ -192,7 +192,9 @@ export function StudentQrAttendanceScreen(props: { classroomId?: string }) {
           err.details !== null &&
           "message" in err.details &&
           typeof (err.details as { message?: unknown }).message === "string" &&
-          ((err.details as { message: string }).message.toLowerCase().includes("already been marked") ||
+          ((err.details as { message: string }).message
+            .toLowerCase()
+            .includes("already been marked") ||
             (err.details as { message: string }).message.toLowerCase().includes("already marked"))
         ) {
           setPhase("already_marked")

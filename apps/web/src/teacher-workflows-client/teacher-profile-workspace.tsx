@@ -401,7 +401,9 @@ export function TeacherProfileWorkspace(props: { accessToken: string | null }) {
             pointerEvents: "none",
           }}
         />
-        <h3 style={{ ...sectionTitle, position: "relative", zIndex: 1 }}>Professional Information</h3>
+        <h3 style={{ ...sectionTitle, position: "relative", zIndex: 1 }}>
+          Professional Information
+        </h3>
         <div
           style={{
             display: "grid",

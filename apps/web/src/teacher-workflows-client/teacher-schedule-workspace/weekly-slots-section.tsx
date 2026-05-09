@@ -6,13 +6,26 @@ import { useMemo } from "react"
 import {
   CALENDAR_END_HOUR,
   CALENDAR_START_HOUR,
-  type WeekCalendarEvent,
   HOUR_HEIGHT_PX,
+  type WeekCalendarEvent,
   minutesToTimeString,
   weekdayShortLabel,
 } from "../../web-workflows"
 
-const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+const SHORT_MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+]
 
 /** Format a date as "31 Mar" */
 function formatShortDate(date: Date): string {
@@ -63,7 +76,13 @@ function computeVisibleHours(events: WeekCalendarEvent[]): { startHour: number; 
 
 function PencilIcon() {
   return (
-    <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" style={{ display: "block" }}>
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      style={{ display: "block" }}
+    >
       <path d="M12.146.854a.5.5 0 0 1 .708 0l2.292 2.292a.5.5 0 0 1 0 .708l-9.793 9.792a.5.5 0 0 1-.168.11l-3.5 1.5a.5.5 0 0 1-.65-.65l1.5-3.5a.5.5 0 0 1 .11-.168L12.146.854zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 3 10.707V11h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l7.5-7.5z" />
     </svg>
   )
@@ -179,13 +198,26 @@ export function WeekCalendarGrid(props: {
             </button>
           ) : null}
         </div>
-        <span style={{ fontSize: 13, fontWeight: 600, color: webTheme.colors.text, letterSpacing: "-0.01em" }}>
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: webTheme.colors.text,
+            letterSpacing: "-0.01em",
+          }}
+        >
           {formatWeekRange(props.weekDates)}
         </span>
       </div>
 
       {/* Day header row */}
-      <div style={{ display: "grid", gridTemplateColumns: gridCols, borderBottom: "1px solid var(--ae-card-border)" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: gridCols,
+          borderBottom: "1px solid var(--ae-card-border)",
+        }}
+      >
         <div style={{ padding: "8px 4px" }} />
         {visibleDays.map((wd) => {
           const date = props.weekDates[wd - 1]
@@ -202,10 +234,23 @@ export function WeekCalendarGrid(props: {
                 background: isToday ? "rgba(167, 139, 250, 0.06)" : "transparent",
               }}
             >
-              <div style={{ fontSize: 11, fontWeight: 600, color: isToday ? webTheme.colors.accent : webTheme.colors.textMuted }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: isToday ? webTheme.colors.accent : webTheme.colors.textMuted,
+                }}
+              >
                 {weekdayShortLabel(wd)}
               </div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: isToday ? webTheme.colors.accent : webTheme.colors.text, marginTop: 1 }}>
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: isToday ? webTheme.colors.accent : webTheme.colors.text,
+                  marginTop: 1,
+                }}
+              >
                 {date.getDate()}
               </div>
             </div>
@@ -214,7 +259,15 @@ export function WeekCalendarGrid(props: {
       </div>
 
       {/* Body */}
-      <div style={{ display: "grid", gridTemplateColumns: gridCols, position: "relative", height: gridHeight, overflow: "visible" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: gridCols,
+          position: "relative",
+          height: gridHeight,
+          overflow: "visible",
+        }}
+      >
         {/* Time gutter */}
         <div style={{ position: "relative" }}>
           {Array.from({ length: totalHours }, (_, i) => (
@@ -309,17 +362,29 @@ export function WeekCalendarGrid(props: {
                       gap: 1,
                     }}
                   >
-                    <span style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <span
+                      style={{
+                        fontWeight: 600,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
                       {minutesToTimeString(event.startMinutes)}
                     </span>
                     {event.locationLabel ? (
-                      <span style={{ opacity: 0.7, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <span
+                        style={{
+                          opacity: 0.7,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
                         {event.locationLabel}
                       </span>
                     ) : null}
-                    {isOneOff ? (
-                      <span style={{ fontSize: 9, opacity: 0.6 }}>Extra</span>
-                    ) : null}
+                    {isOneOff ? <span style={{ fontSize: 9, opacity: 0.6 }}>Extra</span> : null}
 
                     {/* Edit icon — hidden for cancelled events */}
                     {!isCancelled ? (
@@ -346,8 +411,12 @@ export function WeekCalendarGrid(props: {
                           opacity: 0.6,
                           transition: "opacity 0.15s ease",
                         }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "1" }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.6" }}
+                        onMouseEnter={(e) => {
+                          ;(e.currentTarget as HTMLButtonElement).style.opacity = "1"
+                        }}
+                        onMouseLeave={(e) => {
+                          ;(e.currentTarget as HTMLButtonElement).style.opacity = "0.6"
+                        }}
                         className="ui-cal-edit-icon"
                       >
                         <PencilIcon />
