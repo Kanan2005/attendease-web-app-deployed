@@ -159,3 +159,15 @@ export const adminUsersAttendanceToggleResponseSchema = adminUsersStudentProfile
 export type AdminUsersAttendanceToggleResponse = z.infer<
   typeof adminUsersAttendanceToggleResponseSchema
 >
+
+// ---------------------------------------------------------------------------
+// Filter options (distinct values for dropdowns)
+// ---------------------------------------------------------------------------
+
+export const adminUsersFilterOptionsSchema = z.object({
+  degrees: z.array(z.string()),
+  branches: z.array(z.string()),
+  semesters: z.array(z.number().int().positive()),
+  departments: z.array(z.string()),
+})
+export type AdminUsersFilterOptions = z.infer<typeof adminUsersFilterOptionsSchema>

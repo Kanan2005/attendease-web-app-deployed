@@ -20,6 +20,13 @@ export function AdminUsersTeachersWorkspace(props: { accessToken: string | null 
   const [draft, setDraft] = useState<TeacherFilters>(INITIAL_FILTERS)
   const [submitted, setSubmitted] = useState<TeacherFilters>(INITIAL_FILTERS)
 
+  const filterOptionsQuery = useQuery({
+    queryKey: webWorkflowQueryKeys.adminUsersFilterOptions(),
+    enabled: Boolean(props.accessToken),
+    queryFn: () => bootstrap.authClient.getAdminUsersFilterOptions(props.accessToken ?? ""),
+    staleTime: 120_000,
+  })
+
   const queryParams: Record<string, string | undefined> = {
     ...(submitted.query ? { query: submitted.query } : {}),
     ...(submitted.department ? { department: submitted.department } : {}),
@@ -37,6 +44,8 @@ export function AdminUsersTeachersWorkspace(props: { accessToken: string | null 
     staleTime: 30_000,
   })
 
+  const opts = filterOptionsQuery.data
+
   return (
     <WebSectionCard
       title="Teachers"
@@ -48,11 +57,19 @@ export function AdminUsersTeachersWorkspace(props: { accessToken: string | null 
           value={draft.query}
           onChange={(value) => setDraft({ ...draft, query: value })}
         />
-        <Field
-          label="Department (e.g. Computer Science)"
-          value={draft.department}
-          onChange={(value) => setDraft({ ...draft, department: value })}
-        />
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>Department</span>
+          <select
+            value={draft.department}
+            onChange={(e) => setDraft({ ...draft, department: e.target.value })}
+            style={styles.input}
+          >
+            <option value="">All</option>
+            {(opts?.departments ?? []).map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+        </label>
       </div>
       <div style={{ ...styles.buttonRow, marginBottom: 16 }}>
         <button type="button" onClick={() => setSubmitted(draft)} style={styles.primaryButton}>

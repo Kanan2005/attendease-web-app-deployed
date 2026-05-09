@@ -50,6 +50,7 @@ import {
   type AdminUpdateStudentStatusResponse,
   type AdminUsersAttendanceToggleRequest,
   type AdminUsersAttendanceToggleResponse,
+  type AdminUsersFilterOptions,
   type AdminUsersStudentListQuery,
   type AdminUsersStudentListResponse,
   type AdminUsersStudentProfile,
@@ -109,6 +110,7 @@ import {
   adminUpdateStudentStatusResponseSchema,
   adminUsersAttendanceToggleRequestSchema,
   adminUsersAttendanceToggleResponseSchema,
+  adminUsersFilterOptionsSchema,
   adminUsersStudentListQuerySchema,
   adminUsersStudentListResponseSchema,
   adminUsersStudentProfileSchema,
@@ -389,6 +391,13 @@ export function buildAuthClientAdminMethods(request: AuthApiRequest) {
         token,
         payload: adminRecordsArchiveRequestSchema.parse(payload),
         parse: adminRecordsArchiveResponseSchema.parse,
+      })
+    },
+    getAdminUsersFilterOptions(token: string): Promise<AdminUsersFilterOptions> {
+      return request("/admin/users/filter-options", {
+        method: "GET",
+        token,
+        parse: adminUsersFilterOptionsSchema.parse,
       })
     },
     listAdminUsersStudents(

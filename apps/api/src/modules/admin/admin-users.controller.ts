@@ -1,6 +1,7 @@
 import {
   adminUsersAttendanceToggleRequestSchema,
   adminUsersAttendanceToggleResponseSchema,
+  adminUsersFilterOptionsSchema,
   adminUsersStudentListQuerySchema,
   adminUsersStudentListResponseSchema,
   adminUsersStudentProfileSchema,
@@ -26,6 +27,13 @@ export class AdminUsersController {
     @Inject(AdminUsersService)
     private readonly adminUsersService: AdminUsersService,
   ) {}
+
+  @Get("filter-options")
+  async getFilterOptions() {
+    return adminUsersFilterOptionsSchema.parse(
+      await this.adminUsersService.getFilterOptions(),
+    )
+  }
 
   @Get("students")
   async listStudents(@Query() query: Record<string, string | undefined>) {

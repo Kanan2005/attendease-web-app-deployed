@@ -30,6 +30,13 @@ export function AdminUsersStudentsWorkspace(props: { accessToken: string | null 
   const [draft, setDraft] = useState<StudentFilters>(INITIAL_FILTERS)
   const [submitted, setSubmitted] = useState<StudentFilters>(INITIAL_FILTERS)
 
+  const filterOptionsQuery = useQuery({
+    queryKey: webWorkflowQueryKeys.adminUsersFilterOptions(),
+    enabled: Boolean(props.accessToken),
+    queryFn: () => bootstrap.authClient.getAdminUsersFilterOptions(props.accessToken ?? ""),
+    staleTime: 120_000,
+  })
+
   const queryParams: Record<string, string | undefined> = {
     ...(submitted.query ? { query: submitted.query } : {}),
     ...(submitted.degree ? { degree: submitted.degree } : {}),
@@ -59,6 +66,8 @@ export function AdminUsersStudentsWorkspace(props: { accessToken: string | null 
     staleTime: 30_000,
   })
 
+  const opts = filterOptionsQuery.data
+
   function handleApply() {
     setSubmitted(draft)
   }
@@ -79,22 +88,45 @@ export function AdminUsersStudentsWorkspace(props: { accessToken: string | null 
           value={draft.query}
           onChange={(value) => setDraft({ ...draft, query: value })}
         />
-        <Field
-          label="Degree (e.g. B.Tech)"
-          value={draft.degree}
-          onChange={(value) => setDraft({ ...draft, degree: value })}
-        />
-        <Field
-          label="Branch (e.g. Computer Science)"
-          value={draft.branch}
-          onChange={(value) => setDraft({ ...draft, branch: value })}
-        />
-        <Field
-          label="Current semester"
-          value={draft.currentSemester}
-          onChange={(value) => setDraft({ ...draft, currentSemester: value })}
-          type="number"
-        />
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>Degree</span>
+          <select
+            value={draft.degree}
+            onChange={(e) => setDraft({ ...draft, degree: e.target.value })}
+            style={styles.input}
+          >
+            <option value="">All</option>
+            {(opts?.degrees ?? []).map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+        </label>
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>Branch</span>
+          <select
+            value={draft.branch}
+            onChange={(e) => setDraft({ ...draft, branch: e.target.value })}
+            style={styles.input}
+          >
+            <option value="">All</option>
+            {(opts?.branches ?? []).map((b) => (
+              <option key={b} value={b}>{b}</option>
+            ))}
+          </select>
+        </label>
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>Current semester</span>
+          <select
+            value={draft.currentSemester}
+            onChange={(e) => setDraft({ ...draft, currentSemester: e.target.value })}
+            style={styles.input}
+          >
+            <option value="">All</option>
+            {(opts?.semesters ?? []).map((s) => (
+              <option key={s} value={String(s)}>Semester {s}</option>
+            ))}
+          </select>
+        </label>
         <label style={{ display: "grid", gap: 6 }}>
           <span>Attendance access</span>
           <select

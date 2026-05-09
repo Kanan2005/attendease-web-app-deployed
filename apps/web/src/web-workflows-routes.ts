@@ -201,6 +201,9 @@ export const webWorkflowQueryKeys = {
   adminRecordsCourseSearch(query: string) {
     return ["web-workflows", "admin-records", "course-search", query] as const
   },
+  adminUsersFilterOptions() {
+    return ["web-workflows", "admin-users", "filter-options"] as const
+  },
   adminUsersStudents(filters?: Record<string, string | undefined>) {
     return ["web-workflows", "admin-users", "students", filters ?? {}] as const
   },

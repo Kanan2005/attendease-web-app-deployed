@@ -1,5 +1,6 @@
 import type {
   AdminUsersAttendanceToggleRequest,
+  AdminUsersFilterOptions,
   AdminUsersStudentListQuery,
   AdminUsersStudentListResponse,
   AdminUsersStudentProfile,
@@ -29,6 +30,41 @@ export class AdminUsersService {
     @Inject(DatabaseService)
     private readonly database: DatabaseService,
   ) {}
+
+  // -------------------------------------------------------------------
+  // Filter options — distinct values for dropdown menus
+  // -------------------------------------------------------------------
+  async getFilterOptions(): Promise<AdminUsersFilterOptions> {
+    const [studentProfiles, teacherProfiles] = await Promise.all([
+      this.database.prisma.studentProfile.findMany({
+        select: { degree: true, branch: true, currentSemester: true },
+      }),
+      this.database.prisma.teacherProfile.findMany({
+        select: { department: true },
+      }),
+    ])
+
+    const degreeSet = new Set<string>()
+    const branchSet = new Set<string>()
+    const semesterSet = new Set<number>()
+    for (const p of studentProfiles) {
+      if (p.degree) degreeSet.add(p.degree)
+      if (p.branch) branchSet.add(p.branch)
+      if (p.currentSemester) semesterSet.add(p.currentSemester)
+    }
+
+    const departmentSet = new Set<string>()
+    for (const p of teacherProfiles) {
+      if (p.department) departmentSet.add(p.department)
+    }
+
+    return {
+      degrees: [...degreeSet].sort(),
+      branches: [...branchSet].sort(),
+      semesters: [...semesterSet].sort((a, b) => a - b),
+      departments: [...departmentSet].sort(),
+    }
+  }
 
   // -------------------------------------------------------------------
   // Students — list with filters
