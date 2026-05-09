@@ -7,6 +7,9 @@ export const exportJobTypeSchema = z.enum([
   "SESSION_CSV",
   "STUDENT_PERCENT_CSV",
   "COMPREHENSIVE_CSV",
+  "ADMIN_STUDENT_REPORT_XLSX",
+  "ADMIN_TEACHER_REPORT_XLSX",
+  "ADMIN_COURSE_REPORT_XLSX",
 ])
 export type ExportJobType = z.infer<typeof exportJobTypeSchema>
 

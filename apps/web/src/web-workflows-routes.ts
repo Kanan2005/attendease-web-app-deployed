@@ -64,6 +64,7 @@ export const adminWorkflowRoutes = {
     return `/admin/users/teachers/${teacherId}`
   },
   communication: "/admin/communication",
+  reports: "/admin/reports",
 } as const
 
 export const webWorkflowQueryKeys = {
@@ -201,6 +202,9 @@ export const webWorkflowQueryKeys = {
   },
   adminUsersTeacherProfile(teacherId: string) {
     return ["web-workflows", "admin-users", "teacher-profile", teacherId] as const
+  },
+  adminRecentReports() {
+    return ["web-workflows", "admin-reports", "recent"] as const
   },
   profile() {
     return ["web-workflows", "profile"] as const

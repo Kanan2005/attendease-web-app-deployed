@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common"
 
 import { AcademicModule } from "../academic/academic.module.js"
 import { DevicesModule } from "../devices/devices.module.js"
+import { ExportsModule } from "../exports/exports.module.js"
 import { AdminAcademicGovernanceService } from "./admin-classroom-governance.service.js"
 import { AdminClassroomsController } from "./admin-classrooms.controller.js"
 import { AdminCommunicationController } from "./admin-communication.controller.js"
@@ -12,6 +13,8 @@ import { AdminDeviceSupportController } from "./admin-device-support.controller.
 import { AdminDeviceSupportService } from "./admin-device-support.service.js"
 import { AdminRecordsController } from "./admin-records.controller.js"
 import { AdminRecordsService } from "./admin-records.service.js"
+import { AdminReportsController } from "./admin-reports.controller.js"
+import { AdminReportsService } from "./admin-reports.service.js"
 import { AdminStudentsController } from "./admin-students.controller.js"
 import { AdminTeachersController } from "./admin-teachers.controller.js"
 import { AdminTeachersService } from "./admin-teachers.service.js"
@@ -19,7 +22,7 @@ import { AdminUsersController } from "./admin-users.controller.js"
 import { AdminUsersService } from "./admin-users.service.js"
 
 @Module({
-  imports: [DevicesModule, AcademicModule],
+  imports: [DevicesModule, AcademicModule, ExportsModule],
   controllers: [
     AdminDashboardController,
     AdminDeviceSupportController,
@@ -29,6 +32,7 @@ import { AdminUsersService } from "./admin-users.service.js"
     AdminRecordsController,
     AdminUsersController,
     AdminCommunicationController,
+    AdminReportsController,
   ],
   providers: [
     AdminDashboardService,
@@ -38,6 +42,7 @@ import { AdminUsersService } from "./admin-users.service.js"
     AdminRecordsService,
     AdminUsersService,
     AdminCommunicationService,
+    AdminReportsService,
   ],
   exports: [AdminDeviceSupportService, AdminAcademicGovernanceService],
 })

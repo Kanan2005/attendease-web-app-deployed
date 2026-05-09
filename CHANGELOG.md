@@ -18,6 +18,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+#### Admin Panel Phase 4 — Reports (Excel exports) (`packages/db/prisma/migrations/20260509120000_admin_reports_export_job_types/migration.sql`, `packages/contracts/src/admin-reports.ts`, `packages/export/src/xlsx.ts`, `apps/api/src/modules/admin/admin-reports.{service,controller,integration.test}.ts`, `apps/api/src/modules/exports/{exports.module.ts,export-storage.service.ts}`, `apps/worker/src/jobs/export-job.processor.ts`, `packages/auth/src/client.admin.ts`, `apps/web/src/admin-workflows-client/admin-reports.tsx`, `apps/web/app/(admin)/admin/reports/page.tsx`, `apps/web/src/web-{portal-navigation,workflows-routes,portal.test}.ts`)
+
+- Three new XLSX endpoints under `/admin/reports`:
+  - `POST /admin/reports/student` — single sheet, one row per (student × course offering). Filter by branch, currentSemester, courseOfferingId, semesterId.
+  - `POST /admin/reports/teacher` — single sheet, one row per teacher's course offering. Filter by teacherId, department, semesterId, includeArchived (defaults false).
+  - `POST /admin/reports/course` — single sheet, one row per student in the chosen course offering. Sorted by lowest attendance first.
+  - `GET /admin/reports/recent` — last 25 admin reports for the current admin with pre-signed download URLs.
+- New `ExportJobType` enum values `ADMIN_STUDENT_REPORT_XLSX`, `ADMIN_TEACHER_REPORT_XLSX`, `ADMIN_COURSE_REPORT_XLSX` (additive enum migration; backward-compatible).
+- Synchronous generation pipeline: API builds the XLSX in-memory using `exceljs` (new dependency on `@attendease/export`), uploads to existing S3 export bucket via `ExportStorageService.uploadObject`, persists `ExportJob` + `ExportJobFile` rows in `COMPLETED` state, and returns a pre-signed download URL the admin can hit immediately. Failures wrap into the same job row as `FAILED` with an error message.
+- New `packages/export/src/xlsx.ts` `buildXlsxBuffer({ sheets })` helper supports multi-sheet workbooks with banner rows, frozen header row, soft column widths, and Excel-safe sheet names.
+- Frontend: `/admin/reports` workspace with three tabs (Student / Teacher / Course), each with a filter form + Generate button that auto-opens the download in a new tab on success; below the tabs, a Recent reports table lists prior generations with status badges and re-download links.
+- `ExportsModule` now exports `ExportStorageService` so the admin module can reuse the same storage adapter.
+- Worker `export-job.processor.ts` switch is now exhaustive over the extended enum and explicitly throws if an admin XLSX job is ever queued (admin XLSX jobs run inline in the API; the worker is for legacy CSV/PDF only).
+- Integration tests cover: filter-required guard on student report, full XLSX generation pipeline (real exceljs output, valid ZIP magic, persisted ExportJob + ExportJobFile rows, storage adapter invocation), course report 404 surfaces as `FAILED` job not exception, teacher report by department, recent reports listing, and unauthenticated rejection.
+
 #### Admin Panel Phase 3 — Communication (Gmail compose + native mailto:) (`packages/contracts/src/admin-communication.ts`, `apps/api/src/modules/admin/admin-communication.{service,controller,integration.test}.ts`, `apps/api/src/modules/admin/admin.module.ts`, `packages/auth/src/client.admin.ts`, `apps/web/src/web-portal-navigation.ts`, `apps/web/src/web-workflows-routes.ts`, `apps/web/src/admin-workflows-client/admin-communication-composer.tsx`, `apps/web/app/(admin)/admin/communication/page.tsx`)
 
 - New `/admin/communication` workspace: filter audience → preview count + sample → compose subject + body → click "Open in Gmail" or "Open in default mail app".

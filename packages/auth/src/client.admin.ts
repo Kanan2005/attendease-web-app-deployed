@@ -5,6 +5,7 @@ import {
   type AdminCommunicationAudiencePreviewResponse,
   type AdminCommunicationLogDispatchRequest,
   type AdminCommunicationLogDispatchResponse,
+  type AdminCourseReportRequest,
   type AdminDashboardStats,
   type AdminDelinkStudentDevicesRequest,
   type AdminDelinkStudentDevicesResponse,
@@ -19,11 +20,15 @@ import {
   type AdminRecordsDepartmentListResponse,
   type AdminRecordsStudentListResponse,
   type AdminRecordsTeacherListResponse,
+  type AdminReportJobSummary,
+  type AdminReportRecentListResponse,
   type AdminRevokeDeviceBindingRequest,
   type AdminStudentManagementDetail,
   type AdminStudentManagementSearchQuery,
   type AdminStudentManagementSummary,
+  type AdminStudentReportRequest,
   type AdminTeacherDetail,
+  type AdminTeacherReportRequest,
   type AdminTeacherSearchQuery,
   type AdminTeacherSummary,
   type AdminUpdateStudentStatusRequest,
@@ -47,6 +52,7 @@ import {
   adminCommunicationAudiencePreviewResponseSchema,
   adminCommunicationLogDispatchRequestSchema,
   adminCommunicationLogDispatchResponseSchema,
+  adminCourseReportRequestSchema,
   adminDashboardStatsSchema,
   adminDelinkStudentDevicesResponseSchema,
   adminDeviceSupportDetailSchema,
@@ -59,11 +65,15 @@ import {
   adminRecordsDepartmentListResponseSchema,
   adminRecordsStudentListResponseSchema,
   adminRecordsTeacherListResponseSchema,
+  adminReportJobSummarySchema,
+  adminReportRecentListResponseSchema,
   adminStudentManagementDetailSchema,
   adminStudentManagementSearchQuerySchema,
   adminStudentManagementSummariesResponseSchema,
+  adminStudentReportRequestSchema,
   adminTeacherDetailSchema,
   adminTeacherListResponseSchema,
+  adminTeacherReportRequestSchema,
   adminTeacherSearchQuerySchema,
   adminUpdateStudentStatusRequestSchema,
   adminUpdateStudentStatusResponseSchema,
@@ -406,6 +416,46 @@ export function buildAuthClientAdminMethods(request: AuthApiRequest) {
         token,
         payload: adminCommunicationLogDispatchRequestSchema.parse(payload),
         parse: adminCommunicationLogDispatchResponseSchema.parse,
+      })
+    },
+    generateAdminStudentReport(
+      token: string,
+      payload: AdminStudentReportRequest,
+    ): Promise<AdminReportJobSummary> {
+      return request("/admin/reports/student", {
+        method: "POST",
+        token,
+        payload: adminStudentReportRequestSchema.parse(payload),
+        parse: adminReportJobSummarySchema.parse,
+      })
+    },
+    generateAdminTeacherReport(
+      token: string,
+      payload: AdminTeacherReportRequest,
+    ): Promise<AdminReportJobSummary> {
+      return request("/admin/reports/teacher", {
+        method: "POST",
+        token,
+        payload: adminTeacherReportRequestSchema.parse(payload),
+        parse: adminReportJobSummarySchema.parse,
+      })
+    },
+    generateAdminCourseReport(
+      token: string,
+      payload: AdminCourseReportRequest,
+    ): Promise<AdminReportJobSummary> {
+      return request("/admin/reports/course", {
+        method: "POST",
+        token,
+        payload: adminCourseReportRequestSchema.parse(payload),
+        parse: adminReportJobSummarySchema.parse,
+      })
+    },
+    listAdminRecentReports(token: string): Promise<AdminReportRecentListResponse> {
+      return request("/admin/reports/recent", {
+        method: "GET",
+        token,
+        parse: adminReportRecentListResponseSchema.parse,
       })
     },
   }

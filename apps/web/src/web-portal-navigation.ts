@@ -30,6 +30,11 @@ export const adminPortalNavigation: WebPortalNavItem[] = [
     description: "Email students or parents through Gmail or your default mail app.",
   },
   {
+    href: "/admin/reports",
+    label: "Reports",
+    description: "Generate Excel reports for students, teachers, or specific courses.",
+  },
+  {
     href: "/admin/students",
     label: "Students",
     description: "Search, view, and manage student accounts and statuses.",

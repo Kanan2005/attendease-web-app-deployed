@@ -28,4 +28,12 @@ export class ExportStorageService {
       expiresInSeconds: this.signedUrlTtlSeconds,
     })
   }
+
+  async uploadObject(input: {
+    objectKey: string
+    body: Uint8Array
+    contentType: string
+  }): Promise<void> {
+    await this.adapter.uploadObject(input)
+  }
 }

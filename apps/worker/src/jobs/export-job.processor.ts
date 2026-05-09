@@ -247,6 +247,16 @@ export class ExportJobProcessor {
           mimeType: "text/csv",
         }
       }
+      // Admin XLSX reports are produced synchronously by the API service
+      // (apps/api/src/modules/admin/admin-reports.service.ts) and never
+      // enqueued for this worker. If one ever lands here, fail fast so it
+      // surfaces as a visible job error instead of silently hanging.
+      case "ADMIN_STUDENT_REPORT_XLSX":
+      case "ADMIN_TEACHER_REPORT_XLSX":
+      case "ADMIN_COURSE_REPORT_XLSX":
+        throw new Error(
+          `Job type ${request.jobType} is generated synchronously by the API and is not handled by the worker.`,
+        )
     }
   }
 }

@@ -101,6 +101,7 @@ describe("web portal models", () => {
       "/admin/records",
       "/admin/users",
       "/admin/communication",
+      "/admin/reports",
       "/admin/students",
       "/admin/teachers",
       "/admin/devices",

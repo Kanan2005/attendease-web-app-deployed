@@ -9,6 +9,6 @@ import { ExportsService } from "./exports.service.js"
   imports: [ReportsModule],
   controllers: [ExportsController],
   providers: [ExportStorageService, ExportsService],
-  exports: [ExportsService],
+  exports: [ExportsService, ExportStorageService],
 })
 export class ExportsModule {}
