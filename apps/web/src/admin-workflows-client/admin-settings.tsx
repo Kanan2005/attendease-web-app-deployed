@@ -1,6 +1,10 @@
 "use client"
 
-import type { AdminSettingsAdminInviteResponse, AdminSettingsSystem } from "@attendease/contracts"
+import type {
+  AdminSettingsAcademicList,
+  AdminSettingsAdminInviteResponse,
+  AdminSettingsSystem,
+} from "@attendease/contracts"
 import { webTheme } from "@attendease/ui-web"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
@@ -57,64 +61,78 @@ export function AdminSettingsWorkspace(props: { accessToken: string | null }) {
 // ---------------------------------------------------------------------------
 
 function AcademicPanel(props: { accessToken: string | null }) {
-  const query = useQuery({
+  const queryClient = useQueryClient()
+  const infoQuery = useQuery({
     queryKey: webWorkflowQueryKeys.adminSettingsAcademic(),
     enabled: Boolean(props.accessToken),
     queryFn: () => bootstrap.authClient.getAdminSettingsAcademic(props.accessToken ?? ""),
     staleTime: 30_000,
   })
+  const listsQuery = useQuery({
+    queryKey: webWorkflowQueryKeys.adminSettingsAcademicLists(),
+    enabled: Boolean(props.accessToken),
+    queryFn: () => bootstrap.authClient.getAdminSettingsAcademicLists(props.accessToken ?? ""),
+    staleTime: 30_000,
+  })
 
-  if (query.isPending) return <StateCard message="Loading academic settings…" />
-  if (query.isError) return <Banner tone="danger" message="Failed to load academic settings." />
+  const addMutation = useMutation({
+    mutationFn: (input: { list: "branches" | "departments" | "semesters"; value: string }) =>
+      bootstrap.authClient.addAdminSettingsAcademicListItem(props.accessToken ?? "", input),
+    onSuccess: (data) => {
+      queryClient.setQueryData(webWorkflowQueryKeys.adminSettingsAcademicLists(), data)
+      queryClient.invalidateQueries({ queryKey: webWorkflowQueryKeys.adminUsersFilterOptions() })
+    },
+  })
 
-  const data = query.data
+  const removeMutation = useMutation({
+    mutationFn: (input: { list: "branches" | "departments" | "semesters"; value: string }) =>
+      bootstrap.authClient.removeAdminSettingsAcademicListItem(props.accessToken ?? "", input),
+    onSuccess: (data) => {
+      queryClient.setQueryData(webWorkflowQueryKeys.adminSettingsAcademicLists(), data)
+      queryClient.invalidateQueries({ queryKey: webWorkflowQueryKeys.adminUsersFilterOptions() })
+    },
+  })
+
+  if (infoQuery.isPending || listsQuery.isPending)
+    return <StateCard message="Loading academic settings…" />
+  if (infoQuery.isError || listsQuery.isError)
+    return <Banner tone="danger" message="Failed to load academic settings." />
+
+  const info = infoQuery.data
+  const lists = listsQuery.data
+
   return (
     <div style={{ display: "grid", gap: 24 }}>
-      <WebSectionCard
-        title="Branches & departments"
-        description="Distinct values currently in use across the institution. Add new entries by editing student or teacher profiles."
-      >
-        <div
-          style={{
-            display: "grid",
-            gap: 16,
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          }}
-        >
-          <div>
-            <h4 style={{ margin: "0 0 8px 0", fontSize: 13, color: webTheme.colors.textMuted }}>
-              Student branches ({data.branches.length})
-            </h4>
-            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 14 }}>
-              {data.branches.map((row) => (
-                <li key={row.name}>
-                  {row.name}{" "}
-                  <span style={{ color: webTheme.colors.textMuted }}>
-                    · {row.studentCount} students
-                  </span>
-                </li>
-              ))}
-              {data.branches.length === 0 ? <li>None yet</li> : null}
-            </ul>
-          </div>
-          <div>
-            <h4 style={{ margin: "0 0 8px 0", fontSize: 13, color: webTheme.colors.textMuted }}>
-              Teacher departments ({data.departments.length})
-            </h4>
-            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 14 }}>
-              {data.departments.map((row) => (
-                <li key={row.name}>
-                  {row.name}{" "}
-                  <span style={{ color: webTheme.colors.textMuted }}>
-                    · {row.teacherCount} teachers
-                  </span>
-                </li>
-              ))}
-              {data.departments.length === 0 ? <li>None yet</li> : null}
-            </ul>
-          </div>
-        </div>
-      </WebSectionCard>
+      <ManagedListCard
+        title="Branches"
+        description="Manage the list of student branches. These appear in dropdown filters across the admin panel."
+        items={lists.branches}
+        onAdd={(value) => addMutation.mutate({ list: "branches", value })}
+        onRemove={(value) => removeMutation.mutate({ list: "branches", value })}
+        isPending={addMutation.isPending || removeMutation.isPending}
+        inUseMap={new Map(info.branches.map((b) => [b.name, `${b.studentCount} students`]))}
+      />
+
+      <ManagedListCard
+        title="Departments"
+        description="Manage the list of teacher departments. These appear in dropdown filters across the admin panel."
+        items={lists.departments}
+        onAdd={(value) => addMutation.mutate({ list: "departments", value })}
+        onRemove={(value) => removeMutation.mutate({ list: "departments", value })}
+        isPending={addMutation.isPending || removeMutation.isPending}
+        inUseMap={new Map(info.departments.map((d) => [d.name, `${d.teacherCount} teachers`]))}
+      />
+
+      <ManagedListCard
+        title="Semesters"
+        description="Manage the list of semester numbers. These appear in dropdown filters across the admin panel."
+        items={lists.semesters.map(String)}
+        onAdd={(value) => addMutation.mutate({ list: "semesters", value })}
+        onRemove={(value) => removeMutation.mutate({ list: "semesters", value })}
+        isPending={addMutation.isPending || removeMutation.isPending}
+        inUseMap={new Map()}
+        inputType="number"
+      />
 
       <WebSectionCard title="Academic structure" description="Counts at a glance.">
         <div
@@ -124,14 +142,112 @@ function AcademicPanel(props: { accessToken: string | null }) {
             gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
           }}
         >
-          <Stat label="Active semesters" value={data.semesterStatusCounts.active.toString()} />
-          <Stat label="Closed semesters" value={data.semesterStatusCounts.closed.toString()} />
-          <Stat label="Archived semesters" value={data.semesterStatusCounts.archived.toString()} />
-          <Stat label="Classes" value={data.classCount.toString()} />
-          <Stat label="Sections" value={data.sectionCount.toString()} />
+          <Stat label="Active semesters" value={info.semesterStatusCounts.active.toString()} />
+          <Stat label="Closed semesters" value={info.semesterStatusCounts.closed.toString()} />
+          <Stat label="Archived semesters" value={info.semesterStatusCounts.archived.toString()} />
+          <Stat label="Classes" value={info.classCount.toString()} />
+          <Stat label="Sections" value={info.sectionCount.toString()} />
         </div>
       </WebSectionCard>
     </div>
+  )
+}
+
+function ManagedListCard(props: {
+  title: string
+  description: string
+  items: string[]
+  onAdd: (value: string) => void
+  onRemove: (value: string) => void
+  isPending: boolean
+  inUseMap: Map<string, string>
+  inputType?: "number" | "email" | "password" | "text"
+}) {
+  const [newValue, setNewValue] = useState("")
+
+  function handleAdd() {
+    const trimmed = newValue.trim()
+    if (!trimmed) return
+    props.onAdd(trimmed)
+    setNewValue("")
+  }
+
+  function handleRemove(value: string) {
+    const usage = props.inUseMap.get(value)
+    const msg = usage
+      ? `Remove "${value}"? It is currently in use (${usage}). The value will no longer appear in dropdowns, but existing profiles are not affected.`
+      : `Remove "${value}" from the list?`
+    if (!window.confirm(msg)) return
+    props.onRemove(value)
+  }
+
+  return (
+    <WebSectionCard title={props.title} description={props.description}>
+      <div style={{ display: "flex", gap: 8, alignItems: "flex-end", marginBottom: 16 }}>
+        <div style={{ flex: 1 }}>
+          <Field
+            label={`Add new ${props.title.toLowerCase().replace(/s$/, "")}`}
+            value={newValue}
+            onChange={setNewValue}
+            {...(props.inputType ? { type: props.inputType } : {})}
+          />
+        </div>
+        <button
+          type="button"
+          style={{ ...styles.primaryButton, height: 40 }}
+          disabled={props.isPending || !newValue.trim()}
+          onClick={handleAdd}
+        >
+          Add
+        </button>
+      </div>
+      {props.items.length === 0 ? (
+        <p style={{ fontSize: 14, color: webTheme.colors.textMuted }}>
+          No items yet. Add one above.
+        </p>
+      ) : (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {props.items.map((item) => (
+            <div
+              key={item}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 12px",
+                background: webTheme.colors.surfaceMuted,
+                borderRadius: 6,
+                fontSize: 14,
+              }}
+            >
+              <span>{item}</span>
+              {props.inUseMap.has(item) ? (
+                <span style={{ fontSize: 11, color: webTheme.colors.textMuted }}>
+                  ({props.inUseMap.get(item)})
+                </span>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => handleRemove(item)}
+                disabled={props.isPending}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  color: webTheme.colors.textMuted,
+                  fontSize: 16,
+                  lineHeight: 1,
+                  padding: "0 2px",
+                }}
+                title={`Remove ${item}`}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </WebSectionCard>
   )
 }
 

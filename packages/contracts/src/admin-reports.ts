@@ -40,6 +40,7 @@ export type AdminReportRecentListResponse = z.infer<typeof adminReportRecentList
 
 export const adminStudentReportRequestSchema = z
   .object({
+    studentId: z.string().trim().min(1).optional(),
     branch: z.string().trim().min(1).optional(),
     currentSemester: z.coerce.number().int().min(1).max(12).optional(),
     courseOfferingId: z.string().trim().min(1).optional(),
@@ -48,14 +49,15 @@ export const adminStudentReportRequestSchema = z
   .refine(
     (value) =>
       Boolean(
-        value.branch ||
+        value.studentId ||
+          value.branch ||
           value.currentSemester !== undefined ||
           value.courseOfferingId ||
           value.semesterId,
       ),
     {
       message:
-        "Provide at least one filter (branch, currentSemester, courseOfferingId, or semesterId).",
+        "Provide at least one filter (studentId, branch, currentSemester, courseOfferingId, or semesterId).",
     },
   )
 export type AdminStudentReportRequest = z.infer<typeof adminStudentReportRequestSchema>

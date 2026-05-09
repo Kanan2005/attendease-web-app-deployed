@@ -20,28 +20,40 @@ export function RecordsBreadcrumb(props: { steps: RecordsBreadcrumbStep[] }) {
       style={{
         display: "flex",
         flexWrap: "wrap",
-        gap: 8,
+        gap: 6,
         alignItems: "center",
         fontSize: 13,
         color: webTheme.colors.textMuted,
+        padding: "8px 14px",
+        background: webTheme.colors.surfaceRaised,
+        borderRadius: 10,
+        border: `1px solid ${webTheme.colors.border}`,
       }}
     >
       <Link
         href={adminWorkflowRoutes.records}
-        style={{ color: webTheme.colors.textMuted, textDecoration: "none" }}
+        style={{
+          color: webTheme.colors.accent,
+          textDecoration: "none",
+          fontWeight: 600,
+        }}
       >
         Records
       </Link>
       {props.steps.map((step, index) => (
         <span
           key={`${step.label}-${index}`}
-          style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
         >
-          <span style={{ opacity: 0.6 }}>›</span>
+          <span style={{ opacity: 0.4, fontSize: 11 }}>›</span>
           {step.href ? (
             <Link
               href={step.href}
-              style={{ color: webTheme.colors.textMuted, textDecoration: "none" }}
+              style={{
+                color: webTheme.colors.accent,
+                textDecoration: "none",
+                fontWeight: 500,
+              }}
             >
               {step.label}
             </Link>
@@ -169,13 +181,32 @@ export function PercentBadge(props: { value: number | null }) {
   if (value === null) {
     return <span style={{ color: webTheme.colors.textMuted, fontSize: 13 }}>—</span>
   }
-  const tone =
+  const toneColor =
     value >= 75
       ? webTheme.colors.success
       : value >= 60
         ? webTheme.colors.warning
         : webTheme.colors.danger
-  return <span style={{ color: tone, fontWeight: 700 }}>{value.toFixed(1)}%</span>
+  const toneBg =
+    value >= 75
+      ? webTheme.colors.successSoft
+      : value >= 60
+        ? webTheme.colors.warningSoft
+        : webTheme.colors.dangerSoft
+  return (
+    <span
+      style={{
+        color: toneColor,
+        fontWeight: 700,
+        fontSize: 13,
+        background: toneBg,
+        padding: "3px 8px",
+        borderRadius: 6,
+      }}
+    >
+      {value.toFixed(1)}%
+    </span>
+  )
 }
 
 export function ArchivedPill() {

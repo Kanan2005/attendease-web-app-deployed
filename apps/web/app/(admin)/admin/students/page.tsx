@@ -1,11 +1,5 @@
-import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 
-import { AdminStudentManagementWorkspace } from "../../../../src/admin-workflows-client/student-management"
-import { readWebPortalSession } from "../../../../src/web-portal"
-
-export default async function AdminStudentsPage() {
-  const cookieStore = await cookies()
-  const session = readWebPortalSession(cookieStore)
-
-  return <AdminStudentManagementWorkspace accessToken={session?.accessToken ?? null} />
+export default function AdminStudentsPage() {
+  redirect("/admin/users?tab=students")
 }

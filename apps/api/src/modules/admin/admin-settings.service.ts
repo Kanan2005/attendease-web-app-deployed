@@ -1,6 +1,9 @@
 import { randomBytes } from "node:crypto"
 import { hashPassword, verifyPassword } from "@attendease/auth/password"
 import type {
+  AdminSettingsAcademicAddItemRequest,
+  AdminSettingsAcademicList,
+  AdminSettingsAcademicRemoveItemRequest,
   AdminSettingsAcademicResponse,
   AdminSettingsAdminInviteRequest,
   AdminSettingsAdminInviteResponse,
@@ -85,6 +88,114 @@ export class AdminSettingsService {
       classCount,
       sectionCount,
     }
+  }
+
+  // -------------------------------------------------------------------
+  // Academic — managed lists (branches, departments).
+  // -------------------------------------------------------------------
+  private static readonly ACADEMIC_BRANCHES_KEY = "academic.branches"
+  private static readonly ACADEMIC_DEPARTMENTS_KEY = "academic.departments"
+  private static readonly ACADEMIC_SEMESTERS_KEY = "academic.semesters"
+
+  async getAcademicLists(): Promise<AdminSettingsAcademicList> {
+    const rows = await this.database.prisma.systemSetting.findMany({
+      where: {
+        key: {
+          in: [
+            AdminSettingsService.ACADEMIC_BRANCHES_KEY,
+            AdminSettingsService.ACADEMIC_DEPARTMENTS_KEY,
+            AdminSettingsService.ACADEMIC_SEMESTERS_KEY,
+          ],
+        },
+      },
+    })
+    const byKey = new Map(rows.map((r) => [r.key, r.value]))
+    return {
+      branches: this.parseStringArray(byKey.get(AdminSettingsService.ACADEMIC_BRANCHES_KEY)),
+      departments: this.parseStringArray(byKey.get(AdminSettingsService.ACADEMIC_DEPARTMENTS_KEY)),
+      semesters: this.parseNumberArray(byKey.get(AdminSettingsService.ACADEMIC_SEMESTERS_KEY)),
+    }
+  }
+
+  async addAcademicListItem(
+    auth: AuthRequestContext,
+    request: AdminSettingsAcademicAddItemRequest,
+  ): Promise<AdminSettingsAcademicList> {
+    const key = this.resolveAcademicListKey(request.list)
+
+    if (request.list === "semesters") {
+      const num = Number(request.value)
+      if (!Number.isInteger(num) || num < 1) return this.getAcademicLists()
+      const existing = await this.database.prisma.systemSetting.findUnique({ where: { key } })
+      const current = this.parseNumberArray(existing?.value)
+      if (current.includes(num)) return this.getAcademicLists()
+      const updated = [...current, num].sort((a, b) => a - b)
+      await this.database.prisma.systemSetting.upsert({
+        where: { key },
+        create: { key, value: updated, updatedByUserId: auth.userId },
+        update: { value: updated, updatedByUserId: auth.userId },
+      })
+      return this.getAcademicLists()
+    }
+
+    const existing = await this.database.prisma.systemSetting.findUnique({ where: { key } })
+    const current = this.parseStringArray(existing?.value)
+    if (current.includes(request.value)) return this.getAcademicLists()
+    const updated = [...current, request.value].sort()
+    await this.database.prisma.systemSetting.upsert({
+      where: { key },
+      create: { key, value: updated, updatedByUserId: auth.userId },
+      update: { value: updated, updatedByUserId: auth.userId },
+    })
+    return this.getAcademicLists()
+  }
+
+  async removeAcademicListItem(
+    auth: AuthRequestContext,
+    request: AdminSettingsAcademicRemoveItemRequest,
+  ): Promise<AdminSettingsAcademicList> {
+    const key = this.resolveAcademicListKey(request.list)
+
+    if (request.list === "semesters") {
+      const num = Number(request.value)
+      const existing = await this.database.prisma.systemSetting.findUnique({ where: { key } })
+      const current = this.parseNumberArray(existing?.value)
+      const updated = current.filter((item) => item !== num)
+      if (updated.length === current.length) return this.getAcademicLists()
+      await this.database.prisma.systemSetting.upsert({
+        where: { key },
+        create: { key, value: updated, updatedByUserId: auth.userId },
+        update: { value: updated, updatedByUserId: auth.userId },
+      })
+      return this.getAcademicLists()
+    }
+
+    const existing = await this.database.prisma.systemSetting.findUnique({ where: { key } })
+    const current = this.parseStringArray(existing?.value)
+    const updated = current.filter((item) => item !== request.value)
+    if (updated.length === current.length) return this.getAcademicLists()
+    await this.database.prisma.systemSetting.upsert({
+      where: { key },
+      create: { key, value: updated, updatedByUserId: auth.userId },
+      update: { value: updated, updatedByUserId: auth.userId },
+    })
+    return this.getAcademicLists()
+  }
+
+  private resolveAcademicListKey(list: "branches" | "departments" | "semesters"): string {
+    if (list === "branches") return AdminSettingsService.ACADEMIC_BRANCHES_KEY
+    if (list === "departments") return AdminSettingsService.ACADEMIC_DEPARTMENTS_KEY
+    return AdminSettingsService.ACADEMIC_SEMESTERS_KEY
+  }
+
+  private parseStringArray(value: unknown): string[] {
+    if (!Array.isArray(value)) return []
+    return value.filter((item): item is string => typeof item === "string").sort()
+  }
+
+  private parseNumberArray(value: unknown): number[] {
+    if (!Array.isArray(value)) return []
+    return value.filter((item): item is number => typeof item === "number" && Number.isInteger(item)).sort((a, b) => a - b)
   }
 
   // -------------------------------------------------------------------

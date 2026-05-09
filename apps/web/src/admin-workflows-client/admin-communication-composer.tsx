@@ -8,10 +8,11 @@ import type {
   AdminCommunicationDispatchChannel,
 } from "@attendease/contracts"
 import { webTheme } from "@attendease/ui-web"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { useMemo, useState } from "react"
 
 import { WebSectionCard } from "../web-shell"
+import { webWorkflowQueryKeys } from "../web-workflows"
 import { Banner, Field, StateCard, bootstrap, styles } from "./shared"
 
 // Gmail compose URL caps out around ~2KB. To stay safe across browsers and
@@ -47,6 +48,14 @@ const INITIAL_FORM: FormState = {
 export function AdminCommunicationComposerWorkspace(props: { accessToken: string | null }) {
   const [form, setForm] = useState<FormState>(INITIAL_FORM)
   const [preview, setPreview] = useState<AdminCommunicationAudiencePreviewResponse | null>(null)
+
+  const filterOptionsQuery = useQuery({
+    queryKey: webWorkflowQueryKeys.adminUsersFilterOptions(),
+    enabled: Boolean(props.accessToken),
+    queryFn: () => bootstrap.authClient.getAdminUsersFilterOptions(props.accessToken ?? ""),
+    staleTime: 120_000,
+  })
+  const opts = filterOptionsQuery.data
 
   const previewMutation = useMutation({
     mutationFn: async (): Promise<AdminCommunicationAudiencePreviewResponse> => {
@@ -150,28 +159,51 @@ export function AdminCommunicationComposerWorkspace(props: { accessToken: string
               }
               style={styles.input}
             >
-              <option value="STUDENT">Students (their own email)</option>
-              <option value="PARENT">Parents (StudentProfile.parentEmail)</option>
+              <option value="STUDENT">Students</option>
+              <option value="PARENT">Parents</option>
+            </select>
+          </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>Degree</span>
+            <select
+              value={form.degree}
+              onChange={(e) => setForm({ ...form, degree: e.target.value })}
+              style={styles.input}
+            >
+              <option value="">All</option>
+              {(opts?.degrees ?? []).map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>Branch</span>
+            <select
+              value={form.branch}
+              onChange={(e) => setForm({ ...form, branch: e.target.value })}
+              style={styles.input}
+            >
+              <option value="">All</option>
+              {(opts?.branches ?? []).map((b) => (
+                <option key={b} value={b}>{b}</option>
+              ))}
+            </select>
+          </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>Current semester</span>
+            <select
+              value={form.currentSemester}
+              onChange={(e) => setForm({ ...form, currentSemester: e.target.value })}
+              style={styles.input}
+            >
+              <option value="">All</option>
+              {(opts?.semesters ?? []).map((s) => (
+                <option key={s} value={String(s)}>Semester {s}</option>
+              ))}
             </select>
           </label>
           <Field
-            label="Degree (e.g. B.Tech)"
-            value={form.degree}
-            onChange={(value) => setForm({ ...form, degree: value })}
-          />
-          <Field
-            label="Branch (e.g. Computer Science)"
-            value={form.branch}
-            onChange={(value) => setForm({ ...form, branch: value })}
-          />
-          <Field
-            label="Current semester"
-            value={form.currentSemester}
-            onChange={(value) => setForm({ ...form, currentSemester: value })}
-            type="number"
-          />
-          <Field
-            label="Course offering id (optional)"
+            label="Course ID (optional)"
             value={form.courseOfferingId}
             onChange={(value) => setForm({ ...form, courseOfferingId: value })}
           />

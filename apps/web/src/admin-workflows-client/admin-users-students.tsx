@@ -146,10 +146,10 @@ export function AdminUsersStudentsWorkspace(props: { accessToken: string | null 
         </label>
       </div>
       <div style={{ ...styles.buttonRow, marginBottom: 16 }}>
-        <button type="button" onClick={handleApply} style={styles.primaryButton}>
+        <button type="button" onClick={handleApply} style={styles.primaryButton} className="ui-primary-btn">
           Apply filters
         </button>
-        <button type="button" onClick={handleReset} style={styles.secondaryButton}>
+        <button type="button" onClick={handleReset} style={styles.secondaryButton} className="ui-secondary-btn">
           Reset
         </button>
       </div>
@@ -179,7 +179,7 @@ export function AdminUsersStudentsWorkspace(props: { accessToken: string | null 
                     <Link
                       href={adminWorkflowRoutes.usersStudentProfile(student.studentId)}
                       style={{
-                        color: webTheme.colors.text,
+                        color: webTheme.colors.accent,
                         textDecoration: "none",
                         fontWeight: 600,
                       }}
@@ -204,8 +204,11 @@ export function AdminUsersStudentsWorkspace(props: { accessToken: string | null 
                       <span
                         style={{
                           color: webTheme.colors.danger,
-                          fontSize: 12,
+                          background: webTheme.colors.dangerSoft,
+                          fontSize: 11,
                           fontWeight: 700,
+                          padding: "3px 8px",
+                          borderRadius: 6,
                         }}
                       >
                         DISABLED
@@ -214,8 +217,11 @@ export function AdminUsersStudentsWorkspace(props: { accessToken: string | null 
                       <span
                         style={{
                           color: webTheme.colors.success,
-                          fontSize: 12,
+                          background: webTheme.colors.successSoft,
+                          fontSize: 11,
                           fontWeight: 700,
+                          padding: "3px 8px",
+                          borderRadius: 6,
                         }}
                       >
                         ENABLED

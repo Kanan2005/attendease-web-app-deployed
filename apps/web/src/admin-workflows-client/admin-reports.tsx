@@ -5,6 +5,7 @@ import type {
   AdminReportJobSummary,
   AdminStudentReportRequest,
   AdminTeacherReportRequest,
+  AdminUsersFilterOptions,
 } from "@attendease/contracts"
 import { webTheme } from "@attendease/ui-web"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -18,6 +19,14 @@ type Tab = "student" | "teacher" | "course"
 
 export function AdminReportsWorkspace(props: { accessToken: string | null }) {
   const [tab, setTab] = useState<Tab>("student")
+
+  const filterOptionsQuery = useQuery({
+    queryKey: webWorkflowQueryKeys.adminUsersFilterOptions(),
+    enabled: Boolean(props.accessToken),
+    queryFn: () => bootstrap.authClient.getAdminUsersFilterOptions(props.accessToken ?? ""),
+    staleTime: 120_000,
+  })
+  const opts = filterOptionsQuery.data ?? null
 
   return (
     <div style={{ display: "grid", gap: 24 }}>
@@ -42,9 +51,9 @@ export function AdminReportsWorkspace(props: { accessToken: string | null }) {
       </div>
 
       {tab === "student" ? (
-        <StudentReportPanel accessToken={props.accessToken} />
+        <StudentReportPanel accessToken={props.accessToken} opts={opts} />
       ) : tab === "teacher" ? (
-        <TeacherReportPanel accessToken={props.accessToken} />
+        <TeacherReportPanel accessToken={props.accessToken} opts={opts} />
       ) : (
         <CourseReportPanel accessToken={props.accessToken} />
       )}
@@ -58,9 +67,10 @@ export function AdminReportsWorkspace(props: { accessToken: string | null }) {
 // Student
 // ---------------------------------------------------------------------------
 
-function StudentReportPanel(props: { accessToken: string | null }) {
+function StudentReportPanel(props: { accessToken: string | null; opts: AdminUsersFilterOptions | null }) {
   const queryClient = useQueryClient()
   const [form, setForm] = useState({
+    studentId: "",
     branch: "",
     currentSemester: "",
     courseOfferingId: "",
@@ -69,6 +79,7 @@ function StudentReportPanel(props: { accessToken: string | null }) {
   const mutation = useMutation({
     mutationFn: async (): Promise<AdminReportJobSummary> => {
       const payload: AdminStudentReportRequest = {
+        ...(form.studentId.trim() ? { studentId: form.studentId.trim() } : {}),
         ...(form.branch.trim() ? { branch: form.branch.trim() } : {}),
         ...(form.currentSemester ? { currentSemester: Number(form.currentSemester) } : {}),
         ...(form.courseOfferingId.trim() ? { courseOfferingId: form.courseOfferingId.trim() } : {}),
@@ -89,18 +100,38 @@ function StudentReportPanel(props: { accessToken: string | null }) {
     >
       <div style={styles.formGrid}>
         <Field
-          label="Branch"
-          value={form.branch}
-          onChange={(value) => setForm({ ...form, branch: value })}
+          label="Student ID"
+          value={form.studentId}
+          onChange={(value) => setForm({ ...form, studentId: value })}
         />
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>Branch</span>
+          <select
+            value={form.branch}
+            onChange={(e) => setForm({ ...form, branch: e.target.value })}
+            style={styles.input}
+          >
+            <option value="">All</option>
+            {(props.opts?.branches ?? []).map((b) => (
+              <option key={b} value={b}>{b}</option>
+            ))}
+          </select>
+        </label>
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>Current semester</span>
+          <select
+            value={form.currentSemester}
+            onChange={(e) => setForm({ ...form, currentSemester: e.target.value })}
+            style={styles.input}
+          >
+            <option value="">All</option>
+            {(props.opts?.semesters ?? []).map((s) => (
+              <option key={s} value={String(s)}>Semester {s}</option>
+            ))}
+          </select>
+        </label>
         <Field
-          label="Current semester"
-          value={form.currentSemester}
-          onChange={(value) => setForm({ ...form, currentSemester: value })}
-          type="number"
-        />
-        <Field
-          label="Course offering id"
+          label="Course ID"
           value={form.courseOfferingId}
           onChange={(value) => setForm({ ...form, courseOfferingId: value })}
         />
@@ -114,7 +145,7 @@ function StudentReportPanel(props: { accessToken: string | null }) {
         mutation={mutation}
         onGenerate={() => mutation.mutate()}
         onReset={() =>
-          setForm({ branch: "", currentSemester: "", courseOfferingId: "", semesterId: "" })
+          setForm({ studentId: "", branch: "", currentSemester: "", courseOfferingId: "", semesterId: "" })
         }
       />
     </WebSectionCard>
@@ -125,7 +156,7 @@ function StudentReportPanel(props: { accessToken: string | null }) {
 // Teacher
 // ---------------------------------------------------------------------------
 
-function TeacherReportPanel(props: { accessToken: string | null }) {
+function TeacherReportPanel(props: { accessToken: string | null; opts: AdminUsersFilterOptions | null }) {
   const queryClient = useQueryClient()
   const [form, setForm] = useState({
     teacherId: "",
@@ -160,11 +191,19 @@ function TeacherReportPanel(props: { accessToken: string | null }) {
           value={form.teacherId}
           onChange={(value) => setForm({ ...form, teacherId: value })}
         />
-        <Field
-          label="Department"
-          value={form.department}
-          onChange={(value) => setForm({ ...form, department: value })}
-        />
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>Department</span>
+          <select
+            value={form.department}
+            onChange={(e) => setForm({ ...form, department: e.target.value })}
+            style={styles.input}
+          >
+            <option value="">All</option>
+            {(props.opts?.departments ?? []).map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+        </label>
         <Field
           label="Semester id"
           value={form.semesterId}
@@ -221,7 +260,7 @@ function CourseReportPanel(props: { accessToken: string | null }) {
       description="One row per student in the chosen course offering. Sorted by lowest attendance first."
     >
       <Field
-        label="Course offering id"
+        label="Course ID"
         value={form.courseOfferingId}
         onChange={(value) => setForm({ ...form, courseOfferingId: value })}
       />

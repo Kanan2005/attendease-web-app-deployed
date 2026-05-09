@@ -147,10 +147,11 @@ export class AdminCommunicationService {
     const emails: string[] = []
     let missingEmailCount = 0
     for (const student of students) {
-      const target =
+      const raw =
         request.audience === "STUDENT"
           ? student.email
           : (student.studentProfile?.parentEmail ?? null)
+      const target = raw && raw.trim() ? raw.trim() : null
       if (target) {
         emails.push(target)
       } else {
@@ -165,10 +166,13 @@ export class AdminCommunicationService {
       branch: student.studentProfile?.branch ?? null,
       currentSemester: student.studentProfile?.currentSemester ?? null,
       attendancePercent: attendancePercentByStudent?.get(student.id) ?? null,
-      email:
-        request.audience === "STUDENT"
-          ? student.email
-          : (student.studentProfile?.parentEmail ?? null),
+      email: (() => {
+        const raw =
+          request.audience === "STUDENT"
+            ? student.email
+            : (student.studentProfile?.parentEmail ?? null)
+        return raw && raw.trim() ? raw.trim() : null
+      })(),
     }))
 
     // -------------------------------------------------------------------

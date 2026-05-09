@@ -72,7 +72,7 @@ export function AdminUsersTeachersWorkspace(props: { accessToken: string | null 
         </label>
       </div>
       <div style={{ ...styles.buttonRow, marginBottom: 16 }}>
-        <button type="button" onClick={() => setSubmitted(draft)} style={styles.primaryButton}>
+        <button type="button" onClick={() => setSubmitted(draft)} style={styles.primaryButton} className="ui-primary-btn">
           Apply filters
         </button>
         <button
@@ -82,6 +82,7 @@ export function AdminUsersTeachersWorkspace(props: { accessToken: string | null 
             setSubmitted(INITIAL_FILTERS)
           }}
           style={styles.secondaryButton}
+          className="ui-secondary-btn"
         >
           Reset
         </button>
@@ -113,7 +114,7 @@ export function AdminUsersTeachersWorkspace(props: { accessToken: string | null 
                     <Link
                       href={adminWorkflowRoutes.usersTeacherProfile(teacher.teacherId)}
                       style={{
-                        color: webTheme.colors.text,
+                        color: webTheme.colors.accent,
                         textDecoration: "none",
                         fontWeight: 600,
                       }}

@@ -28,6 +28,34 @@ export const adminSettingsAcademicResponseSchema = z.object({
 export type AdminSettingsAcademicResponse = z.infer<typeof adminSettingsAcademicResponseSchema>
 
 // ---------------------------------------------------------------------------
+// Academic — managed lists (branches, departments).
+// Stored as SystemSetting JSON arrays.
+// ---------------------------------------------------------------------------
+
+export const adminSettingsAcademicListSchema = z.object({
+  branches: z.array(z.string()),
+  departments: z.array(z.string()),
+  semesters: z.array(z.number().int().positive()),
+})
+export type AdminSettingsAcademicList = z.infer<typeof adminSettingsAcademicListSchema>
+
+export const adminSettingsAcademicAddItemRequestSchema = z.object({
+  list: z.enum(["branches", "departments", "semesters"]),
+  value: z.string().trim().min(1).max(120),
+})
+export type AdminSettingsAcademicAddItemRequest = z.infer<
+  typeof adminSettingsAcademicAddItemRequestSchema
+>
+
+export const adminSettingsAcademicRemoveItemRequestSchema = z.object({
+  list: z.enum(["branches", "departments", "semesters"]),
+  value: z.string().trim().min(1).max(120),
+})
+export type AdminSettingsAcademicRemoveItemRequest = z.infer<
+  typeof adminSettingsAcademicRemoveItemRequestSchema
+>
+
+// ---------------------------------------------------------------------------
 // System — institution-wide defaults.
 // ---------------------------------------------------------------------------
 

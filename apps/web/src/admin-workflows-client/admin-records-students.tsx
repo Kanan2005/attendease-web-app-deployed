@@ -54,16 +54,31 @@ export function AdminRecordsStudentsWorkspace(props: {
         style={{
           display: "grid",
           gap: 12,
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
         }}
       >
         <SidePanelStat
-          label="Total sessions"
-          value={(studentsQuery.data?.totalSessionsConducted ?? 0).toString()}
+          label="Active students"
+          value={(studentsQuery.data?.studentCount ?? 0).toString()}
+          tone="accent"
         />
         <SidePanelStat
-          label="Students"
-          value={(studentsQuery.data?.studentCount ?? 0).toString()}
+          label="Total sessions"
+          value={(studentsQuery.data?.totalSessionsConducted ?? 0).toString()}
+          tone="success"
+        />
+        <SidePanelStat
+          label="Last attendance"
+          value={
+            studentsQuery.data?.lastSessionAt
+              ? new Date(studentsQuery.data.lastSessionAt).toLocaleDateString()
+              : "—"
+          }
+          tone="warning"
+        />
+        <SidePanelStat
+          label="Join code"
+          value={studentsQuery.data?.joinCode ?? "—"}
         />
         <SidePanelStatPercent
           label="Avg attendance"
@@ -157,22 +172,67 @@ export function AdminRecordsStudentsWorkspace(props: {
 function SidePanelStat(props: {
   label: string
   value: string
-  tone?: "default" | "danger"
+  tone?: "default" | "danger" | "accent" | "success" | "warning"
 }) {
-  const color = props.tone === "danger" ? webTheme.colors.danger : webTheme.colors.text
+  const toneMap: Record<string, { color: string; accent: string }> = {
+    default: { color: webTheme.colors.text, accent: webTheme.colors.border },
+    danger: { color: webTheme.colors.danger, accent: webTheme.colors.dangerBorder },
+    accent: { color: webTheme.colors.accent, accent: webTheme.colors.accentBorder },
+    success: { color: webTheme.colors.success, accent: webTheme.colors.successBorder },
+    warning: { color: webTheme.colors.warning, accent: webTheme.colors.warningBorder },
+  }
+  const t = toneMap[props.tone ?? "default"] ?? toneMap.default!
   return (
-    <div style={{ ...styles.rowCard, display: "grid", gap: 4 }}>
-      <span style={{ fontSize: 11, color: webTheme.colors.textMuted }}>{props.label}</span>
-      <strong style={{ fontSize: 22, color }}>{props.value}</strong>
+    <div
+      style={{
+        ...styles.rowCard,
+        display: "grid",
+        gap: 6,
+        borderTop: `3px solid ${t.accent}`,
+        borderRadius: 12,
+      }}
+    >
+      <span
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          textTransform: "uppercase",
+          letterSpacing: "0.06em",
+          color: webTheme.colors.textMuted,
+        }}
+      >
+        {props.label}
+      </span>
+      <strong style={{ fontSize: 24, color: t.color, letterSpacing: "-0.02em" }}>
+        {props.value}
+      </strong>
     </div>
   )
 }
 
 function SidePanelStatPercent(props: { label: string; value: number | null }) {
   return (
-    <div style={{ ...styles.rowCard, display: "grid", gap: 4 }}>
-      <span style={{ fontSize: 11, color: webTheme.colors.textMuted }}>{props.label}</span>
-      <strong style={{ fontSize: 22 }}>
+    <div
+      style={{
+        ...styles.rowCard,
+        display: "grid",
+        gap: 6,
+        borderTop: `3px solid ${webTheme.colors.accentBorder}`,
+        borderRadius: 12,
+      }}
+    >
+      <span
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          textTransform: "uppercase",
+          letterSpacing: "0.06em",
+          color: webTheme.colors.textMuted,
+        }}
+      >
+        {props.label}
+      </span>
+      <strong style={{ fontSize: 24, letterSpacing: "-0.02em" }}>
         <PercentBadge value={props.value} />
       </strong>
     </div>
@@ -186,11 +246,12 @@ function StatusPill(props: { status: "LOW" | "NORMAL" }) {
       style={{
         display: "inline-block",
         padding: "3px 10px",
-        borderRadius: 999,
+        borderRadius: 6,
         fontSize: 11,
         fontWeight: 700,
-        background: isLow ? webTheme.colors.dangerSoft : webTheme.colors.surfaceMuted,
-        color: isLow ? webTheme.colors.danger : webTheme.colors.textMuted,
+        letterSpacing: "0.04em",
+        background: isLow ? webTheme.colors.dangerSoft : webTheme.colors.successSoft,
+        color: isLow ? webTheme.colors.danger : webTheme.colors.success,
       }}
     >
       {props.status}

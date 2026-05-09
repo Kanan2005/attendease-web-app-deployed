@@ -103,11 +103,7 @@ describe("web portal models", () => {
       "/admin/communication",
       "/admin/reports",
       "/admin/settings",
-      "/admin/students",
-      "/admin/teachers",
       "/admin/devices",
-      "/admin/classrooms",
-      "/admin/semesters",
     ])
   })
 

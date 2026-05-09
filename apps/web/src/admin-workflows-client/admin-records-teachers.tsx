@@ -61,7 +61,7 @@ export function AdminRecordsTeachersWorkspace(props: {
                           teacher.teacherId,
                         )}
                         style={{
-                          color: webTheme.colors.text,
+                          color: webTheme.colors.accent,
                           textDecoration: "none",
                           fontWeight: 600,
                         }}

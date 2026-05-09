@@ -40,29 +40,9 @@ export const adminPortalNavigation: WebPortalNavItem[] = [
     description: "Academic, system defaults, admin team, and password management.",
   },
   {
-    href: "/admin/students",
-    label: "Students",
-    description: "Search, view, and manage student accounts and statuses.",
-  },
-  {
-    href: "/admin/teachers",
-    label: "Teachers",
-    description: "View teacher records, departments, and classroom assignments.",
-  },
-  {
     href: "/admin/devices",
     label: "Devices",
     description: "Review pending device requests and manage device bindings.",
-  },
-  {
-    href: "/admin/classrooms",
-    label: "Classrooms",
-    description: "Browse classrooms and manage archive operations.",
-  },
-  {
-    href: "/admin/semesters",
-    label: "Semesters",
-    description: "Create, activate, and archive academic semesters.",
   },
 ]
 export function isPortalNavItemActive(currentPath: string, href: string): boolean {

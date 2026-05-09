@@ -139,6 +139,8 @@ export const adminRecordsStudentListResponseSchema = z.object({
   averageAttendancePercent: percentSchema.nullable(),
   lowAttendanceCount: nonNegativeInt,
   lowAttendanceThresholdPercent: percentSchema,
+  joinCode: z.string().nullable(),
+  lastSessionAt: isoDateString.nullable(),
   students: z.array(adminRecordsStudentSummarySchema),
 })
 export type AdminRecordsStudentListResponse = z.infer<typeof adminRecordsStudentListResponseSchema>

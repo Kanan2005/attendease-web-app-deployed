@@ -464,7 +464,7 @@ export class AdminRecordsService {
     })
 
     const studentIds = enrollments.map((e) => e.studentId)
-    const [summaries, totalSessionsConducted] = await Promise.all([
+    const [summaries, totalSessionsConducted, activeJoinCode, lastSession] = await Promise.all([
       studentIds.length > 0
         ? this.database.prisma.analyticsStudentCourseSummary.findMany({
             where: {
@@ -484,6 +484,19 @@ export class AdminRecordsService {
           courseOfferingId,
           status: { in: ["ENDED", "EXPIRED"] },
         },
+      }),
+      this.database.prisma.classroomJoinCode.findFirst({
+        where: { courseOfferingId, status: "ACTIVE" },
+        select: { code: true },
+        orderBy: { createdAt: "desc" },
+      }),
+      this.database.prisma.attendanceSession.findFirst({
+        where: {
+          courseOfferingId,
+          status: { in: ["ENDED", "EXPIRED"] },
+        },
+        select: { endedAt: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
       }),
     ])
 
@@ -541,6 +554,8 @@ export class AdminRecordsService {
       averageAttendancePercent: computePercent(aggregate),
       lowAttendanceCount,
       lowAttendanceThresholdPercent: LOW_ATTENDANCE_THRESHOLD_PERCENT,
+      joinCode: activeJoinCode?.code ?? null,
+      lastSessionAt: (lastSession?.endedAt ?? lastSession?.createdAt)?.toISOString() ?? null,
       students,
     }
   }

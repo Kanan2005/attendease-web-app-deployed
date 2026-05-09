@@ -61,6 +61,7 @@ export class AdminReportsService {
     const enrollments = await this.database.prisma.enrollment.findMany({
       where: {
         status: "ACTIVE",
+        ...(request.studentId ? { studentId: request.studentId } : {}),
         ...(request.courseOfferingId ? { courseOfferingId: request.courseOfferingId } : {}),
         ...(request.semesterId ? { semesterId: request.semesterId } : {}),
         ...(request.branch || request.currentSemester !== undefined

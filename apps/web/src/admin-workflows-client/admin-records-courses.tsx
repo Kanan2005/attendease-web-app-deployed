@@ -150,7 +150,7 @@ export function AdminRecordsCoursesWorkspace(props: {
                             course.courseOfferingId,
                           )}
                           style={{
-                            color: webTheme.colors.text,
+                            color: webTheme.colors.accent,
                             textDecoration: "none",
                             fontWeight: 600,
                           }}
@@ -168,8 +168,12 @@ export function AdminRecordsCoursesWorkspace(props: {
                           <span
                             style={{
                               color: webTheme.colors.success,
-                              fontWeight: 600,
-                              fontSize: 13,
+                              background: webTheme.colors.successSoft,
+                              fontWeight: 700,
+                              fontSize: 11,
+                              padding: "3px 8px",
+                              borderRadius: 6,
+                              letterSpacing: "0.04em",
                             }}
                           >
                             {course.status}
@@ -192,9 +196,10 @@ export function AdminRecordsCoursesWorkspace(props: {
                             type="button"
                             onClick={() => handleUnarchive(course)}
                             disabled={isPending}
+                            className="ui-secondary-btn"
                             style={{
                               ...styles.secondaryButton,
-                              padding: "8px 14px",
+                              padding: "7px 14px",
                               fontSize: 12,
                             }}
                           >
@@ -205,12 +210,14 @@ export function AdminRecordsCoursesWorkspace(props: {
                             type="button"
                             onClick={() => handleArchive(course)}
                             disabled={isPending}
+                            className="ui-secondary-btn"
                             style={{
                               ...styles.secondaryButton,
-                              padding: "8px 14px",
+                              padding: "7px 14px",
                               fontSize: 12,
-                              borderColor: webTheme.colors.warning,
+                              borderColor: webTheme.colors.warningBorder,
                               color: webTheme.colors.warning,
+                              background: webTheme.colors.warningSoft,
                             }}
                           >
                             {isPending ? "Working…" : "Archive"}

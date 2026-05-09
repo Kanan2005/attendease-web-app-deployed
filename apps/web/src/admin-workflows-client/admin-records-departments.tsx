@@ -43,12 +43,16 @@ export function AdminRecordsDepartmentsWorkspace(props: { accessToken: string | 
               <Link
                 key={dept.department}
                 href={adminWorkflowRoutes.recordsDepartment(dept.department)}
+                className="ui-card-link"
                 style={{
                   ...styles.rowCard,
                   textDecoration: "none",
                   color: webTheme.colors.text,
                   display: "grid",
                   gap: 12,
+                  borderLeft: `3px solid ${webTheme.colors.accentBorder}`,
+                  position: "relative" as const,
+                  overflow: "hidden",
                 }}
               >
                 <div style={{ display: "grid", gap: 4 }}>
@@ -62,7 +66,9 @@ export function AdminRecordsDepartmentsWorkspace(props: { accessToken: string | 
                   >
                     Department
                   </span>
-                  <strong style={{ fontSize: 18 }}>{dept.department}</strong>
+                  <strong style={{ fontSize: 18, color: webTheme.colors.accent }}>
+                    {dept.department}
+                  </strong>
                 </div>
                 <div
                   style={{
@@ -106,8 +112,18 @@ export function AdminRecordsDepartmentsWorkspace(props: { accessToken: string | 
 function DeptStat(props: { label: string; value: string }) {
   return (
     <div style={{ display: "grid", gap: 2 }}>
-      <span style={{ fontSize: 11, color: webTheme.colors.textMuted }}>{props.label}</span>
-      <strong style={{ fontSize: 14 }}>{props.value}</strong>
+      <span
+        style={{
+          fontSize: 11,
+          color: webTheme.colors.textMuted,
+          fontWeight: 500,
+          textTransform: "uppercase" as const,
+          letterSpacing: "0.04em",
+        }}
+      >
+        {props.label}
+      </span>
+      <strong style={{ fontSize: 15 }}>{props.value}</strong>
     </div>
   )
 }

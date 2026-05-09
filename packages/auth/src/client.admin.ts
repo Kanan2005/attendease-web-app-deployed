@@ -28,6 +28,9 @@ import {
   type AdminReportJobSummary,
   type AdminReportRecentListResponse,
   type AdminRevokeDeviceBindingRequest,
+  type AdminSettingsAcademicAddItemRequest,
+  type AdminSettingsAcademicList,
+  type AdminSettingsAcademicRemoveItemRequest,
   type AdminSettingsAcademicResponse,
   type AdminSettingsAdminInviteRequest,
   type AdminSettingsAdminInviteResponse,
@@ -88,6 +91,9 @@ import {
   adminRecordsTeacherListResponseSchema,
   adminReportJobSummarySchema,
   adminReportRecentListResponseSchema,
+  adminSettingsAcademicAddItemRequestSchema,
+  adminSettingsAcademicListSchema,
+  adminSettingsAcademicRemoveItemRequestSchema,
   adminSettingsAcademicResponseSchema,
   adminSettingsAdminInviteRequestSchema,
   adminSettingsAdminInviteResponseSchema,
@@ -535,6 +541,35 @@ export function buildAuthClientAdminMethods(request: AuthApiRequest) {
         method: "GET",
         token,
         parse: adminSettingsAcademicResponseSchema.parse,
+      })
+    },
+    getAdminSettingsAcademicLists(token: string): Promise<AdminSettingsAcademicList> {
+      return request("/admin/settings/academic/lists", {
+        method: "GET",
+        token,
+        parse: adminSettingsAcademicListSchema.parse,
+      })
+    },
+    addAdminSettingsAcademicListItem(
+      token: string,
+      payload: AdminSettingsAcademicAddItemRequest,
+    ): Promise<AdminSettingsAcademicList> {
+      return request("/admin/settings/academic/lists/add", {
+        method: "POST",
+        token,
+        payload: adminSettingsAcademicAddItemRequestSchema.parse(payload),
+        parse: adminSettingsAcademicListSchema.parse,
+      })
+    },
+    removeAdminSettingsAcademicListItem(
+      token: string,
+      payload: AdminSettingsAcademicRemoveItemRequest,
+    ): Promise<AdminSettingsAcademicList> {
+      return request("/admin/settings/academic/lists/remove", {
+        method: "POST",
+        token,
+        payload: adminSettingsAcademicRemoveItemRequestSchema.parse(payload),
+        parse: adminSettingsAcademicListSchema.parse,
       })
     },
     getAdminSettingsSystem(token: string): Promise<AdminSettingsSystemResponse> {

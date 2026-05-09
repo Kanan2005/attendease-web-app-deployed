@@ -46,7 +46,6 @@ describe("web workflow helpers", () => {
       "/teacher/sessions/active/session_1/projector",
     )
     expect(adminWorkflowRoutes.devices).toBe("/admin/devices")
-    expect(adminWorkflowRoutes.semesters).toBe("/admin/semesters")
 
     expect(buildTeacherClassroomLinks("classroom_1").map((entry) => entry.label)).toEqual([
       "Course",

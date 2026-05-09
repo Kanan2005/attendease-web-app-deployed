@@ -1,4 +1,7 @@
 import {
+  adminSettingsAcademicAddItemRequestSchema,
+  adminSettingsAcademicListSchema,
+  adminSettingsAcademicRemoveItemRequestSchema,
   adminSettingsAcademicResponseSchema,
   adminSettingsAdminInviteRequestSchema,
   adminSettingsAdminInviteResponseSchema,
@@ -42,6 +45,33 @@ export class AdminSettingsController {
   @Get("academic")
   async getAcademic() {
     return adminSettingsAcademicResponseSchema.parse(await this.adminSettingsService.getAcademic())
+  }
+
+  @Get("academic/lists")
+  async getAcademicLists() {
+    return adminSettingsAcademicListSchema.parse(
+      await this.adminSettingsService.getAcademicLists(),
+    )
+  }
+
+  @Post("academic/lists/add")
+  async addAcademicListItem(@CurrentAuth() auth: AuthRequestContext, @Body() body: unknown) {
+    return adminSettingsAcademicListSchema.parse(
+      await this.adminSettingsService.addAcademicListItem(
+        auth,
+        parseWithSchema(adminSettingsAcademicAddItemRequestSchema, body ?? {}),
+      ),
+    )
+  }
+
+  @Post("academic/lists/remove")
+  async removeAcademicListItem(@CurrentAuth() auth: AuthRequestContext, @Body() body: unknown) {
+    return adminSettingsAcademicListSchema.parse(
+      await this.adminSettingsService.removeAcademicListItem(
+        auth,
+        parseWithSchema(adminSettingsAcademicRemoveItemRequestSchema, body ?? {}),
+      ),
+    )
   }
 
   @Get("system")

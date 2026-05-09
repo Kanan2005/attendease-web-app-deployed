@@ -59,7 +59,7 @@ export const adminCommunicationAudienceSampleEntrySchema = z.object({
   branch: z.string().nullable(),
   currentSemester: z.number().int().nullable(),
   attendancePercent: z.number().nullable(),
-  email: z.string().email().nullable(),
+  email: z.string().email().nullable().catch(null),
 })
 export type AdminCommunicationAudienceSampleEntry = z.infer<
   typeof adminCommunicationAudienceSampleEntrySchema

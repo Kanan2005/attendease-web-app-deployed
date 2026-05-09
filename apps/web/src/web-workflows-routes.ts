@@ -39,11 +39,7 @@ export const teacherWorkflowRoutes = {
 
 export const adminWorkflowRoutes = {
   dashboard: "/admin/dashboard",
-  students: "/admin/students",
-  teachers: "/admin/teachers",
   devices: "/admin/devices",
-  classrooms: "/admin/classrooms",
-  semesters: "/admin/semesters",
   records: "/admin/records",
   recordsDepartment(department: string) {
     return `/admin/records/${encodeURIComponent(department)}`
@@ -221,6 +217,9 @@ export const webWorkflowQueryKeys = {
   },
   adminSettingsAcademic() {
     return ["web-workflows", "admin-settings", "academic"] as const
+  },
+  adminSettingsAcademicLists() {
+    return ["web-workflows", "admin-settings", "academic-lists"] as const
   },
   adminSettingsSystem() {
     return ["web-workflows", "admin-settings", "system"] as const

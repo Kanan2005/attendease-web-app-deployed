@@ -28,8 +28,9 @@ export function AdminUsersTabsWorkspace(props: { accessToken: string | null }) {
         aria-label="Users tabs"
         style={{
           display: "flex",
-          gap: 8,
+          gap: 4,
           borderBottom: `1px solid ${webTheme.colors.border}`,
+          paddingBottom: 0,
         }}
       >
         <TabButton active={tab === "students"} onClick={() => setTab("students")}>
@@ -59,16 +60,19 @@ function TabButton(props: {
       role="tab"
       aria-selected={props.active}
       onClick={props.onClick}
+      className="ui-tab-link"
       style={{
         border: "none",
-        padding: "12px 18px",
-        background: "transparent",
-        color: props.active ? webTheme.colors.primary : webTheme.colors.textMuted,
+        padding: "10px 20px",
+        background: props.active ? webTheme.colors.accentSoft : "transparent",
+        color: props.active ? webTheme.colors.accent : webTheme.colors.textMuted,
         fontWeight: 700,
         fontSize: 14,
         cursor: "pointer",
-        borderBottom: `2px solid ${props.active ? webTheme.colors.primary : "transparent"}`,
+        borderBottom: `2px solid ${props.active ? webTheme.colors.accent : "transparent"}`,
+        borderRadius: "8px 8px 0 0",
         marginBottom: -1,
+        transition: "color 0.2s ease, background 0.2s ease, border-color 0.2s ease",
       }}
     >
       {props.children}

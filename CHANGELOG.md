@@ -13,7 +13,65 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 - When the `analytics_student_course_summary` table is empty (analytics worker hasn't run, or data was seeded directly), the dashboard now falls back to computing average attendance from raw `AttendanceRecord` counts instead of showing "—".
 
+### Added
+
+#### Users tab: dropdown filters for degree, branch, semester, department (`packages/contracts/src/admin-users.ts`, `apps/api/src/modules/admin/admin-users.service.ts`, `apps/api/src/modules/admin/admin-users.controller.ts`, `packages/auth/src/client.admin.ts`, `apps/web/src/admin-workflows-client/admin-users-students.tsx`, `apps/web/src/admin-workflows-client/admin-users-teachers.tsx`)
+
+- New `GET /admin/users/filter-options` endpoint returns distinct values for degree, branch, semester, and department from the database.
+- Students tab: replaced text inputs for Degree, Branch and number spinner for Current Semester with `<select>` dropdown menus populated from the API.
+- Teachers tab: replaced text input for Department with a `<select>` dropdown populated from the API.
+- Communication tab: replaced text inputs for Degree, Branch, and number spinner for Current Semester with `<select>` dropdowns populated from the same API.
+- Reports tab — Student report: replaced Branch and Current Semester text inputs with dropdowns.
+- Reports tab — Teacher report: replaced Department text input with dropdown.
+- Filter options are cached client-side for 2 minutes to reduce API calls.
+
+#### Communication tab: Parent label cleanup, Course ID field (`apps/web/src/admin-workflows-client/admin-communication-composer.tsx`)
+
+- Removed extra descriptive text from "Parent" and "Student" audience dropdown options.
+- Renamed "Course offering id" to "Course ID" (text input) across Communication and Reports tabs.
+
+#### Student report: Student ID filter (`packages/contracts/src/admin-reports.ts`, `apps/api/src/modules/admin/admin-reports.service.ts`, `apps/web/src/admin-workflows-client/admin-reports.tsx`)
+
+- Added optional "Student ID" text field to the Student attendance report form.
+- API and contract now accept `studentId` as a filter for enrollment queries.
+
+#### Settings → Academic: manage branches, departments, semesters (`packages/contracts/src/admin-settings.ts`, `apps/api/src/modules/admin/admin-settings.service.ts`, `apps/api/src/modules/admin/admin-settings.controller.ts`, `packages/auth/src/client.admin.ts`, `apps/web/src/admin-workflows-client/admin-settings.tsx`)
+
+- New managed lists stored in `SystemSetting`: `academic.branches`, `academic.departments`, `academic.semesters`.
+- New API endpoints: `GET /admin/settings/academic/lists`, `POST /admin/settings/academic/lists/add`, `POST /admin/settings/academic/lists/remove`.
+- Academic panel UI rewritten with add/remove chip cards for branches, departments, and semesters.
+- Shows in-use counts (e.g. "12 students") and confirms before removing items currently in use.
+
+### Fixed
+
+#### Communication tab: parent email validation crash (`packages/contracts/src/admin-communication.ts`, `apps/api/src/modules/admin/admin-communication.service.ts`)
+
+- Empty/whitespace `parentEmail` values in the DB caused Zod `z.string().email()` validation to reject the API response.
+- Service now normalizes empty/whitespace emails to `null`; schema uses `.catch(null)` as a safety net.
+
 ### Changed
+
+#### Merge Students and Teachers tabs into Users (`apps/web/src/web-portal-navigation.ts`, `apps/web/src/web-workflows-routes.ts`, `apps/web/app/(admin)/admin/students/page.tsx`, `apps/web/app/(admin)/admin/teachers/page.tsx`)
+
+- Removed standalone "Students" and "Teachers" sidebar nav items; all user management now lives under the "Users" tab.
+- `/admin/students` and `/admin/teachers` routes now redirect to `/admin/users?tab=students` and `/admin/users?tab=teachers`.
+- Removed standalone "Semesters" sidebar nav item; `/admin/semesters` now redirects to `/admin/settings`.
+- Removed standalone "Classrooms" sidebar nav item; `/admin/classrooms` now redirects to `/admin/records`.
+- Classroom info (active students, total sessions, last attendance, join code) now shown as stat cards in Records → Course detail page.
+- Added `joinCode` and `lastSessionAt` to `AdminRecordsStudentListResponse` contract and API response.
+- Clicking a student/teacher row in the Users tab opens their full profile page (already wired).
+
+#### UI polish pass (`apps/web/src/admin-workflows-client/shared.tsx`, `admin-records-*.tsx`, `admin-users-*.tsx`)
+
+- Gradient accent primary buttons with glow shadow and hover lift.
+- Accent-colored tab buttons with tinted background on active state.
+- Stat cards now have colored top border accents (accent/success/warning) for visual distinction.
+- Table headers use subtle tinted background; clickable names use accent color.
+- PercentBadge and status pills now have tinted backgrounds matching their tone.
+- Breadcrumb sits in a subtle card container with accent-colored links.
+- Department cards have accent left border and hover animation via `ui-card-link`.
+- Buttons use CSS hover classes (`ui-primary-btn`, `ui-secondary-btn`) for smooth transitions.
+- Archive button uses warning-tinted background; ENABLED/DISABLED badges use success/danger tints.
 
 #### Records: show "Classes taken" instead of "Students" for teacher rows (`packages/contracts/src/admin-records.ts`, `apps/api/src/modules/admin/admin-records.service.ts`, `apps/web/src/admin-workflows-client/admin-records-teachers.tsx`)
 
