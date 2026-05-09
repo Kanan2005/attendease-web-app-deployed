@@ -28,8 +28,12 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1,
   reporter: process.env.CI ? "line" : "list",
-  timeout: 30_000,
-  expect: { timeout: 8_000 },
+  // Per-test budget. Production runs hop through Render+Netlify, so the cold
+  // login round-trip can take 10-15s; navigation between admin pages adds
+  // another few seconds each. 90s per test gives comfortable headroom while
+  // still failing fast on real bugs.
+  timeout: 90_000,
+  expect: { timeout: 15_000 },
 
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",

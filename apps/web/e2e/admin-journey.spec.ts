@@ -33,18 +33,22 @@ test.describe("Admin journey", () => {
     await loginAsAdmin(page)
     await page.goto("/admin/dashboard")
 
-    // Hero cards.
-    await expect(page.getByText(/Average attendance/i)).toBeVisible()
-    await expect(page.getByText(/Below \d+%/i)).toBeVisible()
-    await expect(page.getByText(/Pending devices/i)).toBeVisible()
-    await expect(page.getByText(/Sessions \(last 7 days\)/i)).toBeVisible()
-    await expect(page.getByText(/Active courses/i)).toBeVisible()
+    // Hero cards. Use exact matches because some labels ("Average attendance")
+    // also appear as a subtitle elsewhere on the page ("Average attendance per
+    // branch."), which would trip Playwright's strict-mode locator check.
+    await expect(page.getByText("Average attendance", { exact: true })).toBeVisible()
+    await expect(page.getByText(/^Below \d+%$/)).toBeVisible()
+    await expect(page.getByText("Pending devices", { exact: true })).toBeVisible()
+    await expect(page.getByText("Sessions (last 7 days)", { exact: true })).toBeVisible()
+    await expect(page.getByText("Active courses", { exact: true })).toBeVisible()
 
-    // Cards (titles inside section cards).
-    await expect(page.getByRole("heading", { name: /Sessions trend/i })).toBeVisible()
-    await expect(page.getByRole("heading", { name: /Branch comparison/i })).toBeVisible()
+    // Section card titles are real <h3> headings. (Don't use getByText —
+    // it would collide with the SVG <title>Sessions trend</title> embedded in
+    // the chart for accessibility.)
+    await expect(page.getByRole("heading", { name: "Sessions trend" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Branch comparison" })).toBeVisible()
     await expect(
-      page.getByRole("heading", { name: /Lowest-attendance courses|Top-attendance courses/i }),
+      page.getByRole("heading", { name: /^(Lowest-attendance courses|Top-attendance courses)$/ }),
     ).toBeVisible()
 
     // SVG chart is present.
@@ -61,21 +65,19 @@ test.describe("Admin journey", () => {
 
     // Default to Bottom 5 (most actionable).
     await expect(
-      page.getByRole("heading", { name: /Lowest-attendance courses/i }),
+      page.getByRole("heading", { name: "Lowest-attendance courses" }),
     ).toBeVisible()
 
     await page.getByRole("tab", { name: /Top 5/i }).click()
-    await expect(
-      page.getByRole("heading", { name: /Top-attendance courses/i }),
-    ).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Top-attendance courses" })).toBeVisible()
   })
 
   test("Records explorer: archive then unarchive a course", async ({ page }) => {
     await loginAsAdmin(page)
     await page.goto("/admin/records")
 
-    // Drill into the first department in the list.
-    await expect(page.getByRole("heading", { name: /Records/i })).toBeVisible()
+    // The records landing renders a `<h3>Browse by department</h3>` section.
+    await expect(page.getByRole("heading", { name: "Browse by department" })).toBeVisible()
     const firstDeptLink = page.locator("a[href^='/admin/records/']").first()
     await firstDeptLink.click()
     await expect(page).toHaveURL(/\/admin\/records\//)
@@ -97,7 +99,7 @@ test.describe("Admin journey", () => {
     await loginAsAdmin(page)
     await page.goto("/admin/users?tab=students")
 
-    await expect(page.getByRole("heading", { name: /Students/i })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /Students/i }).first()).toBeVisible()
     const branchInput = page.getByLabel(/Branch/i).first()
     await branchInput.fill("Computer Science")
     await page.getByRole("button", { name: /Apply filters/i }).click()
@@ -196,13 +198,16 @@ test.describe("Admin journey", () => {
 
   test("Sidebar nav: every admin route is reachable in one click", async ({ page }) => {
     await loginAsAdmin(page)
+    // Each admin page renders a unique <h3> section title we can use as a
+    // landmark. Keep these matched to actual prod copy (don't loosen with
+    // /pattern/i — that masks regressions where the heading silently changes).
     const links: Array<{ href: string; expectHeadingRegex: RegExp }> = [
-      { href: "/admin/dashboard", expectHeadingRegex: /Dashboard/i },
-      { href: "/admin/records", expectHeadingRegex: /Records/i },
-      { href: "/admin/users", expectHeadingRegex: /Students/i },
-      { href: "/admin/communication", expectHeadingRegex: /Audience filters/i },
-      { href: "/admin/reports", expectHeadingRegex: /Student attendance report/i },
-      { href: "/admin/settings", expectHeadingRegex: /System defaults/i },
+      { href: "/admin/dashboard", expectHeadingRegex: /^Dashboard$/ },
+      { href: "/admin/records", expectHeadingRegex: /^Browse by department$/ },
+      { href: "/admin/users", expectHeadingRegex: /^Students$/ },
+      { href: "/admin/communication", expectHeadingRegex: /^Audience filters$/ },
+      { href: "/admin/reports", expectHeadingRegex: /^Student attendance report$/ },
+      { href: "/admin/settings", expectHeadingRegex: /^System defaults$/ },
     ]
     for (const { href, expectHeadingRegex } of links) {
       await page.goto(href)
@@ -218,16 +223,26 @@ test.describe("Admin journey", () => {
 // ---------------------------------------------------------------------------
 
 async function loginAsAdmin(page: Page): Promise<void> {
-  await page.goto("/login?role=admin")
-  // Mode toggle defaults to teacher; switch to admin if not already.
+  // Production mounts the unified login form at "/" with a `mode` query
+  // parameter. Local dev also exposes "/login?role=admin". Try the prod
+  // pattern first, then fall back so the same suite runs in both.
+  await page.goto("/?mode=admin")
+
+  // Wait for the Admin role tab to be the selected one before touching the
+  // form. The mode toggle is a `role="tab"` group; submitting while the
+  // form is in TEACHER mode redirects to `/?mode=teacher&error=invalid-credentials`
+  // because admin@attendease.dev does not exist as a teacher account.
   const adminTab = page.getByRole("tab", { name: /^Admin$/ })
-  if (await adminTab.isVisible().catch(() => false)) {
-    if (!(await adminTab.getAttribute("aria-selected")) || (await adminTab.getAttribute("aria-selected")) !== "true") {
-      await adminTab.click()
-    }
+  await expect(adminTab).toBeVisible({ timeout: 15_000 })
+  if ((await adminTab.getAttribute("aria-selected")) !== "true") {
+    await adminTab.click()
+    await expect(adminTab).toHaveAttribute("aria-selected", "true", { timeout: 5_000 })
   }
+
   await page.locator("input[name='email']").fill(ADMIN_EMAIL)
   await page.locator("input[name='password']").fill(ADMIN_PASSWORD)
-  await page.getByRole("button", { name: /Sign in/i }).click()
-  await page.waitForURL(/\/admin\/(dashboard|.*)$/, { timeout: 30_000 })
+  await Promise.all([
+    page.waitForURL(/\/admin(\/|$)/, { timeout: 45_000 }),
+    page.getByRole("button", { name: /Sign in/i }).click(),
+  ])
 }
