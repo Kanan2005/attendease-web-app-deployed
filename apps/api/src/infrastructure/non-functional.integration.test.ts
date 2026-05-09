@@ -399,6 +399,122 @@ describe("Non-functional integration", () => {
     )
   })
 
+  it("blocks student login without device info in enforce mode", async () => {
+    await withIsolatedApp(
+      {
+        FEATURE_STRICT_DEVICE_BINDING_MODE: "ENFORCE",
+      },
+      async (isolatedApp) => {
+        const response = await requestAgainst(isolatedApp, "POST", "/auth/login", {
+          payload: {
+            email: authIntegrationFixtures.studentOne.email,
+            password: authIntegrationFixtures.studentOne.password,
+            platform: "MOBILE",
+            requestedRole: "STUDENT",
+          },
+        })
+
+        expect(response.statusCode).toBe(403)
+        expect(response.body).toMatchObject({
+          message: "Student authentication requires device registration on the attendance phone.",
+        })
+      },
+    )
+  })
+
+  it("allows student login with bound device in enforce mode", async () => {
+    await withIsolatedApp(
+      {
+        FEATURE_STRICT_DEVICE_BINDING_MODE: "ENFORCE",
+      },
+      async (isolatedApp) => {
+        const response = await requestAgainst(isolatedApp, "POST", "/auth/login", {
+          payload: {
+            email: authIntegrationFixtures.studentOne.email,
+            password: authIntegrationFixtures.studentOne.password,
+            platform: "MOBILE",
+            requestedRole: "STUDENT",
+            device: authIntegrationFixtures.studentOne.device,
+          },
+        })
+
+        expect(response.statusCode).toBe(201)
+
+        const session = authSessionResponseSchema.parse(response.body)
+        expect(session.user.activeRole).toBe("STUDENT")
+        expect(session.user.deviceTrust).toMatchObject({
+          state: "TRUSTED",
+          reason: "DEVICE_BOUND",
+        })
+      },
+    )
+  })
+
+  it("blocks student login with a different device in enforce mode (reinstall scenario)", async () => {
+    await withIsolatedApp(
+      {
+        FEATURE_STRICT_DEVICE_BINDING_MODE: "ENFORCE",
+      },
+      async (isolatedApp) => {
+        // First, ensure the student has a bound device by logging in with the original device
+        await loginAgainst(isolatedApp, {
+          email: authIntegrationFixtures.studentOne.email,
+          password: authIntegrationFixtures.studentOne.password,
+          platform: "MOBILE",
+          requestedRole: "STUDENT",
+          device: authIntegrationFixtures.studentOne.device,
+        })
+
+        // Now attempt to log in with a brand-new device (simulates reinstall or new phone)
+        const response = await requestAgainst(isolatedApp, "POST", "/auth/login", {
+          payload: {
+            email: authIntegrationFixtures.studentOne.email,
+            password: authIntegrationFixtures.studentOne.password,
+            platform: "MOBILE",
+            requestedRole: "STUDENT",
+            device: {
+              installId: "reinstalled-app-new-install-id",
+              platform: "ANDROID",
+              publicKey: "reinstalled-app-new-public-key",
+            },
+          },
+        })
+
+        expect(response.statusCode).toBe(403)
+        expect(response.body).toMatchObject({
+          message: "This phone is waiting for admin approval as the replacement attendance device.",
+        })
+      },
+    )
+  })
+
+  it("allows teacher login without device info in enforce mode", async () => {
+    await withIsolatedApp(
+      {
+        FEATURE_STRICT_DEVICE_BINDING_MODE: "ENFORCE",
+      },
+      async (isolatedApp) => {
+        const response = await requestAgainst(isolatedApp, "POST", "/auth/login", {
+          payload: {
+            email: authIntegrationFixtures.teacher.email,
+            password: authIntegrationFixtures.teacher.password,
+            platform: "WEB",
+            requestedRole: "TEACHER",
+          },
+        })
+
+        expect(response.statusCode).toBe(201)
+
+        const session = authSessionResponseSchema.parse(response.body)
+        expect(session.user.activeRole).toBe("TEACHER")
+        expect(session.user.deviceTrust).toMatchObject({
+          state: "NOT_REQUIRED",
+          reason: "NOT_STUDENT_ROLE",
+        })
+      },
+    )
+  })
+
   it("rate limits repeated attendance marks", async () => {
     await withIsolatedApp(
       {
