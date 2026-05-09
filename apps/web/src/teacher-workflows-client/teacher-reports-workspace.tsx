@@ -964,7 +964,10 @@ export function TeacherReportsWorkspace(props: {
         <WorkflowStateCard message="No report rows matched the current filters." />
       ) : (
         <>
-          <ReportSummaryRings cards={visibleSummaryCards} metrics={ringMetrics} />
+          <ReportSummaryRings
+            cards={visibleSummaryCards}
+            {...(ringMetrics ? { metrics: ringMetrics } : {})}
+          />
 
           {sessionsForChartQuery.isError ? (
             <WorkflowBanner

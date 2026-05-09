@@ -405,7 +405,7 @@ export function TeacherClassroomLecturesWorkspace(props: {
                         >
                           {sessionForLecture?.startedAt
                             ? formatPortalDateTime(sessionForLecture.startedAt)
-                            : `Created at ${formatPortalDateTime(lecture.createdAt)}`}
+                            : `Created at ${formatPortalDateTime(lecture.createdAt ?? null)}`}
                         </div>
                       </div>
                     </div>
