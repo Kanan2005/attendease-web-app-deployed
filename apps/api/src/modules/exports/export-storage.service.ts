@@ -26,7 +26,14 @@ export class ExportStorageService {
       forcePathStyle: env.STORAGE_FORCE_PATH_STYLE,
     })
     this.signedUrlTtlSeconds = env.STORAGE_SIGNED_URL_TTL_SECONDS
-    this.inlineFallbackEnabled = env.STORAGE_INLINE_FALLBACK
+    // Detect "default/dev" S3 credentials. When the deployment is still using
+    // the local-MinIO defaults (or anything that obviously won't authenticate
+    // against real AWS), force inline-data-URL mode so admin reports remain
+    // downloadable without an S3 backend. Operators can also opt in
+    // explicitly via STORAGE_INLINE_FALLBACK=true regardless of credentials.
+    const usingDevCredentials =
+      env.STORAGE_ACCESS_KEY === "minioadmin" || env.STORAGE_SECRET_KEY === "minioadmin"
+    this.inlineFallbackEnabled = env.STORAGE_INLINE_FALLBACK || usingDevCredentials
   }
 
   async getDownloadUrl(objectKey: string) {
