@@ -27,6 +27,28 @@ export async function createAuthenticatedSession(
   const refreshTokenExpiresAt = createRefreshTokenExpiry(context)
 
   const session = await runInTransaction(context.database.prisma, async (transaction) => {
+    // ── Single-session enforcement ──────────────────────────────────
+    // Revoke every other ACTIVE session for this user so that only
+    // the newest login stays valid.  The old device will receive a
+    // 401 on its next API call and the mobile client auto-signs out.
+    const now = new Date()
+    const previousSessions = await transaction.authSession.findMany({
+      where: { userId: params.user.id, status: "ACTIVE" },
+      select: { id: true },
+    })
+    if (previousSessions.length > 0) {
+      const previousIds = previousSessions.map((s) => s.id)
+      await transaction.authSession.updateMany({
+        where: { id: { in: previousIds } },
+        data: { status: "REVOKED", revokedAt: now },
+      })
+      await transaction.refreshToken.updateMany({
+        where: { sessionId: { in: previousIds }, revokedAt: null },
+        data: { revokedAt: now },
+      })
+    }
+    // ────────────────────────────────────────────────────────────────
+
     const createdSession = await transaction.authSession.create({
       data: {
         userId: params.user.id,

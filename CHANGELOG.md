@@ -7,7 +7,30 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased] — v2.0
 
+### Added
+
+#### Security: Single-session enforcement (`apps/api/src/modules/auth/auth.service.session.ts`)
+
+- When a user logs in on a new device (or new session), all previously ACTIVE sessions for that user are automatically revoked.
+- This ensures only one active session per user at any time — login on Device B causes Device A to receive a 401 on its next API call, triggering auto-sign-out.
+- Applies to all roles: admin, teacher, and student.
+- Revoked sessions also have their refresh tokens invalidated to prevent token reuse.
+
 ### Fixed
+
+#### Mobile: Human-readable validation errors (`apps/mobile/src/student-session.tsx`, `apps/mobile/src/teacher-session.tsx`, `packages/auth/src/client.core.ts`)
+
+- Fixed raw Zod JSON being dumped to the screen when form validation fails (e.g. password too short).
+- Error messages now show friendly text like "Password: must contain at least 8 characters" instead of the full JSON schema error array.
+- Also applies to teacher registration/sign-in flows.
+- Server-side API error messages (e.g. "An account already exists for this email.") are now extracted from the response body and shown directly, instead of the generic "Auth API request failed."
+
+#### Mobile: Confirm password field on registration (`apps/mobile/src/mobile-entry-screens.tsx`)
+
+- Added "Confirm password" field to both student and teacher registration screens.
+- Real-time "Passwords do not match" warning appears below the field with a red border when the passwords differ.
+- "Create account" button is disabled until both passwords match and all required fields are filled.
+- Password placeholder now hints at the 8-character minimum requirement.
 
 #### Dashboard average attendance fallback (`apps/api/src/modules/admin/admin-dashboard.service.ts`)
 

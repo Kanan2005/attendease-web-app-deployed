@@ -81,7 +81,11 @@ export function createAuthApiRequest(options: AuthApiClientOptions): AuthApiRequ
     const body = await response.json()
 
     if (!response.ok) {
-      throw new AuthApiClientError("Auth API request failed.", response.status, body)
+      const serverMessage =
+        body && typeof body === "object" && "message" in body && typeof (body as Record<string, unknown>).message === "string"
+          ? (body as Record<string, unknown>).message as string
+          : "Auth API request failed."
+      throw new AuthApiClientError(serverMessage, response.status, body)
     }
 
     return config.parse(body)

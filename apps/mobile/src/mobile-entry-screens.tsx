@@ -329,11 +329,14 @@ export function StudentRegisterScreen() {
     hasDevelopmentCredentials,
     session,
   } = useStudentSession()
+  const [confirmPassword, setConfirmPassword] = useState("")
 
   if (session) {
     return <Redirect href={studentRoutes.classrooms} />
   }
 
+  const passwordsMatch = draft.password === confirmPassword
+  const showMismatch = confirmPassword.length > 0 && !passwordsMatch
   const formState = buildMobileAuthFormState({
     role: "student",
     mode: "register",
@@ -342,7 +345,9 @@ export function StudentRegisterScreen() {
     errorMessage: deviceBindingError ? null : errorMessage,
   })
   const canSubmit =
-    deviceReady && Boolean(draft.displayName.trim() && draft.email.trim() && draft.password)
+    deviceReady &&
+    passwordsMatch &&
+    Boolean(draft.displayName.trim() && draft.email.trim() && draft.password && confirmPassword)
 
   return (
     <MobileAuthScreen
@@ -380,11 +385,29 @@ export function StudentRegisterScreen() {
         <TextInput
           value={draft.password}
           secureTextEntry
-          placeholder="Create a password"
+          placeholder="Create a password (min 8 characters)"
           placeholderTextColor={getColors().textSubtle}
           onChangeText={(value) => updateDraft({ password: value })}
           style={mobileEntryScreenStyles.input}
         />
+      </FormField>
+      <FormField label="Confirm password" icon="lock-closed-outline">
+        <TextInput
+          value={confirmPassword}
+          secureTextEntry
+          placeholder="Re-enter your password"
+          placeholderTextColor={getColors().textSubtle}
+          onChangeText={setConfirmPassword}
+          style={[
+            mobileEntryScreenStyles.input,
+            showMismatch && { borderColor: getColors().danger },
+          ]}
+        />
+        {showMismatch ? (
+          <Text style={{ color: getColors().danger, fontSize: 12, marginTop: 4 }}>
+            Passwords do not match
+          </Text>
+        ) : null}
       </FormField>
 
       <View style={{ gap: 4, marginTop: 4 }}>
@@ -513,11 +536,14 @@ export function TeacherSignInScreen() {
 export function TeacherRegisterScreen() {
   const { draft, updateDraft, register, status, errorMessage, hasDevelopmentCredentials, session } =
     useTeacherSession()
+  const [confirmPassword, setConfirmPassword] = useState("")
 
   if (session) {
     return <Redirect href={teacherRoutes.dashboard} />
   }
 
+  const passwordsMatch = draft.password === confirmPassword
+  const showMismatch = confirmPassword.length > 0 && !passwordsMatch
   const formState = buildMobileAuthFormState({
     role: "teacher",
     mode: "register",
@@ -525,7 +551,9 @@ export function TeacherRegisterScreen() {
     hasDevelopmentCredentials,
     errorMessage,
   })
-  const canSubmit = Boolean(draft.displayName.trim() && draft.email.trim() && draft.password)
+  const canSubmit =
+    passwordsMatch &&
+    Boolean(draft.displayName.trim() && draft.email.trim() && draft.password && confirmPassword)
 
   return (
     <MobileAuthScreen
@@ -563,11 +591,29 @@ export function TeacherRegisterScreen() {
         <TextInput
           value={draft.password}
           secureTextEntry
-          placeholder="Create a password"
+          placeholder="Create a password (min 8 characters)"
           placeholderTextColor={getColors().textSubtle}
           onChangeText={(value) => updateDraft({ password: value })}
           style={mobileEntryScreenStyles.input}
         />
+      </FormField>
+      <FormField label="Confirm password" icon="lock-closed-outline">
+        <TextInput
+          value={confirmPassword}
+          secureTextEntry
+          placeholder="Re-enter your password"
+          placeholderTextColor={getColors().textSubtle}
+          onChangeText={setConfirmPassword}
+          style={[
+            mobileEntryScreenStyles.input,
+            showMismatch && { borderColor: getColors().danger },
+          ]}
+        />
+        {showMismatch ? (
+          <Text style={{ color: getColors().danger, fontSize: 12, marginTop: 4 }}>
+            Passwords do not match
+          </Text>
+        ) : null}
       </FormField>
     </MobileAuthScreen>
   )
