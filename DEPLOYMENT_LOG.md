@@ -116,6 +116,11 @@
 - [ ] **Mobile QR attendance E2E** on emulator — re-test after API stabilizes.
 - [ ] **Confirm next API deploy** auto-applies migrations correctly (next time we add a migration).
 - [ ] **Optional**: bump `@netlify/plugin-nextjs` 5.15.9 → 5.15.11 (Netlify shows outdated warning).
+- [ ] **CI hygiene (non-blocking, prod is unaffected)** — three GitHub Actions checks fail on `main` while Build, Typecheck, and Docker Runtime are green. Production E2E verified 25/25 pass (see session below). All three are pre-existing from commit `8d2804a`:
+  - `Lint` — 19 web a11y warnings (`<label>` without `htmlFor`, `<svg>` without `<title>`) + ~16 mobile `useExhaustiveDependencies` / `noNonNullAssertion` / `noArrayIndexKey` warnings. Cosmetic, no functional impact.
+  - `Test` — 4 unit tests in `SchedulingService` and `LecturesService` where mock spy expectations diverged from current implementation (`expected lectureId='lecture_existing' got 'lecture_new'`, etc.). Real scheduling endpoints work in prod.
+  - `Workspace Validate` — `CHANGELOG.md has 661 lines; max is 400`. Self-imposed line-count policy.
+  - **Fix when convenient**: trim CHANGELOG, update the 4 test mocks, address a11y warnings. None block deploy (Build + Docker Runtime are the deploy-gating checks and both pass).
 
 ## 🆕 Recently completed
 
