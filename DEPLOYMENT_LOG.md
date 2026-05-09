@@ -112,10 +112,14 @@
 
 ## ⏳ Open / pending
 
-- [ ] **Confirm Netlify deploy succeeds** at commit `1c1844e` (last known build failed at `b839235` due to TS errors; fix in `4ff223e`/`1c1844e`).
-- [ ] **Verify** `https://attendease-anurag.netlify.app/admin/teachers` returns non-404 after deploy.
 - [ ] **Decide fate of secondary Netlify project** `attendease-web-app` — repo update needed or delete?
 - [ ] **Mobile QR attendance E2E** on emulator — re-test after API stabilizes.
+- [ ] **Confirm next API deploy** auto-applies migrations correctly (next time we add a migration).
+- [ ] **Optional**: bump `@netlify/plugin-nextjs` 5.15.9 → 5.15.11 (Netlify shows outdated warning).
+
+## 🆕 Recently completed
+
+- [x] 2026-05-09 — Netlify build succeeds at commit `8b61628`. All routes including `/admin/teachers`, `/admin/dashboard`, `/admin/students` return 200. Web app on new repo confirmed serving latest code.
 
 ---
 
