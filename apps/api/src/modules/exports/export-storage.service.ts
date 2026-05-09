@@ -6,6 +6,12 @@ import { Injectable } from "@nestjs/common"
 export class ExportStorageService {
   private readonly adapter: ExportStorageAdapter
   private readonly signedUrlTtlSeconds: number
+  /**
+   * When true, callers must use the inline data-URL fallback path instead of
+   * uploading to and reading from S3. Driven by `STORAGE_INLINE_FALLBACK`.
+   * Used in deployments without a configured S3-compatible bucket.
+   */
+  readonly inlineFallbackEnabled: boolean
 
   constructor() {
     const env = loadApiEnv(process.env)
@@ -20,6 +26,7 @@ export class ExportStorageService {
       forcePathStyle: env.STORAGE_FORCE_PATH_STYLE,
     })
     this.signedUrlTtlSeconds = env.STORAGE_SIGNED_URL_TTL_SECONDS
+    this.inlineFallbackEnabled = env.STORAGE_INLINE_FALLBACK
   }
 
   async getDownloadUrl(objectKey: string) {
@@ -35,5 +42,14 @@ export class ExportStorageService {
     contentType: string
   }): Promise<void> {
     await this.adapter.uploadObject(input)
+  }
+
+  /**
+   * Builds a base64 `data:` URL that can be served directly to the browser
+   * without any storage backend. Suitable for files up to a few MB.
+   */
+  buildInlineDataUrl(input: { body: Uint8Array; contentType: string }): string {
+    const base64 = Buffer.from(input.body).toString("base64")
+    return `data:${input.contentType};base64,${base64}`
   }
 }

@@ -462,13 +462,27 @@ export class AdminReportsService {
 
     try {
       const artifact = await input.build()
-      const objectKey = `admin-reports/${input.auth.userId}/${job.id}/${artifact.fileName}`
+      const inlineMode = this.storage.inlineFallbackEnabled
+      const objectKey = inlineMode
+        ? `inline:${job.id}/${artifact.fileName}`
+        : `admin-reports/${input.auth.userId}/${job.id}/${artifact.fileName}`
 
-      await this.storage.uploadObject({
-        objectKey,
-        body: new Uint8Array(artifact.buffer),
-        contentType: XLSX_CONTENT_TYPE,
-      })
+      let inlineDataUrl: string | undefined
+      if (inlineMode) {
+        // Skip the S3 upload entirely. The bytes are embedded into the job's
+        // filterSnapshot below so the admin (and the recent-reports listing)
+        // can download the file directly from a `data:` URL.
+        inlineDataUrl = this.storage.buildInlineDataUrl({
+          body: new Uint8Array(artifact.buffer),
+          contentType: XLSX_CONTENT_TYPE,
+        })
+      } else {
+        await this.storage.uploadObject({
+          objectKey,
+          body: new Uint8Array(artifact.buffer),
+          contentType: XLSX_CONTENT_TYPE,
+        })
+      }
 
       const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
       await this.database.prisma.exportJobFile.create({
@@ -493,6 +507,7 @@ export class AdminReportsService {
             ...(input.filterSnapshot as Record<string, unknown>),
             rowCount: artifact.rowCount,
             filtersSummary: artifact.filtersSummary,
+            ...(inlineDataUrl ? { inlineDataUrl } : {}),
           } as Prisma.InputJsonValue,
         },
         include: {
@@ -520,12 +535,16 @@ export class AdminReportsService {
 
   private async toJobSummary(job: ExportJobWithFiles): Promise<AdminReportJobSummary> {
     const file = job.files[0] ?? null
-    const downloadUrl =
-      job.status === "COMPLETED" && file ? await this.storage.getDownloadUrl(file.objectKey) : null
     const filterSnapshot =
       job.filterSnapshot && typeof job.filterSnapshot === "object"
         ? (job.filterSnapshot as Record<string, unknown>)
         : {}
+    const inlineDataUrl =
+      typeof filterSnapshot.inlineDataUrl === "string" ? filterSnapshot.inlineDataUrl : null
+    const downloadUrl =
+      job.status === "COMPLETED" && file
+        ? (inlineDataUrl ?? (await this.storage.getDownloadUrl(file.objectKey)))
+        : null
     const rowCount = typeof filterSnapshot.rowCount === "number" ? filterSnapshot.rowCount : 0
     const filtersSummary =
       typeof filterSnapshot.filtersSummary === "string"

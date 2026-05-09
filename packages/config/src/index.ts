@@ -102,6 +102,12 @@ const sharedStorageEnvSchema = {
   STORAGE_FORCE_PATH_STYLE: envBooleanSchema.default(true),
   STORAGE_SIGNED_URL_TTL_SECONDS: z.coerce.number().int().positive().default(900),
   EXPORT_FILE_TTL_HOURS: z.coerce.number().int().positive().default(72),
+  // When true, export jobs skip the S3 upload and embed the file bytes as a
+  // base64 `data:` URL in the job's filterSnapshot. Used as a fallback for
+  // deployments without working S3 credentials. Only suitable for files up to
+  // a few MB (Postgres JSONB can store them but listing pages will pay an
+  // extra read cost). Cleanly removed once real storage is configured.
+  STORAGE_INLINE_FALLBACK: envBooleanSchema.default(false),
 } as const
 
 export const apiEnvSchema = baseNodeEnvSchema.extend({
