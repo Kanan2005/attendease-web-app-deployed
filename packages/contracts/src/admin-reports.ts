@@ -34,7 +34,16 @@ export const adminReportRecentListResponseSchema = z.object({
 export type AdminReportRecentListResponse = z.infer<typeof adminReportRecentListResponseSchema>
 
 // ---------------------------------------------------------------------------
-// Student report — single sheet, rows = (student × course offering).
+// Shared date helpers
+// ---------------------------------------------------------------------------
+const optionalIsoDate = z
+  .string()
+  .datetime({ offset: true })
+  .or(z.string().date())
+  .optional()
+
+// ---------------------------------------------------------------------------
+// Student report — one sheet per subject, rows = students.
 // At least one filter must be provided.
 // ---------------------------------------------------------------------------
 
@@ -45,6 +54,8 @@ export const adminStudentReportRequestSchema = z
     currentSemester: z.coerce.number().int().min(1).max(12).optional(),
     courseOfferingId: z.string().trim().min(1).optional(),
     semesterId: z.string().trim().min(1).optional(),
+    fromDate: optionalIsoDate,
+    toDate: optionalIsoDate,
   })
   .refine(
     (value) =>
@@ -53,11 +64,13 @@ export const adminStudentReportRequestSchema = z
           value.branch ||
           value.currentSemester !== undefined ||
           value.courseOfferingId ||
-          value.semesterId,
+          value.semesterId ||
+          value.fromDate ||
+          value.toDate,
       ),
     {
       message:
-        "Provide at least one filter (studentId, branch, currentSemester, courseOfferingId, or semesterId).",
+        "Provide at least one filter (studentId, branch, currentSemester, courseOfferingId, semesterId, or a date range).",
     },
   )
 export type AdminStudentReportRequest = z.infer<typeof adminStudentReportRequestSchema>
@@ -73,10 +86,15 @@ export const adminTeacherReportRequestSchema = z
     department: z.string().trim().min(1).optional(),
     semesterId: z.string().trim().min(1).optional(),
     includeArchived: z.boolean().default(false),
+    fromDate: optionalIsoDate,
+    toDate: optionalIsoDate,
   })
-  .refine((value) => Boolean(value.teacherId || value.department || value.semesterId), {
-    message: "Provide at least one filter (teacherId, department, or semesterId).",
-  })
+  .refine(
+    (value) => Boolean(value.teacherId || value.department || value.semesterId || value.fromDate || value.toDate),
+    {
+      message: "Provide at least one filter (teacherId, department, semesterId, or a date range).",
+    },
+  )
 export type AdminTeacherReportRequest = z.infer<typeof adminTeacherReportRequestSchema>
 
 // ---------------------------------------------------------------------------
@@ -85,5 +103,7 @@ export type AdminTeacherReportRequest = z.infer<typeof adminTeacherReportRequest
 
 export const adminCourseReportRequestSchema = z.object({
   courseOfferingId: z.string().trim().min(1),
+  fromDate: optionalIsoDate,
+  toDate: optionalIsoDate,
 })
 export type AdminCourseReportRequest = z.infer<typeof adminCourseReportRequestSchema>

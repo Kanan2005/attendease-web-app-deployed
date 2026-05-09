@@ -12,6 +12,8 @@ import { DatabaseService } from "../../database/database.service.js"
 import type { AuthRequestContext } from "../auth/auth.types.js"
 import { ExportStorageService } from "../exports/export-storage.service.js"
 
+type DateRange = { from: Date | undefined; to: Date | undefined }
+
 type ExportJobWithFiles = Prisma.ExportJobGetPayload<{
   include: {
     files: {
@@ -43,6 +45,109 @@ export class AdminReportsService {
   ) {}
 
   // -------------------------------------------------------------------
+  // Shared: date-range-aware attendance computation
+  // -------------------------------------------------------------------
+
+  /**
+   * Computes per-student-per-course attendance from raw records filtered by
+   * session date range. Falls back to the pre-computed summary table when no
+   * date range is given.
+   */
+  private async computeAttendance(
+    enrollments: { studentId: string; courseOfferingId: string }[],
+    dateRange?: DateRange,
+  ): Promise<
+    Map<string, { totalSessions: number; presentSessions: number; lastSessionAt: Date | null }>
+  > {
+    // Fast path: use pre-computed analytics when no date range
+    if (!dateRange?.from && !dateRange?.to) {
+      const summaryRows = await this.database.prisma.analyticsStudentCourseSummary.findMany({
+        where: {
+          OR: enrollments.map((e) => ({
+            studentId: e.studentId,
+            courseOfferingId: e.courseOfferingId,
+          })),
+        },
+      })
+      return new Map(
+        summaryRows.map((row) => [
+          `${row.studentId}|${row.courseOfferingId}`,
+          {
+            totalSessions: row.totalSessions,
+            presentSessions: row.presentSessions,
+            lastSessionAt: row.lastSessionAt,
+          },
+        ]),
+      )
+    }
+
+    // Slow path: query raw sessions within the date range
+    const courseOfferingIds = [...new Set(enrollments.map((e) => e.courseOfferingId))]
+    const sessionDateFilter: Prisma.AttendanceSessionWhereInput = {
+      courseOfferingId: { in: courseOfferingIds },
+      status: { in: ["ENDED", "EXPIRED"] },
+      ...(dateRange.from || dateRange.to
+        ? {
+            startedAt: {
+              ...(dateRange.from ? { gte: dateRange.from } : {}),
+              ...(dateRange.to ? { lte: dateRange.to } : {}),
+            },
+          }
+        : {}),
+    }
+    const sessions = await this.database.prisma.attendanceSession.findMany({
+      where: sessionDateFilter,
+      select: { id: true, courseOfferingId: true, startedAt: true },
+    })
+    if (sessions.length === 0) return new Map()
+
+    const sessionIds = sessions.map((s) => s.id)
+    const sessionCourseMap = new Map(sessions.map((s) => [s.id, s.courseOfferingId]))
+
+    const records = await this.database.prisma.attendanceRecord.findMany({
+      where: { sessionId: { in: sessionIds } },
+      select: { sessionId: true, studentId: true, status: true },
+    })
+
+    // Count sessions per course offering
+    const sessionsPerCourse = new Map<string, number>()
+    const lastSessionPerCourse = new Map<string, Date | null>()
+    for (const session of sessions) {
+      const coId = session.courseOfferingId
+      sessionsPerCourse.set(coId, (sessionsPerCourse.get(coId) ?? 0) + 1)
+      const prev = lastSessionPerCourse.get(coId)
+      if (session.startedAt && (!prev || session.startedAt > prev)) {
+        lastSessionPerCourse.set(coId, session.startedAt)
+      }
+    }
+
+    // Count present per student per course
+    const presentCount = new Map<string, number>()
+    for (const record of records) {
+      if (record.status !== "PRESENT") continue
+      const coId = sessionCourseMap.get(record.sessionId)
+      if (!coId) continue
+      const key = `${record.studentId}|${coId}`
+      presentCount.set(key, (presentCount.get(key) ?? 0) + 1)
+    }
+
+    const result = new Map<
+      string,
+      { totalSessions: number; presentSessions: number; lastSessionAt: Date | null }
+    >()
+    for (const enrollment of enrollments) {
+      const key = `${enrollment.studentId}|${enrollment.courseOfferingId}`
+      const total = sessionsPerCourse.get(enrollment.courseOfferingId) ?? 0
+      result.set(key, {
+        totalSessions: total,
+        presentSessions: presentCount.get(key) ?? 0,
+        lastSessionAt: lastSessionPerCourse.get(enrollment.courseOfferingId) ?? null,
+      })
+    }
+    return result
+  }
+
+  // -------------------------------------------------------------------
   // Student report
   // -------------------------------------------------------------------
   async generateStudentReport(
@@ -58,6 +163,8 @@ export class AdminReportsService {
   }
 
   private async buildStudentReport(request: AdminStudentReportRequest): Promise<ReportArtifact> {
+    const dateRange = parseDateRange(request.fromDate, request.toDate)
+
     const enrollments = await this.database.prisma.enrollment.findMany({
       where: {
         status: "ACTIVE",
@@ -90,81 +197,141 @@ export class AdminReportsService {
       },
     })
 
-    const summaryRows = await this.database.prisma.analyticsStudentCourseSummary.findMany({
-      where: {
-        studentId: { in: enrollments.map((e) => e.studentId) },
-        courseOfferingId: { in: enrollments.map((e) => e.courseOfferingId) },
-      },
-    })
-    const summaryByKey = new Map(
-      summaryRows.map((row) => [`${row.studentId}|${row.courseOfferingId}`, row]),
+    const summaryByKey = await this.computeAttendance(
+      enrollments.map((e) => ({ studentId: e.studentId, courseOfferingId: e.courseOfferingId })),
+      dateRange,
     )
 
-    const rows = enrollments.map((enrollment) => {
+    // Build enriched rows
+    type EnrichedRow = {
+      courseKey: string
+      courseCode: string
+      courseTitle: string
+      teacher: string
+      courseStatus: string
+      cells: readonly (string | number | null)[]
+    }
+    const enrichedRows: EnrichedRow[] = enrollments.map((enrollment) => {
       const summary = summaryByKey.get(`${enrollment.studentId}|${enrollment.courseOfferingId}`)
       const total = summary?.totalSessions ?? 0
       const present = summary?.presentSessions ?? 0
       const percent = total === 0 ? null : round1((present / total) * 100)
-      return [
-        enrollment.student.displayName,
-        enrollment.student.email,
-        enrollment.student.studentProfile?.rollNumber ?? "",
-        enrollment.student.studentProfile?.branch ?? "",
-        enrollment.student.studentProfile?.currentSemester ?? null,
-        enrollment.courseOffering.subject?.code ?? "",
-        enrollment.courseOffering.subject?.title ?? enrollment.courseOffering.displayTitle,
-        enrollment.courseOffering.primaryTeacher.displayName,
-        enrollment.courseOffering.status,
-        present,
-        total,
-        percent,
-        summary?.lastSessionAt?.toISOString() ?? "",
-      ] as const
+      const courseCode = enrollment.courseOffering.subject?.code ?? ""
+      const courseTitle =
+        enrollment.courseOffering.subject?.title ?? enrollment.courseOffering.displayTitle
+      return {
+        courseKey: `${courseCode}||${courseTitle}`,
+        courseCode,
+        courseTitle,
+        teacher: enrollment.courseOffering.primaryTeacher.displayName,
+        courseStatus: enrollment.courseOffering.status,
+        cells: [
+          enrollment.student.displayName,
+          enrollment.student.email,
+          enrollment.student.studentProfile?.rollNumber ?? "",
+          enrollment.student.studentProfile?.branch ?? "",
+          enrollment.student.studentProfile?.currentSemester ?? null,
+          present,
+          total,
+          percent,
+          summary?.lastSessionAt?.toISOString() ?? "",
+        ] as const,
+      }
     })
 
-    rows.sort((a, b) => {
-      const branchCompare = String(a[3] ?? "").localeCompare(String(b[3] ?? ""))
-      if (branchCompare !== 0) return branchCompare
-      const nameCompare = String(a[0]).localeCompare(String(b[0]))
-      if (nameCompare !== 0) return nameCompare
-      return String(a[5] ?? "").localeCompare(String(b[5] ?? ""))
+    enrichedRows.sort((a, b) => {
+      const codeCompare = a.courseCode.localeCompare(b.courseCode)
+      if (codeCompare !== 0) return codeCompare
+      return String(a.cells[0] ?? "").localeCompare(String(b.cells[0] ?? ""))
     })
 
     const filtersSummary = buildStudentFiltersSummary(request)
-    const sheet: XlsxSheet = {
-      name: "Student attendance",
-      banner: [
-        "Attendease — Student attendance report",
-        `Filters: ${filtersSummary}`,
-        `Generated at: ${new Date().toISOString()}`,
-      ],
-      columns: [
-        { header: "Student name", width: 26 },
-        { header: "Email", width: 30 },
-        { header: "Roll number", width: 16 },
-        { header: "Branch", width: 22 },
-        { header: "Semester" },
-        { header: "Course code", width: 14 },
-        { header: "Course title", width: 30 },
-        { header: "Teacher", width: 22 },
-        { header: "Course status", width: 14 },
-        { header: "Present" },
-        { header: "Total sessions" },
-        { header: "Attendance %" },
-        { header: "Last session at", width: 22 },
-      ],
-      rows,
+    const perSheetColumns: XlsxSheet["columns"] = [
+      { header: "Student name", width: 26 },
+      { header: "Email", width: 30 },
+      { header: "Roll number", width: 16 },
+      { header: "Branch", width: 22 },
+      { header: "Semester" },
+      { header: "Present" },
+      { header: "Total sessions" },
+      { header: "Attendance %" },
+      { header: "Last session at", width: 22 },
+    ]
+
+    // Group by course → one sheet per course
+    const courseGroups = new Map<string, { meta: EnrichedRow; rows: EnrichedRow[] }>()
+    for (const row of enrichedRows) {
+      const existing = courseGroups.get(row.courseKey)
+      if (existing) {
+        existing.rows.push(row)
+      } else {
+        courseGroups.set(row.courseKey, { meta: row, rows: [row] })
+      }
     }
 
+    const sheets: XlsxSheet[] = []
+
+    // If multiple courses → separate sheet per course
+    if (courseGroups.size > 1) {
+      for (const [, group] of courseGroups) {
+        sheets.push({
+          name: group.meta.courseCode || group.meta.courseTitle.slice(0, 28),
+          banner: [
+            `${group.meta.courseCode} — ${group.meta.courseTitle}`,
+            `Teacher: ${group.meta.teacher}`,
+            `Status: ${group.meta.courseStatus}`,
+            `Filters: ${filtersSummary}`,
+            `Generated at: ${new Date().toISOString()}`,
+          ],
+          columns: perSheetColumns,
+          rows: group.rows.map((r) => r.cells),
+        })
+      }
+    } else {
+      // Single course or mixed → one sheet with course columns included
+      sheets.push({
+        name: "Student attendance",
+        banner: [
+          "Attendease — Student attendance report",
+          `Filters: ${filtersSummary}`,
+          `Generated at: ${new Date().toISOString()}`,
+        ],
+        columns: [
+          { header: "Student name", width: 26 },
+          { header: "Email", width: 30 },
+          { header: "Roll number", width: 16 },
+          { header: "Branch", width: 22 },
+          { header: "Semester" },
+          { header: "Course code", width: 14 },
+          { header: "Course title", width: 30 },
+          { header: "Teacher", width: 22 },
+          { header: "Course status", width: 14 },
+          { header: "Present" },
+          { header: "Total sessions" },
+          { header: "Attendance %" },
+          { header: "Last session at", width: 22 },
+        ],
+        rows: enrichedRows.map((r) => [
+          ...r.cells.slice(0, 5),
+          r.courseCode,
+          r.courseTitle,
+          r.teacher,
+          r.courseStatus,
+          ...r.cells.slice(5),
+        ]),
+      })
+    }
+
+    const totalRowCount = enrichedRows.length
     const buffer = await buildXlsxBuffer({
       title: "Attendease — Student attendance report",
-      sheets: [sheet],
+      sheets,
     })
 
     return {
       fileName: buildFileName("student-report"),
       buffer,
-      rowCount: rows.length,
+      rowCount: totalRowCount,
       filtersSummary,
     }
   }
@@ -185,6 +352,8 @@ export class AdminReportsService {
   }
 
   private async buildTeacherReport(request: AdminTeacherReportRequest): Promise<ReportArtifact> {
+    const dateRange = parseDateRange(request.fromDate, request.toDate)
+
     const offerings = await this.database.prisma.courseOffering.findMany({
       where: {
         ...(request.includeArchived ? {} : { status: { not: "ARCHIVED" } }),
@@ -207,16 +376,7 @@ export class AdminReportsService {
       },
     })
 
-    // Aggregate per-course totals from per-student summaries.
-    const studentSummaries = await this.database.prisma.analyticsStudentCourseSummary.findMany({
-      where: { courseOfferingId: { in: offerings.map((o) => o.id) } },
-      select: {
-        courseOfferingId: true,
-        totalSessions: true,
-        presentSessions: true,
-        lastSessionAt: true,
-      },
-    })
+    // Aggregate per-course totals. When date range is set, count raw sessions.
     type CourseAggregate = {
       maxSessions: number
       sumPresent: number
@@ -224,23 +384,83 @@ export class AdminReportsService {
       lastSessionAt: Date | null
     }
     const aggByOffering = new Map<string, CourseAggregate>()
-    for (const row of studentSummaries) {
-      const existing = aggByOffering.get(row.courseOfferingId) ?? {
-        maxSessions: 0,
-        sumPresent: 0,
-        sumDenominator: 0,
-        lastSessionAt: null as Date | null,
+
+    if (!dateRange?.from && !dateRange?.to) {
+      // Fast path: pre-computed summaries
+      const studentSummaries = await this.database.prisma.analyticsStudentCourseSummary.findMany({
+        where: { courseOfferingId: { in: offerings.map((o) => o.id) } },
+        select: {
+          courseOfferingId: true,
+          totalSessions: true,
+          presentSessions: true,
+          lastSessionAt: true,
+        },
+      })
+      for (const row of studentSummaries) {
+        const existing = aggByOffering.get(row.courseOfferingId) ?? {
+          maxSessions: 0,
+          sumPresent: 0,
+          sumDenominator: 0,
+          lastSessionAt: null as Date | null,
+        }
+        existing.maxSessions = Math.max(existing.maxSessions, row.totalSessions)
+        existing.sumPresent += row.presentSessions
+        existing.sumDenominator += row.totalSessions
+        if (
+          row.lastSessionAt &&
+          (!existing.lastSessionAt || row.lastSessionAt > existing.lastSessionAt)
+        ) {
+          existing.lastSessionAt = row.lastSessionAt
+        }
+        aggByOffering.set(row.courseOfferingId, existing)
       }
-      existing.maxSessions = Math.max(existing.maxSessions, row.totalSessions)
-      existing.sumPresent += row.presentSessions
-      existing.sumDenominator += row.totalSessions
-      if (
-        row.lastSessionAt &&
-        (!existing.lastSessionAt || row.lastSessionAt > existing.lastSessionAt)
-      ) {
-        existing.lastSessionAt = row.lastSessionAt
+    } else {
+      // Slow path: count sessions from raw tables within date range
+      const offeringIds = offerings.map((o) => o.id)
+      const sessions = await this.database.prisma.attendanceSession.findMany({
+        where: {
+          courseOfferingId: { in: offeringIds },
+          status: { in: ["ENDED", "EXPIRED"] },
+          startedAt: {
+            ...(dateRange.from ? { gte: dateRange.from } : {}),
+            ...(dateRange.to ? { lte: dateRange.to } : {}),
+          },
+        },
+        select: { id: true, courseOfferingId: true, startedAt: true },
+      })
+      const sessionIds = sessions.map((s) => s.id)
+      const records =
+        sessionIds.length > 0
+          ? await this.database.prisma.attendanceRecord.findMany({
+              where: { sessionId: { in: sessionIds }, status: "PRESENT" },
+              select: { sessionId: true },
+            })
+          : []
+      const presentCountBySession = new Map<string, number>()
+      for (const r of records) {
+        presentCountBySession.set(r.sessionId, (presentCountBySession.get(r.sessionId) ?? 0) + 1)
       }
-      aggByOffering.set(row.courseOfferingId, existing)
+
+      for (const session of sessions) {
+        const coId = session.courseOfferingId
+        const existing = aggByOffering.get(coId) ?? {
+          maxSessions: 0,
+          sumPresent: 0,
+          sumDenominator: 0,
+          lastSessionAt: null as Date | null,
+        }
+        existing.maxSessions += 1
+        const enrolled = offerings.find((o) => o.id === coId)?._count.enrollments ?? 0
+        existing.sumPresent += presentCountBySession.get(session.id) ?? 0
+        existing.sumDenominator += enrolled
+        if (
+          session.startedAt &&
+          (!existing.lastSessionAt || session.startedAt > existing.lastSessionAt)
+        ) {
+          existing.lastSessionAt = session.startedAt
+        }
+        aggByOffering.set(coId, existing)
+      }
     }
 
     const rows = offerings.map((offering) => {
@@ -327,6 +547,8 @@ export class AdminReportsService {
   }
 
   private async buildCourseReport(request: AdminCourseReportRequest): Promise<ReportArtifact> {
+    const dateRange = parseDateRange(request.fromDate, request.toDate)
+
     const offering = await this.database.prisma.courseOffering.findUnique({
       where: { id: request.courseOfferingId },
       include: {
@@ -348,16 +570,16 @@ export class AdminReportsService {
       },
     })
 
-    const summaryRows = await this.database.prisma.analyticsStudentCourseSummary.findMany({
-      where: {
+    const summaryByKey = await this.computeAttendance(
+      enrollments.map((e) => ({
+        studentId: e.studentId,
         courseOfferingId: request.courseOfferingId,
-        studentId: { in: enrollments.map((e) => e.studentId) },
-      },
-    })
-    const summaryByStudent = new Map(summaryRows.map((row) => [row.studentId, row]))
+      })),
+      dateRange,
+    )
 
     const rows = enrollments.map((enrollment) => {
-      const summary = summaryByStudent.get(enrollment.studentId)
+      const summary = summaryByKey.get(`${enrollment.studentId}|${request.courseOfferingId}`)
       const total = summary?.totalSessions ?? 0
       const present = summary?.presentSessions ?? 0
       const percent = total === 0 ? null : round1((present / total) * 100)
@@ -381,13 +603,15 @@ export class AdminReportsService {
       return String(a[0]).localeCompare(String(b[0]))
     })
 
-    const filtersSummary = `course=${offering.subject?.code ?? offering.displayTitle}`
+    const dateSuffix = formatDateRangeSuffix(dateRange)
+    const filtersSummary = `course=${offering.subject?.code ?? offering.displayTitle}${dateSuffix}`
     const sheet: XlsxSheet = {
       name: "Course attendance",
       banner: [
         "Attendease — Course attendance report",
         `Course: ${offering.subject?.code ?? ""} ${offering.subject?.title ?? offering.displayTitle}`,
         `Teacher: ${offering.primaryTeacher.displayName}`,
+        ...(dateSuffix ? [`Date range: ${dateSuffix.replace(", ", "")}`] : []),
         `Generated at: ${new Date().toISOString()}`,
       ],
       columns: [
@@ -593,12 +817,32 @@ function round1(value: number): number {
   return Math.round(value * 10) / 10
 }
 
+function parseDateRange(
+  fromDate: string | undefined,
+  toDate: string | undefined,
+): DateRange | undefined {
+  const from = fromDate ? new Date(fromDate) : undefined
+  const to = toDate ? new Date(toDate) : undefined
+  if (!from && !to) return undefined
+  return { from, to }
+}
+
+function formatDateRangeSuffix(dateRange: DateRange | undefined): string {
+  if (!dateRange) return ""
+  const parts: string[] = []
+  if (dateRange.from) parts.push(`from=${dateRange.from.toISOString().slice(0, 10)}`)
+  if (dateRange.to) parts.push(`to=${dateRange.to.toISOString().slice(0, 10)}`)
+  return parts.length > 0 ? `, ${parts.join(", ")}` : ""
+}
+
 function buildStudentFiltersSummary(request: AdminStudentReportRequest): string {
   const parts: string[] = []
   if (request.branch) parts.push(`branch=${request.branch}`)
   if (request.currentSemester !== undefined) parts.push(`sem=${request.currentSemester}`)
   if (request.courseOfferingId) parts.push(`courseOfferingId=${request.courseOfferingId}`)
   if (request.semesterId) parts.push(`semesterId=${request.semesterId}`)
+  if (request.fromDate) parts.push(`from=${request.fromDate.slice(0, 10)}`)
+  if (request.toDate) parts.push(`to=${request.toDate.slice(0, 10)}`)
   return parts.join(", ") || "(no filters)"
 }
 
@@ -608,5 +852,7 @@ function buildTeacherFiltersSummary(request: AdminTeacherReportRequest): string 
   if (request.department) parts.push(`department=${request.department}`)
   if (request.semesterId) parts.push(`semesterId=${request.semesterId}`)
   if (request.includeArchived) parts.push("includeArchived")
+  if (request.fromDate) parts.push(`from=${request.fromDate.slice(0, 10)}`)
+  if (request.toDate) parts.push(`to=${request.toDate.slice(0, 10)}`)
   return parts.join(", ") || "(no filters)"
 }

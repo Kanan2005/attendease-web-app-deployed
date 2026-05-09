@@ -75,6 +75,8 @@ function StudentReportPanel(props: { accessToken: string | null; opts: AdminUser
     currentSemester: "",
     courseOfferingId: "",
     semesterId: "",
+    fromDate: "",
+    toDate: "",
   })
   const mutation = useMutation({
     mutationFn: async (): Promise<AdminReportJobSummary> => {
@@ -84,6 +86,8 @@ function StudentReportPanel(props: { accessToken: string | null; opts: AdminUser
         ...(form.currentSemester ? { currentSemester: Number(form.currentSemester) } : {}),
         ...(form.courseOfferingId.trim() ? { courseOfferingId: form.courseOfferingId.trim() } : {}),
         ...(form.semesterId.trim() ? { semesterId: form.semesterId.trim() } : {}),
+        ...(form.fromDate ? { fromDate: form.fromDate } : {}),
+        ...(form.toDate ? { toDate: form.toDate } : {}),
       } as AdminStudentReportRequest
       return bootstrap.authClient.generateAdminStudentReport(props.accessToken ?? "", payload)
     },
@@ -140,12 +144,24 @@ function StudentReportPanel(props: { accessToken: string | null; opts: AdminUser
           value={form.semesterId}
           onChange={(value) => setForm({ ...form, semesterId: value })}
         />
+        <Field
+          label="From date"
+          value={form.fromDate}
+          onChange={(value) => setForm({ ...form, fromDate: value })}
+          type="date"
+        />
+        <Field
+          label="To date"
+          value={form.toDate}
+          onChange={(value) => setForm({ ...form, toDate: value })}
+          type="date"
+        />
       </div>
       <GenerateRow
         mutation={mutation}
         onGenerate={() => mutation.mutate()}
         onReset={() =>
-          setForm({ studentId: "", branch: "", currentSemester: "", courseOfferingId: "", semesterId: "" })
+          setForm({ studentId: "", branch: "", currentSemester: "", courseOfferingId: "", semesterId: "", fromDate: "", toDate: "" })
         }
       />
     </WebSectionCard>
@@ -163,6 +179,8 @@ function TeacherReportPanel(props: { accessToken: string | null; opts: AdminUser
     department: "",
     semesterId: "",
     includeArchived: false,
+    fromDate: "",
+    toDate: "",
   })
   const mutation = useMutation({
     mutationFn: async (): Promise<AdminReportJobSummary> => {
@@ -171,6 +189,8 @@ function TeacherReportPanel(props: { accessToken: string | null; opts: AdminUser
         ...(form.teacherId.trim() ? { teacherId: form.teacherId.trim() } : {}),
         ...(form.department.trim() ? { department: form.department.trim() } : {}),
         ...(form.semesterId.trim() ? { semesterId: form.semesterId.trim() } : {}),
+        ...(form.fromDate ? { fromDate: form.fromDate } : {}),
+        ...(form.toDate ? { toDate: form.toDate } : {}),
       } as AdminTeacherReportRequest
       return bootstrap.authClient.generateAdminTeacherReport(props.accessToken ?? "", payload)
     },
@@ -217,6 +237,18 @@ function TeacherReportPanel(props: { accessToken: string | null; opts: AdminUser
           />
           <span>Include archived courses</span>
         </label>
+        <Field
+          label="From date"
+          value={form.fromDate}
+          onChange={(value) => setForm({ ...form, fromDate: value })}
+          type="date"
+        />
+        <Field
+          label="To date"
+          value={form.toDate}
+          onChange={(value) => setForm({ ...form, toDate: value })}
+          type="date"
+        />
       </div>
       <GenerateRow
         mutation={mutation}
@@ -227,6 +259,8 @@ function TeacherReportPanel(props: { accessToken: string | null; opts: AdminUser
             department: "",
             semesterId: "",
             includeArchived: false,
+            fromDate: "",
+            toDate: "",
           })
         }
       />
@@ -240,11 +274,13 @@ function TeacherReportPanel(props: { accessToken: string | null; opts: AdminUser
 
 function CourseReportPanel(props: { accessToken: string | null }) {
   const queryClient = useQueryClient()
-  const [form, setForm] = useState({ courseOfferingId: "" })
+  const [form, setForm] = useState({ courseOfferingId: "", fromDate: "", toDate: "" })
   const mutation = useMutation({
     mutationFn: async (): Promise<AdminReportJobSummary> => {
       const payload: AdminCourseReportRequest = {
         courseOfferingId: form.courseOfferingId.trim(),
+        ...(form.fromDate ? { fromDate: form.fromDate } : {}),
+        ...(form.toDate ? { toDate: form.toDate } : {}),
       }
       return bootstrap.authClient.generateAdminCourseReport(props.accessToken ?? "", payload)
     },
@@ -259,15 +295,29 @@ function CourseReportPanel(props: { accessToken: string | null }) {
       title="Course attendance report"
       description="One row per student in the chosen course offering. Sorted by lowest attendance first."
     >
-      <Field
-        label="Course ID"
-        value={form.courseOfferingId}
-        onChange={(value) => setForm({ ...form, courseOfferingId: value })}
-      />
+      <div style={styles.formGrid}>
+        <Field
+          label="Course ID"
+          value={form.courseOfferingId}
+          onChange={(value) => setForm({ ...form, courseOfferingId: value })}
+        />
+        <Field
+          label="From date"
+          value={form.fromDate}
+          onChange={(value) => setForm({ ...form, fromDate: value })}
+          type="date"
+        />
+        <Field
+          label="To date"
+          value={form.toDate}
+          onChange={(value) => setForm({ ...form, toDate: value })}
+          type="date"
+        />
+      </div>
       <GenerateRow
         mutation={mutation}
         onGenerate={() => mutation.mutate()}
-        onReset={() => setForm({ courseOfferingId: "" })}
+        onReset={() => setForm({ courseOfferingId: "", fromDate: "", toDate: "" })}
         disabled={!form.courseOfferingId.trim()}
       />
     </WebSectionCard>

@@ -15,6 +15,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+#### Reports: Date Range (From / To) filter (`packages/contracts/src/admin-reports.ts`, `apps/api/src/modules/admin/admin-reports.service.ts`, `apps/web/src/admin-workflows-client/admin-reports.tsx`, `apps/web/src/admin-workflows-client/shared.tsx`)
+
+- All three report types (Student, Teacher, Course) now accept optional `fromDate` / `toDate` parameters.
+- When a date range is provided, attendance is computed from raw `AttendanceSession` + `AttendanceRecord` tables within the range rather than the pre-computed summary table.
+- Frontend: added "From date" and "To date" date-picker fields to Student, Teacher, and Course report panels.
+- Filter summary in the XLSX banner and the Recent Reports table now includes the date range when set.
+
+#### Reports: Multi-sheet student report (`apps/api/src/modules/admin/admin-reports.service.ts`)
+
+- When a student report spans multiple courses, the Excel file now creates one sheet per subject (course code as the sheet name) per the Admin Panel Requirements specification ("Each subject → separate sheet").
+- Each sheet includes a banner showing course code, title, teacher, status, and applied filters.
+- Single-course reports remain as a single sheet with all columns.
+
 #### Users tab: dropdown filters for degree, branch, semester, department (`packages/contracts/src/admin-users.ts`, `apps/api/src/modules/admin/admin-users.service.ts`, `apps/api/src/modules/admin/admin-users.controller.ts`, `packages/auth/src/client.admin.ts`, `apps/web/src/admin-workflows-client/admin-users-students.tsx`, `apps/web/src/admin-workflows-client/admin-users-teachers.tsx`)
 
 - New `GET /admin/users/filter-options` endpoint returns distinct values for degree, branch, semester, and department from the database.
