@@ -7,7 +7,7 @@
     "dev": "tsx watch src/main.ts",
     "build": "tsc --project tsconfig.build.json",
     "start": "tsx dist/apps/api/src/main.js",
-    "start:prod": "pnpm --filter @attendease/db migrate:deploy && tsx dist/apps/api/src/main.js",
+    "start:prod": "bash scripts/start-prod.sh",
     "lint": "biome check src package.json tsconfig.json tsconfig.build.json",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "vitest run --maxWorkers=1 --minWorkers=1",

@@ -36,6 +36,8 @@ COPY --from=build --chown=node:node /app/node_modules /app/node_modules
 COPY --from=build --chown=node:node /app/apps/api /app/apps/api
 COPY --from=build --chown=node:node /app/packages /app/packages
 
+RUN chmod +x /app/apps/api/scripts/start-prod.sh
+
 USER node
 WORKDIR /app/apps/api
 

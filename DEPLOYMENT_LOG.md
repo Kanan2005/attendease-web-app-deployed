@@ -124,6 +124,19 @@
 
 ## 🆕 Recently completed
 
+### 2026-05-10 — Neon cold-start P1001 retry fix
+
+**Symptom**: Render deploy fails on first `prisma migrate deploy` with `P1001: Can't reach database server`. Neon compute was cold/suspended. Container exits with status 1, Render restarts, second attempt succeeds but Render reports "No open ports detected" during the scan window.
+
+**Root cause**: Neon serverless compute suspends after inactivity. First TCP connection after suspension can take 3–7s, during which Prisma times out with P1001. The old `start:prod` script (`pnpm --filter @attendease/db migrate:deploy && tsx dist/apps/api/src/main.js`) had no retry logic — a single P1001 killed the container.
+
+**Fix**:
+1. `apps/api/scripts/start-prod.sh` — new bash script with retry loop (up to 4 attempts, 5s delay between). Uses `exec` to hand off to the API process.
+2. `apps/api/package.json` `start:prod` → `bash scripts/start-prod.sh`.
+3. `apps/api/Dockerfile` — added `RUN chmod +x` for the script.
+
+**Files changed**: `apps/api/scripts/start-prod.sh` (new), `apps/api/package.json`, `apps/api/Dockerfile`.
+
 - [x] 2026-05-09 — **Admin Panel Phase 6: Dashboard polish + insights**. Backend adds `GET /admin/dashboard/{sessions-graph,branch-comparison,course-leaderboard}` and extends `/admin/dashboard/stats` with an `insights` block (avg attendance %, low-attendance student count driven by Phase 5 `system.lowAttendanceThresholdPercent`, sessions last/prior 7-day counts for WoW deltas). Frontend dashboard fully redesigned for UX clarity: 6-card hero row with action-oriented cards (red "Below X%" → links to `/admin/communication`, amber "Pending devices" → links to `/admin/devices`, sessions WoW delta), sessions trend with inline SVG line chart + 7d/4w/12mo tabs, branch comparison horizontal bars with attendance-tier colour coding, course leaderboard defaulting to Bottom 5 (most actionable) with one-click switch to Top 5, compact recent security events. Pure SVG charts — no new dependency. No DB migration needed.
 - [x] 2026-05-09 — **Admin Panel Phase 5: Settings (Academic / System / Admins / Security)**. New `SystemSetting` table (migration `20260509130000_admin_system_settings`) with key/value JSON storage; 7 new endpoints under `/admin/settings/*`. Highlights: System tab with PATCH partial-update of GPS radius / QR / BLE windows / default attendance mode / low-attendance threshold (defaults baked in code, falls back when key missing). Admins tab generates strong dash-formatted temp password (`XXXX-XXXX-XXXX`), shows it once, plus a "Email via Gmail" prefill button and "Copy" button — no SMTP/email infrastructure needed. Self-revoke and last-admin-revoke are blocked. Security tab is a self-service change-password form. Integration tests cover the full happy path of every endpoint plus invariants (cannot revoke self, cannot revoke last admin, login with new temp password, login with old password fails after change). Audit log rows for `ADMIN_INVITE`, `ADMIN_ROLE_REVOKE`, `SYSTEM_SETTING_UPDATE`.
 - [x] 2026-05-09 — **Admin Panel Phase 4: Reports (Excel/XLSX exports)**. Three new endpoints under `/admin/reports/{student,teacher,course}` and `/admin/reports/recent`. Synchronous XLSX generation using new `exceljs` dependency in `@attendease/export`; produces real .xlsx files (single-sheet, structured headers + frozen row + banner) uploaded to existing S3 export bucket via `ExportStorageService.uploadObject`. New migration `20260509120000_admin_reports_export_job_types` adds 3 enum values to `ExportJobType` (additive). `ExportJob` + `ExportJobFile` rows persisted in `COMPLETED` state; pre-signed download URL returned for immediate download. Frontend at `/admin/reports` with 3 tabs + recent jobs table with re-download links. Worker switch made exhaustive — admin XLSX jobs explicitly rejected if queued (handled inline by API). Integration tests assert ZIP magic on output, persisted job rows, and storage adapter invocation.
