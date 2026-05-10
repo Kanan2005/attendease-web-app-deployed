@@ -276,7 +276,7 @@ Every push runs 6 automated checks via GitHub Actions:
 
 | Service | URL | Platform |
 |---------|-----|----------|
-| Web App | [www.attendeaselive.xyz](https://www.attendeaselive.xyz) | Netlify (custom domain) |
+| Web App | [attendeaselive.xyz](https://attendeaselive.xyz) | Netlify (custom domain) |
 | API | [attendease-api-4h45.onrender.com](https://attendease-api-4h45.onrender.com) | Render |
 | Database | Neon PostgreSQL (ap-southeast-1) | Neon |
 
