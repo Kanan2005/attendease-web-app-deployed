@@ -171,39 +171,18 @@ export function AdminCommunicationComposerWorkspace(props: { accessToken: string
       .catch(() => undefined)
   }
 
-  function handleOpenGmail() {
-    if (!preview || preview.emails.length === 0) return
+  function handleSendViaGmail() {
+    if (!preview || selectedEmails.length === 0) return
     const subject = encodeURIComponent(form.subject)
     const body = encodeURIComponent(form.body)
     const chunks = chunk(selectedEmails, GMAIL_BCC_CHUNK)
     for (const batch of chunks) {
-      const bcc = encodeURIComponent(batch.join(","))
-      const url = `https://mail.google.com/mail/?view=cm&fs=1&bcc=${bcc}&su=${subject}&body=${body}`
+      const to = encodeURIComponent(batch.join(","))
+      const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`
       window.open(url, "_blank", "noopener,noreferrer")
     }
     logDispatch("GMAIL", selectedEmails.length)
   }
-
-  function handleOpenMailto() {
-    if (!preview || preview.emails.length === 0) return
-    const subject = encodeURIComponent(form.subject)
-    const body = encodeURIComponent(form.body)
-    const chunks = chunk(selectedEmails, MAILTO_BCC_CHUNK)
-    for (const batch of chunks) {
-      const bcc = encodeURIComponent(batch.join(","))
-      const url = `mailto:?bcc=${bcc}&subject=${subject}&body=${body}`
-      window.location.href = url
-      // Only one mailto: navigation is meaningful per click; if there are
-      // overflow chunks, surface a warning to the admin once.
-      break
-    }
-    logDispatch("MAILTO", selectedEmails.length)
-  }
-
-  const overflowChunks =
-    preview && preview.emails.length > MAILTO_BCC_CHUNK
-      ? Math.ceil(preview.emails.length / MAILTO_BCC_CHUNK)
-      : 0
 
   return (
     <div style={{ display: "grid", gap: 24 }}>
@@ -453,44 +432,25 @@ export function AdminCommunicationComposerWorkspace(props: { accessToken: string
             />
           </label>
         </div>
-        <div style={{ ...styles.buttonRow, marginTop: 16 }}>
+        <div style={{ marginTop: 16 }}>
           <button
             type="button"
-            onClick={handleOpenGmail}
+            onClick={handleSendViaGmail}
             disabled={
               !preview || selectedEmails.length === 0 || !form.subject.trim() || !form.body.trim()
             }
-            style={styles.primaryButton}
+            style={{ ...styles.primaryButton, padding: "12px 28px", fontSize: 15 }}
           >
-            Open in Gmail ({selectedEmails.length})
-          </button>
-          <button
-            type="button"
-            onClick={handleOpenMailto}
-            disabled={
-              !preview || selectedEmails.length === 0 || !form.subject.trim() || !form.body.trim()
-            }
-            style={styles.secondaryButton}
-          >
-            Open in default mail app
+            Send via Gmail ({selectedEmails.length})
           </button>
         </div>
-        {preview && preview.emails.length === 0 ? (
+        {preview && selectedEmails.length === 0 ? (
           <div style={{ marginTop: 12 }}>
             <Banner
               tone="info"
-              message="No recipients with an email address. Adjust the filters or switch audience."
+              message="No recipients selected. Use checkboxes above or adjust filters."
             />
           </div>
-        ) : null}
-        {overflowChunks > 1 ? (
-          <p style={{ fontSize: 12, color: webTheme.colors.textMuted, marginTop: 12 }}>
-            Heads-up: {preview?.emails.length} recipients exceed the {MAILTO_BCC_CHUNK}-per-link URL
-            safety limit for the default mail app. Gmail will open{" "}
-            {Math.ceil((preview?.emails.length ?? 0) / GMAIL_BCC_CHUNK)} compose tabs (one per
-            chunk). For the default mail app, only the first chunk opens — copy-paste the remaining
-            recipients from the audit log if needed.
-          </p>
         ) : null}
       </WebSectionCard>
     </div>
