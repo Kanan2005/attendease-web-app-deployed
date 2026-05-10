@@ -16,6 +16,10 @@ import type { AuthRequestContext } from "../auth/auth.types.js"
 
 const LOW_ATTENDANCE_THRESHOLD_PERCENT = 75
 
+const CANONICAL_DEGREES = ["BTech", "MTech"] as const
+const CANONICAL_BRANCHES = ["CSE", "ECE", "EE", "ME", "CHEM", "CIVIL", "META"] as const
+const CANONICAL_SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8] as const
+
 type CourseOfferingLite = {
   id: string
   code: string
@@ -44,9 +48,9 @@ export class AdminUsersService {
       }),
     ])
 
-    const degreeSet = new Set<string>()
-    const branchSet = new Set<string>()
-    const semesterSet = new Set<number>()
+    const degreeSet = new Set<string>(CANONICAL_DEGREES)
+    const branchSet = new Set<string>(CANONICAL_BRANCHES)
+    const semesterSet = new Set<number>(CANONICAL_SEMESTERS)
     for (const p of studentProfiles) {
       if (p.degree) degreeSet.add(p.degree)
       if (p.branch) branchSet.add(p.branch)
