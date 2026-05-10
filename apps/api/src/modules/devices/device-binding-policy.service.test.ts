@@ -190,18 +190,6 @@ describe("DeviceBindingPolicyService", () => {
         revokeReason: null,
       })
       .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce(null)
-    database.prisma.userDeviceBinding.create.mockResolvedValue({
-      id: "binding_pending",
-      userId: "student_1",
-      deviceId: "device_2",
-      bindingType: "STUDENT_ATTENDANCE",
-      status: "PENDING",
-      boundAt: new Date("2026-03-14T10:00:00.000Z"),
-      activatedAt: null,
-      revokedAt: null,
-      revokeReason: null,
-    })
 
     await expect(
       service.evaluateLoginDeviceTrust({
@@ -215,31 +203,31 @@ describe("DeviceBindingPolicyService", () => {
       }),
     ).resolves.toEqual({
       state: "BLOCKED",
-      lifecycleState: "PENDING_REPLACEMENT",
+      lifecycleState: "BLOCKED",
       reason: "DEVICE_REPLACEMENT_PENDING_APPROVAL",
       deviceId: "device_2",
-      bindingId: "binding_pending",
+      bindingId: "binding_primary",
     })
 
     expect(database.prisma.securityEvent.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           eventType: "SECOND_DEVICE_FOR_STUDENT_ATTEMPT",
-          bindingId: "binding_pending",
+          bindingId: "binding_primary",
         }),
       }),
     )
   })
 
-  it("keeps a pending replacement blocked even when no active device remains", async () => {
+  it("allows a student to bind a new device after admin unbind (no active binding)", async () => {
     database.prisma.device.upsert.mockResolvedValue({
       id: "device_2",
-      installId: "install-student-pending-device",
+      installId: "install-student-new-device",
       platform: "ANDROID",
       deviceModel: null,
       osVersion: null,
       appVersion: null,
-      publicKey: "public-key-pending-device",
+      publicKey: "public-key-new-device",
       attestationStatus: "UNKNOWN",
       attestationProvider: null,
       attestedAt: null,
@@ -247,36 +235,29 @@ describe("DeviceBindingPolicyService", () => {
     })
     database.prisma.userDeviceBinding.findFirst
       .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce({
-        id: "binding_pending",
-        userId: "student_1",
-        deviceId: "device_2",
-        bindingType: "STUDENT_ATTENDANCE",
-        status: "PENDING",
-        boundAt: new Date("2026-03-14T10:00:00.000Z"),
-        activatedAt: null,
-        revokedAt: null,
-        revokeReason: null,
-      })
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
+    database.prisma.userDeviceBinding.create.mockResolvedValue({
+      id: "binding_new",
+    })
 
     await expect(
       service.evaluateLoginDeviceTrust({
         userId: "student_1",
         activeRole: "STUDENT",
         registration: {
-          installId: "install-student-pending-device",
+          installId: "install-student-new-device",
           platform: "ANDROID",
-          publicKey: "public-key-pending-device",
+          publicKey: "public-key-new-device",
         },
       }),
     ).resolves.toEqual({
-      state: "BLOCKED",
-      lifecycleState: "PENDING_REPLACEMENT",
-      reason: "DEVICE_REPLACEMENT_PENDING_APPROVAL",
+      state: "TRUSTED",
+      lifecycleState: "TRUSTED",
+      reason: "DEVICE_BOUND",
       deviceId: "device_2",
-      bindingId: "binding_pending",
+      bindingId: "binding_new",
     })
   })
 
@@ -307,7 +288,7 @@ describe("DeviceBindingPolicyService", () => {
         boundAt: new Date("2026-03-14T08:00:00.000Z"),
         activatedAt: new Date("2026-03-14T08:00:00.000Z"),
         revokedAt: new Date("2026-03-14T09:00:00.000Z"),
-        revokeReason: "Replacement approved",
+        revokeReason: "Admin unbind",
       })
 
     await expect(

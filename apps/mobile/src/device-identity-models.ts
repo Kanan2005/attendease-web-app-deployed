@@ -38,7 +38,7 @@ export function buildPlaceholderDeviceIdentity(
  */
 export type DeviceBindingErrorKind =
   | "DEVICE_BOUND_TO_ANOTHER"
-  | "REPLACEMENT_PENDING"
+  | "ACCOUNT_BOUND_TO_OTHER_DEVICE"
   | "DEVICE_REPLACED"
   | "DEVICE_UNREGISTERED"
   | "DEVICE_BLOCKED"
@@ -52,8 +52,13 @@ export function classifyDeviceBindingError(message: string): DeviceBindingErrorK
   ) {
     return "DEVICE_BOUND_TO_ANOTHER"
   }
-  if (lower.includes("waiting for admin approval") || lower.includes("replacement")) {
-    return "REPLACEMENT_PENDING"
+  if (
+    lower.includes("waiting for admin approval") ||
+    lower.includes("replacement") ||
+    lower.includes("second device") ||
+    lower.includes("already has an active attendance device")
+  ) {
+    return "ACCOUNT_BOUND_TO_OTHER_DEVICE"
   }
   if (lower.includes("no longer the trusted")) {
     return "DEVICE_REPLACED"
@@ -90,12 +95,14 @@ export function buildDeviceBindingErrorModel(errorMessage: string): DeviceBindin
         supportHint:
           "Each phone can only be linked to one student. Use your own phone or contact admin support.",
       }
-    case "REPLACEMENT_PENDING":
+    case "ACCOUNT_BOUND_TO_OTHER_DEVICE":
       return {
         kind,
-        title: "Approval needed",
-        message: "This phone is waiting for admin approval as your new attendance device.",
-        supportHint: "Contact your admin to approve this device replacement.",
+        title: "Account bound to another device",
+        message: "Your account is bound to another device. Contact your admin to unbind it.",
+        supportHint:
+          "If you lost your phone or need to switch devices, " +
+          "ask your admin to unbind the previous device from the admin portal.",
       }
     case "DEVICE_REPLACED":
       return {

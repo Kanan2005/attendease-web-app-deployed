@@ -692,8 +692,8 @@ function DeviceBindingErrorBanner(props: { error: DeviceBindingErrorModel }) {
   const iconName: React.ComponentProps<typeof Ionicons>["name"] =
     props.error.kind === "DEVICE_BOUND_TO_ANOTHER"
       ? "people-outline"
-      : props.error.kind === "REPLACEMENT_PENDING"
-        ? "time-outline"
+      : props.error.kind === "ACCOUNT_BOUND_TO_OTHER_DEVICE"
+        ? "phone-portrait-outline"
         : props.error.kind === "DEVICE_REPLACED"
           ? "swap-horizontal-outline"
           : "shield-outline"

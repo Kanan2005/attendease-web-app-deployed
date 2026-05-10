@@ -49,12 +49,24 @@ describe("classifyDeviceBindingError", () => {
     ).toBe("DEVICE_BOUND_TO_ANOTHER")
   })
 
-  it("classifies replacement pending error", () => {
+  it("classifies account bound to other device error", () => {
     expect(
       classifyDeviceBindingError(
         "This phone is waiting for admin approval as the replacement attendance device.",
       ),
-    ).toBe("REPLACEMENT_PENDING")
+    ).toBe("ACCOUNT_BOUND_TO_OTHER_DEVICE")
+
+    expect(
+      classifyDeviceBindingError(
+        "A student attempted to activate attendance from a second device.",
+      ),
+    ).toBe("ACCOUNT_BOUND_TO_OTHER_DEVICE")
+
+    expect(
+      classifyDeviceBindingError(
+        "This student already has an active attendance device.",
+      ),
+    ).toBe("ACCOUNT_BOUND_TO_OTHER_DEVICE")
   })
 
   it("classifies device replaced error", () => {
@@ -101,14 +113,14 @@ describe("buildDeviceBindingErrorModel", () => {
     expect(model?.supportHint).toContain("one student")
   })
 
-  it("builds a model for replacement pending error", () => {
+  it("builds a model for account bound to other device error", () => {
     const model = buildDeviceBindingErrorModel(
       "This phone is waiting for admin approval as the replacement attendance device.",
     )
 
     expect(model).not.toBeNull()
-    expect(model?.kind).toBe("REPLACEMENT_PENDING")
-    expect(model?.title).toBe("Approval needed")
+    expect(model?.kind).toBe("ACCOUNT_BOUND_TO_OTHER_DEVICE")
+    expect(model?.title).toBe("Account bound to another device")
   })
 
   it("returns null for non-device errors", () => {

@@ -3,8 +3,7 @@ import { recordDeviceActionTrail, runInTransaction } from "@attendease/db"
 
 import type { DatabaseService } from "../../database/database.service.js"
 import type { DeviceTrustEvaluation } from "../auth/auth.types.js"
-import type { BindingRecord, DeviceRecord } from "./device-binding-policy.service.helpers.js"
-import { upsertPendingStudentBinding } from "./device-binding-policy.service.helpers.js"
+import type { DeviceRecord } from "./device-binding-policy.service.helpers.js"
 
 type SecurityEventInput = {
   userId: string
@@ -208,39 +207,32 @@ export async function resolveDeviceTrustForRole(
   }
 
   if (replacementBinding) {
-    const pendingReplacement = await upsertPendingStudentBinding(
-      params.database,
-      params.userId,
-      deviceId,
-    )
-
     await params.recordSecurityEvent({
       userId: params.userId,
       deviceId,
-      bindingId: pendingReplacement.id,
+      bindingId: replacementBinding.id,
       eventType: "SECOND_DEVICE_FOR_STUDENT_ATTEMPT",
       description: "A student attempted to activate attendance from a second device.",
       metadata: {
         source: params.source,
         activeDeviceId: replacementBinding.deviceId,
         activeBindingId: replacementBinding.id,
-        pendingBindingId: pendingReplacement.id,
       },
     })
 
     return buildDeviceTrustEvaluation({
       state: "BLOCKED",
-      lifecycleState: "PENDING_REPLACEMENT",
+      lifecycleState: "BLOCKED",
       reason: "DEVICE_REPLACEMENT_PENDING_APPROVAL",
       deviceId,
-      bindingId: pendingReplacement.id,
+      bindingId: replacementBinding.id,
     })
   }
 
   if (pendingBindingForStudent) {
     return buildDeviceTrustEvaluation({
       state: "BLOCKED",
-      lifecycleState: "PENDING_REPLACEMENT",
+      lifecycleState: "BLOCKED",
       reason: "DEVICE_REPLACEMENT_PENDING_APPROVAL",
       deviceId,
       bindingId: pendingBindingForStudent.id,

@@ -9,6 +9,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+#### Simplified Device Binding — No More Pending Requests (`apps/api/src/modules/devices/`, `apps/web/src/admin-device-support-console.tsx`, `apps/mobile/src/device-identity-models.ts`)
+
+- **Simplified flow:** Student registers → phone auto-binds. Login from a different phone is blocked with a clear message. Admin unbinds → student can re-register on a new phone.
+- **Removed PENDING replacement workflow:** Second-device attempts no longer create PENDING binding records or replacement requests. The device is simply blocked.
+- **Simplified admin Devices tab:** Replaced the complex "Device recovery desk" (search → case → recovery actions) with a clean student list showing bound device status and a one-click **Unbind** button.
+- **Better mobile error messages:** "Approval needed" → "Account bound to another device" with clear instructions: sign in from original phone or ask admin/professor to unbind.
+- **Backend:** `device-binding-policy.service.trust.ts` no longer calls `upsertPendingStudentBinding`. Second-device login returns `BLOCKED` lifecycle (not `PENDING_REPLACEMENT`).
+- **Tests updated:** All device binding policy tests and mobile device identity tests updated to match simplified flow.
+- **DB migration:** `20260510150000_cleanup_pending_device_bindings` revokes all stale PENDING bindings from the old replacement workflow.
+
+#### Fixed: Web Infinite Refresh Loop on Session Revocation (`apps/web/src/query-client.ts`, `apps/web/src/session-keep-alive.tsx`, `apps/web/app/api/auth/invalidate/route.ts`)
+
+- **Root cause:** When user logs in on a new browser/device, the API revokes the old session (single-session enforcement). The old tab's React Query calls get 401s and redirect to `/login`, but the `httpOnly` session cookies were **not cleared** — so Next.js server layouts re-read the stale cookie, thought the user was still authenticated, rendered the dashboard, which fired more API calls → 401 → redirect → infinite refresh loop.
+- **Fix:** Added `/api/auth/invalidate` POST route that clears all `httpOnly` session cookies and returns JSON. Both `query-client.ts` and `SessionKeepAlive` now call this route **before** redirecting to login, breaking the loop.
+- **Role-aware redirects:** Admin users are now redirected to `/admin/login` (not `/login`) with a `?next=` parameter to return them to their previous page after re-login.
+- **Session heartbeat:** `SessionKeepAlive` now checks session validity every 30 seconds (when user is active), so revoked sessions are detected within ~30s instead of waiting up to 12 minutes for the next token refresh cycle.
+- **Mobile:** Already handled correctly — all 3 roles (student, teacher, admin) have React Query cache subscribers that detect 401 and auto-sign-out to the login screen.
+
 #### Export: Inline Processing Without S3 (`apps/api/src/modules/exports/exports-inline-processor.ts`, `apps/api/src/modules/exports/exports.service.ts`, `apps/api/src/modules/exports/export-storage.service.ts`)
 
 - **No S3/AWS credentials required for exports.** When `STORAGE_INLINE_FALLBACK` is enabled (or when using default dev credentials), teacher exports are now processed synchronously in the API request handler instead of being queued for the worker.

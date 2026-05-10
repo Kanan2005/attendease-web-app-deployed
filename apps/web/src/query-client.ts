@@ -7,11 +7,28 @@ function isAuthExpiredError(error: unknown): boolean {
   return error instanceof AuthApiClientError && error.status === 401
 }
 
-function redirectToLogin() {
+function resolveLoginPath(): string {
+  if (typeof window === "undefined") return "/login"
+  const path = window.location.pathname
+  if (path.startsWith("/admin")) {
+    const next = path + window.location.search
+    return `/admin/login?next=${encodeURIComponent(next)}`
+  }
+  const next = path + window.location.search
+  return `/login?next=${encodeURIComponent(next)}`
+}
+
+async function redirectToLogin() {
   if (redirectingToLogin || typeof window === "undefined") return
   redirectingToLogin = true
-  const next = window.location.pathname + window.location.search
-  window.location.href = `/login?next=${encodeURIComponent(next)}`
+
+  try {
+    await fetch("/api/auth/invalidate", { method: "POST" })
+  } catch {
+    // Best-effort cookie cleanup; proceed with redirect regardless
+  }
+
+  window.location.href = resolveLoginPath()
 }
 
 export function createWebQueryClient() {
