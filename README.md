@@ -46,6 +46,43 @@ Use these accounts to explore the platform:
 
 ---
 
+## Project Stats
+
+<div align="center">
+
+| Metric | Count |
+|--------|-------|
+| **Total Lines of Code** | 144,800+ (TypeScript/TSX) |
+| **Source Files** | 840+ |
+| **Test Files** | 142 |
+| **Test Lines** | 39,600+ |
+| **API Endpoints** | 139 routes |
+| **Database Models** | 44 (Prisma) |
+| **DB Schema** | 1,333 lines |
+| **DB Migrations** | 19 |
+| **Shared Packages** | 12 internal libraries |
+| **Zod Contract Files** | 30 (5,900+ lines) |
+| **CI/CD Workflows** | 7 GitHub Actions pipelines |
+| **Commits** | 96+ |
+| **Documentation Files** | 597 |
+| **Native Code** | 316 lines Kotlin (BLE module) |
+
+</div>
+
+### Lines of Code by App
+
+```
+apps/api      →  46,300 lines   (NestJS REST API)
+apps/web      →  34,300 lines   (Next.js dashboard)
+apps/mobile   →  36,400 lines   (Expo + React Native + Kotlin BLE)
+packages/     →  23,400 lines   (12 shared libraries)
+tests/        →  39,600 lines   (142 test files)
+─────────────────────────────────
+total         → 144,800+ lines
+```
+
+---
+
 ## What is AttendEase?
 
 AttendEase is a production-grade, full-stack attendance management platform built for universities and educational institutions. It replaces manual roll calls with **three automated verification methods** — Bluetooth Low Energy (BLE) proximity, rolling QR codes, and GPS geofencing — all working together in a single unified system.
