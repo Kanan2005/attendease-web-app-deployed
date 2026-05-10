@@ -65,6 +65,9 @@
     "vitest": "^3.0.8"
   },
   "pnpm": {
+    "neverBuiltDependencies": [
+      "prisma"
+    ],
     "patchedDependencies": {
       "next@16.1.6": "patches/next@16.1.6.patch"
     }
