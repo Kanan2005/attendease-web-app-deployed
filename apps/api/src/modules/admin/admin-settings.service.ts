@@ -30,8 +30,8 @@ import { DatabaseService } from "../../database/database.service.js"
 import type { AuthRequestContext } from "../auth/auth.types.js"
 
 const SYSTEM_DEFAULTS: AdminSettingsSystem = {
-  gpsRadiusMeters: 50,
-  qrRotationWindowSeconds: 5,
+  gpsRadiusMeters: 100,
+  qrRotationWindowSeconds: 2,
   bluetoothRotationWindowSeconds: 8,
   defaultAttendanceMode: "QR",
   lowAttendanceThresholdPercent: 75,
