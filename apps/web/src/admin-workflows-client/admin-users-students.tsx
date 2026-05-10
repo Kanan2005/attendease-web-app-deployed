@@ -82,7 +82,7 @@ export function AdminUsersStudentsWorkspace(props: { accessToken: string | null 
       title="Students"
       description="Search and filter the student directory. Click any row to open the profile and toggle attendance access."
     >
-      <div style={{ ...styles.formGrid, marginBottom: 16 }}>
+      <div style={studentFilterGridStyle}>
         <Field
           label="Search (name, email, roll no.)"
           value={draft.query}
@@ -236,4 +236,11 @@ export function AdminUsersStudentsWorkspace(props: { accessToken: string | null 
       )}
     </WebSectionCard>
   )
+}
+
+const studentFilterGridStyle: React.CSSProperties = {
+  display: "grid",
+  gap: 14,
+  gridTemplateColumns: "repeat(3, 1fr)",
+  marginBottom: 16,
 }
