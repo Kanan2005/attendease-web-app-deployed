@@ -74,7 +74,6 @@ function StudentReportPanel(props: { accessToken: string | null; opts: AdminUser
     branch: "",
     currentSemester: "",
     courseOfferingId: "",
-    semesterId: "",
     fromDate: "",
     toDate: "",
   })
@@ -85,7 +84,6 @@ function StudentReportPanel(props: { accessToken: string | null; opts: AdminUser
         ...(form.branch.trim() ? { branch: form.branch.trim() } : {}),
         ...(form.currentSemester ? { currentSemester: Number(form.currentSemester) } : {}),
         ...(form.courseOfferingId.trim() ? { courseOfferingId: form.courseOfferingId.trim() } : {}),
-        ...(form.semesterId.trim() ? { semesterId: form.semesterId.trim() } : {}),
         ...(form.fromDate ? { fromDate: form.fromDate } : {}),
         ...(form.toDate ? { toDate: form.toDate } : {}),
       } as AdminStudentReportRequest
@@ -140,11 +138,6 @@ function StudentReportPanel(props: { accessToken: string | null; opts: AdminUser
           onChange={(value) => setForm({ ...form, courseOfferingId: value })}
         />
         <Field
-          label="Semester id"
-          value={form.semesterId}
-          onChange={(value) => setForm({ ...form, semesterId: value })}
-        />
-        <Field
           label="From date"
           value={form.fromDate}
           onChange={(value) => setForm({ ...form, fromDate: value })}
@@ -161,7 +154,7 @@ function StudentReportPanel(props: { accessToken: string | null; opts: AdminUser
         mutation={mutation}
         onGenerate={() => mutation.mutate()}
         onReset={() =>
-          setForm({ studentId: "", branch: "", currentSemester: "", courseOfferingId: "", semesterId: "", fromDate: "", toDate: "" })
+          setForm({ studentId: "", branch: "", currentSemester: "", courseOfferingId: "", fromDate: "", toDate: "" })
         }
       />
     </WebSectionCard>
@@ -177,7 +170,6 @@ function TeacherReportPanel(props: { accessToken: string | null; opts: AdminUser
   const [form, setForm] = useState({
     teacherId: "",
     department: "",
-    semesterId: "",
     includeArchived: false,
     fromDate: "",
     toDate: "",
@@ -188,7 +180,6 @@ function TeacherReportPanel(props: { accessToken: string | null; opts: AdminUser
         includeArchived: form.includeArchived,
         ...(form.teacherId.trim() ? { teacherId: form.teacherId.trim() } : {}),
         ...(form.department.trim() ? { department: form.department.trim() } : {}),
-        ...(form.semesterId.trim() ? { semesterId: form.semesterId.trim() } : {}),
         ...(form.fromDate ? { fromDate: form.fromDate } : {}),
         ...(form.toDate ? { toDate: form.toDate } : {}),
       } as AdminTeacherReportRequest
@@ -224,11 +215,6 @@ function TeacherReportPanel(props: { accessToken: string | null; opts: AdminUser
             ))}
           </select>
         </label>
-        <Field
-          label="Semester id"
-          value={form.semesterId}
-          onChange={(value) => setForm({ ...form, semesterId: value })}
-        />
         <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <input
             type="checkbox"
@@ -257,7 +243,6 @@ function TeacherReportPanel(props: { accessToken: string | null; opts: AdminUser
           setForm({
             teacherId: "",
             department: "",
-            semesterId: "",
             includeArchived: false,
             fromDate: "",
             toDate: "",
