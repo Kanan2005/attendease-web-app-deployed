@@ -1,133 +1,24 @@
-import { createAuthApiClient } from "@attendease/auth"
-import { loadMobileEnv } from "@attendease/config"
-import type { AttendanceMode, TrustedDeviceAttendanceReadyResponse } from "@attendease/contracts"
 import { getColors, mobileTheme } from "@attendease/ui-mobile"
 import { Ionicons } from "@expo/vector-icons"
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Link, useRouter } from "expo-router"
-import { useEffect, useState } from "react"
-import type { ComponentType, ReactNode } from "react"
-import {
-  ActivityIndicator,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native"
-
-import { getMobileAttendanceListPollInterval } from "../attendance-live"
-import {
-  buildStudentBluetoothDetectionBanner,
-  buildStudentBluetoothScannerBanner,
-  buildStudentBluetoothSubmissionBanner,
-  describeBluetoothSignalStrength,
-  mapBluetoothAvailabilityToPermissionState,
-  resolveSelectedBluetoothDetection,
-  usePreferredBluetoothDetection,
-  useStudentBluetoothMarkAttendanceMutation,
-  useStudentBluetoothScanner,
-} from "../bluetooth-attendance"
-import { buildStudentAttendanceGateModel, createMobileDeviceTrustBootstrap } from "../device-trust"
-import { mobileEntryRoutes } from "../mobile-entry-models"
-import {
-  type StudentAttendancePermissionState,
-  type StudentQrLocationSnapshot,
-  type StudentQrLocationState,
-  buildStudentAttendanceControllerSnapshot,
-  buildStudentBluetoothAttendanceErrorBanner,
-  buildStudentBluetoothMarkRequest,
-  buildStudentQrAttendanceErrorBanner,
-  buildStudentQrLocationBanner,
-  buildStudentQrMarkRequest,
-  buildStudentQrScanBanner,
-  resolveStudentQrCameraPermissionState,
-  studentAttendancePermissionStateValues,
-} from "../student-attendance"
-import {
-  type CardTone,
-  type StudentDashboardActionModel,
-  buildStudentDashboardModel,
-  buildStudentLectureTimeline,
-  mapStudentApiErrorToMessage,
-} from "../student-models"
-import {
-  buildStudentInvalidationKeys,
-  invalidateStudentExperienceQueries,
-  requireStudentAccessToken,
-  studentQueryKeys,
-  useStudentRefreshAction,
-} from "../student-query"
+import { useRouter } from "expo-router"
+import { useState } from "react"
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native"
+import { mapStudentApiErrorToMessage } from "../student-models"
 import { studentRoutes } from "../student-routes"
 import { useStudentSession } from "../student-session"
-import {
-  type StudentScreenStatus,
-  buildStudentAttendanceRefreshStatus,
-  buildStudentDashboardStatus,
-  buildStudentHistoryRefreshStatus,
-  buildStudentJoinBanner,
-  buildStudentReportsStatus,
-} from "../student-view-state"
-import {
-  type StudentAttendanceCandidate,
-  type StudentProfileDraft,
-  buildStudentAttendanceCandidates,
-  buildStudentAttendanceHistoryRows,
-  buildStudentAttendanceHistorySummaryModel,
-  buildStudentAttendanceInsightModel,
-  buildStudentAttendanceOverviewModel,
-  buildStudentClassroomDetailSummaryModel,
-  buildStudentCourseDiscoveryCards,
-  buildStudentDeviceStatusSummaryModel,
-  buildStudentReportOverviewModel,
-  buildStudentScheduleOverviewModel,
-  buildStudentSubjectReportModel,
-  buildStudentSubjectReportSummaryModel,
-  createStudentProfileDraft,
-  hasStudentProfileDraftChanges,
-  normalizeStudentProfileDraft,
-} from "../student-workflow-models"
+import { buildStudentJoinBanner } from "../student-view-state"
 
+import { useStudentClassroomsQuery, useStudentJoinClassroomMutation } from "./queries"
 import {
-  useStudentAttendanceController,
-  useStudentAttendanceHistoryData,
-  useStudentAttendanceOverview,
-  useStudentAttendanceReadyQuery,
-  useStudentClassroomAnnouncementsQuery,
-  useStudentClassroomDetailData,
-  useStudentClassroomsQuery,
-  useStudentCourseDiscoveryData,
-  useStudentDashboardData,
-  useStudentJoinClassroomMutation,
-  useStudentLiveAttendanceSessionsQuery,
-  useStudentMeQuery,
-  useStudentQrMarkAttendanceMutation,
-  useStudentReportsData,
-  useStudentSubjectReportData,
-} from "./queries"
-import {
-  AnnouncementRow,
-  AttendanceCandidateRow,
   StudentBackButton,
   StudentCard,
-  StudentDashboardSpotlightCard,
   StudentEmptyCard,
-  StudentErrorCard,
   StudentLoadingCard,
-  StudentNavAction,
-  StudentQuickActions,
   StudentScreen,
   StudentSessionSetupCard,
   StudentStatusBanner,
-  formatAttendanceMode,
-  formatDateTime,
   formatEnum,
-  resolveStudentDashboardActionHref,
-  spotlightToneStyle,
   styles,
-  toneColorStyle,
 } from "./shared-ui"
 
 export function StudentJoinClassroomScreen() {
@@ -187,7 +78,13 @@ export function StudentJoinClassroomScreen() {
               <Text style={{ fontSize: 17, fontWeight: "700", color: c.text }}>
                 Enter Join Code
               </Text>
-              <Text style={{ fontSize: 13, color: c.textMuted, textAlign: "center" }}>
+              <Text
+                style={{
+                  fontSize: 13,
+                  color: c.textMuted,
+                  textAlign: "center",
+                }}
+              >
                 Ask your teacher for the classroom join code
               </Text>
             </View>
@@ -293,7 +190,11 @@ export function StudentJoinClassroomScreen() {
                     </View>
                     <View style={{ flex: 1, gap: 2 }}>
                       <Text
-                        style={{ fontSize: 15, fontWeight: "600", color: c.text }}
+                        style={{
+                          fontSize: 15,
+                          fontWeight: "600",
+                          color: c.text,
+                        }}
                         numberOfLines={1}
                       >
                         {classroom.displayTitle}

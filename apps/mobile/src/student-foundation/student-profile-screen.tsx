@@ -1,131 +1,31 @@
-import { createAuthApiClient } from "@attendease/auth"
-import { loadMobileEnv } from "@attendease/config"
-import type { AttendanceMode, TrustedDeviceAttendanceReadyResponse } from "@attendease/contracts"
-import { getColors, mobileTheme } from "@attendease/ui-mobile"
+import { getColors } from "@attendease/ui-mobile"
 import { Ionicons } from "@expo/vector-icons"
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Link } from "expo-router"
 import { useEffect, useState } from "react"
-import type { ComponentType, ReactNode } from "react"
-import {
-  ActivityIndicator,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native"
-
-import { getMobileAttendanceListPollInterval } from "../attendance-live"
-import {
-  buildStudentBluetoothDetectionBanner,
-  buildStudentBluetoothScannerBanner,
-  buildStudentBluetoothSubmissionBanner,
-  describeBluetoothSignalStrength,
-  mapBluetoothAvailabilityToPermissionState,
-  resolveSelectedBluetoothDetection,
-  usePreferredBluetoothDetection,
-  useStudentBluetoothMarkAttendanceMutation,
-  useStudentBluetoothScanner,
-} from "../bluetooth-attendance"
-import { buildStudentAttendanceGateModel, createMobileDeviceTrustBootstrap } from "../device-trust"
-import { mobileEntryRoutes } from "../mobile-entry-models"
-import {
-  type StudentAttendancePermissionState,
-  type StudentQrLocationSnapshot,
-  type StudentQrLocationState,
-  buildStudentAttendanceControllerSnapshot,
-  buildStudentBluetoothAttendanceErrorBanner,
-  buildStudentBluetoothMarkRequest,
-  buildStudentQrAttendanceErrorBanner,
-  buildStudentQrLocationBanner,
-  buildStudentQrMarkRequest,
-  buildStudentQrScanBanner,
-  resolveStudentQrCameraPermissionState,
-  studentAttendancePermissionStateValues,
-} from "../student-attendance"
-import {
-  type CardTone,
-  type StudentDashboardActionModel,
-  buildStudentDashboardModel,
-  buildStudentLectureTimeline,
-  mapStudentApiErrorToMessage,
-} from "../student-models"
-import {
-  buildStudentInvalidationKeys,
-  invalidateStudentExperienceQueries,
-  requireStudentAccessToken,
-  studentQueryKeys,
-  useStudentRefreshAction,
-} from "../student-query"
+import { ActivityIndicator, Pressable, Text, TextInput, View } from "react-native"
+import { mapStudentApiErrorToMessage } from "../student-models"
 import { studentRoutes } from "../student-routes"
 import { useStudentSession } from "../student-session"
 import {
-  type StudentScreenStatus,
-  buildStudentAttendanceRefreshStatus,
-  buildStudentDashboardStatus,
-  buildStudentHistoryRefreshStatus,
-  buildStudentJoinBanner,
-  buildStudentReportsStatus,
-} from "../student-view-state"
-import {
-  type StudentAttendanceCandidate,
   type StudentProfileDraft,
-  buildStudentAttendanceCandidates,
-  buildStudentAttendanceHistoryRows,
-  buildStudentAttendanceHistorySummaryModel,
-  buildStudentAttendanceInsightModel,
-  buildStudentAttendanceOverviewModel,
-  buildStudentClassroomDetailSummaryModel,
-  buildStudentCourseDiscoveryCards,
   buildStudentDeviceStatusSummaryModel,
-  buildStudentReportOverviewModel,
-  buildStudentScheduleOverviewModel,
-  buildStudentSubjectReportModel,
-  buildStudentSubjectReportSummaryModel,
   createStudentProfileDraft,
   hasStudentProfileDraftChanges,
   normalizeStudentProfileDraft,
 } from "../student-workflow-models"
 
 import {
-  useStudentAttendanceController,
-  useStudentAttendanceHistoryData,
-  useStudentAttendanceOverview,
-  useStudentAttendanceReadyQuery,
-  useStudentClassroomDetailData,
   useStudentClassroomsQuery,
-  useStudentDashboardData,
-  useStudentJoinClassroomMutation,
-  useStudentLiveAttendanceSessionsQuery,
   useStudentMeQuery,
-  useStudentQrMarkAttendanceMutation,
-  useStudentReportsData,
-  useStudentSubjectReportData,
   useStudentUpdateProfileMutation,
 } from "./queries"
 import {
-  AnnouncementRow,
-  AttendanceCandidateRow,
   StudentCard,
-  StudentDashboardSpotlightCard,
-  StudentEmptyCard,
   StudentErrorCard,
   StudentLoadingCard,
   StudentNavAction,
-  StudentQuickActions,
   StudentScreen,
   StudentSessionSetupCard,
-  StudentStatusBanner,
-  formatAttendanceMode,
-  formatDateTime,
-  formatEnum,
-  resolveStudentDashboardActionHref,
-  spotlightToneStyle,
   styles,
-  toneColorStyle,
 } from "./shared-ui"
 
 export function StudentProfileScreen() {
@@ -222,7 +122,8 @@ export function StudentProfileScreen() {
               >
                 <Ionicons name="library-outline" size={14} color={c.primary} />
                 <Text style={{ fontSize: 13, fontWeight: "700", color: c.primary }}>
-                  {joinedClassroomCount} classroom{joinedClassroomCount === 1 ? "" : "s"}
+                  {joinedClassroomCount} classroom
+                  {joinedClassroomCount === 1 ? "" : "s"}
                 </Text>
               </View>
               <View
@@ -336,7 +237,10 @@ export function StudentProfileScreen() {
               placeholderTextColor={c.textSubtle}
               onChangeText={(value) => {
                 setSaveMessage(null)
-                setDraft((currentDraft) => ({ ...currentDraft, rollNumber: value }))
+                setDraft((currentDraft) => ({
+                  ...currentDraft,
+                  rollNumber: value,
+                }))
               }}
               style={styles.input}
             />
@@ -351,7 +255,10 @@ export function StudentProfileScreen() {
               placeholderTextColor={c.textSubtle}
               onChangeText={(value) => {
                 setSaveMessage(null)
-                setDraft((currentDraft) => ({ ...currentDraft, displayName: value }))
+                setDraft((currentDraft) => ({
+                  ...currentDraft,
+                  displayName: value,
+                }))
               }}
               style={styles.input}
             />
@@ -364,7 +271,10 @@ export function StudentProfileScreen() {
               placeholderTextColor={c.textSubtle}
               onChangeText={(value) => {
                 setSaveMessage(null)
-                setDraft((currentDraft) => ({ ...currentDraft, preferredShortName: value }))
+                setDraft((currentDraft) => ({
+                  ...currentDraft,
+                  preferredShortName: value,
+                }))
               }}
               style={styles.input}
             />
@@ -409,7 +319,12 @@ export function StudentProfileScreen() {
             <Pressable
               style={[
                 styles.primaryButton,
-                { flex: 1, flexDirection: "row", justifyContent: "center", gap: 8 },
+                {
+                  flex: 1,
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  gap: 8,
+                },
                 !canSave ? { opacity: 0.5 } : null,
               ]}
               disabled={!canSave}
@@ -455,7 +370,12 @@ export function StudentProfileScreen() {
             <Pressable
               style={[
                 styles.secondaryButton,
-                { flex: 0.5, flexDirection: "row", justifyContent: "center", gap: 6 },
+                {
+                  flex: 0.5,
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  gap: 6,
+                },
               ]}
               disabled={updateProfileMutation.isPending}
               onPress={() => {
@@ -509,7 +429,13 @@ function ProfileFieldLabel(props: { icon: string; label: string }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
       <Ionicons name={props.icon as "school-outline"} size={14} color={getColors().textSubtle} />
-      <Text style={{ color: getColors().textMuted, fontSize: 13, fontWeight: "600" }}>
+      <Text
+        style={{
+          color: getColors().textMuted,
+          fontSize: 13,
+          fontWeight: "600",
+        }}
+      >
         {props.label}
       </Text>
     </View>

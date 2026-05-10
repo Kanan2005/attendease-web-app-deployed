@@ -9,16 +9,23 @@ export function createMobileAuthBootstrap(
 ) {
   const env = loadMobileEnv(source)
 
+  // SECURITY: Never expose dev credentials in production builds.
+  const isDev = typeof __DEV__ !== "undefined" ? __DEV__ : env.EXPO_PUBLIC_APP_ENV !== "production"
+
   return {
     apiBaseUrl: env.EXPO_PUBLIC_API_URL,
     googleClientId: env.EXPO_PUBLIC_GOOGLE_OIDC_CLIENT_ID ?? null,
-    developmentStudentEmail: env.EXPO_PUBLIC_STUDENT_DEV_EMAIL ?? null,
-    developmentStudentPassword: env.EXPO_PUBLIC_STUDENT_DEV_PASSWORD ?? null,
-    developmentInstallId: env.EXPO_PUBLIC_STUDENT_DEV_INSTALL_ID ?? "student-dev-install",
-    developmentPublicKey: env.EXPO_PUBLIC_STUDENT_DEV_PUBLIC_KEY ?? "student-dev-public-key",
+    developmentStudentEmail: isDev ? (env.EXPO_PUBLIC_STUDENT_DEV_EMAIL ?? null) : null,
+    developmentStudentPassword: isDev ? (env.EXPO_PUBLIC_STUDENT_DEV_PASSWORD ?? null) : null,
+    developmentInstallId: isDev
+      ? (env.EXPO_PUBLIC_STUDENT_DEV_INSTALL_ID ?? "student-dev-install")
+      : "student-dev-install",
+    developmentPublicKey: isDev
+      ? (env.EXPO_PUBLIC_STUDENT_DEV_PUBLIC_KEY ?? "student-dev-public-key")
+      : "student-dev-public-key",
     developmentDevicePlatform: env.EXPO_PUBLIC_STUDENT_DEV_PLATFORM,
-    developmentTeacherEmail: env.EXPO_PUBLIC_TEACHER_DEV_EMAIL ?? null,
-    developmentTeacherPassword: env.EXPO_PUBLIC_TEACHER_DEV_PASSWORD ?? null,
+    developmentTeacherEmail: isDev ? (env.EXPO_PUBLIC_TEACHER_DEV_EMAIL ?? null) : null,
+    developmentTeacherPassword: isDev ? (env.EXPO_PUBLIC_TEACHER_DEV_PASSWORD ?? null) : null,
     authClient: createAuthApiClient({
       baseUrl: env.EXPO_PUBLIC_API_URL,
     }),

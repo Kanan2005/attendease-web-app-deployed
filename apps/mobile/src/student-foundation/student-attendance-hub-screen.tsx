@@ -1,132 +1,26 @@
-import { createAuthApiClient } from "@attendease/auth"
-import type { AttendanceMode, TrustedDeviceAttendanceReadyResponse } from "@attendease/contracts"
 import { getColors, mobileTheme } from "@attendease/ui-mobile"
 import { Ionicons } from "@expo/vector-icons"
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link } from "expo-router"
-import { useEffect, useState } from "react"
-import type { ComponentType, ReactNode } from "react"
-import {
-  ActivityIndicator,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native"
+import { useState } from "react"
+import { Pressable, Text, View } from "react-native"
 import Animated, { FadeInDown } from "react-native-reanimated"
 import { mobileEnv } from "../mobile-env"
-
-import { getMobileAttendanceListPollInterval } from "../attendance-live"
-import {
-  buildStudentBluetoothDetectionBanner,
-  buildStudentBluetoothScannerBanner,
-  buildStudentBluetoothSubmissionBanner,
-  describeBluetoothSignalStrength,
-  mapBluetoothAvailabilityToPermissionState,
-  resolveSelectedBluetoothDetection,
-  usePreferredBluetoothDetection,
-  useStudentBluetoothMarkAttendanceMutation,
-  useStudentBluetoothScanner,
-} from "../bluetooth-attendance"
-import { buildStudentAttendanceGateModel, createMobileDeviceTrustBootstrap } from "../device-trust"
-import { mobileEntryRoutes } from "../mobile-entry-models"
-import {
-  type StudentAttendancePermissionState,
-  type StudentQrLocationSnapshot,
-  type StudentQrLocationState,
-  buildStudentAttendanceControllerSnapshot,
-  buildStudentBluetoothAttendanceErrorBanner,
-  buildStudentBluetoothMarkRequest,
-  buildStudentQrAttendanceErrorBanner,
-  buildStudentQrLocationBanner,
-  buildStudentQrMarkRequest,
-  buildStudentQrScanBanner,
-  resolveStudentQrCameraPermissionState,
-  studentAttendancePermissionStateValues,
-} from "../student-attendance"
-import {
-  type CardTone,
-  type StudentDashboardActionModel,
-  buildStudentDashboardModel,
-  buildStudentLectureTimeline,
-  mapStudentApiErrorToMessage,
-} from "../student-models"
-import {
-  buildStudentInvalidationKeys,
-  invalidateStudentExperienceQueries,
-  requireStudentAccessToken,
-  studentQueryKeys,
-  useStudentRefreshAction,
-} from "../student-query"
+import { mapStudentApiErrorToMessage } from "../student-models"
+import { useStudentRefreshAction } from "../student-query"
 import { studentRoutes } from "../student-routes"
 import { useStudentSession } from "../student-session"
-import {
-  type StudentScreenStatus,
-  buildStudentAttendanceRefreshStatus,
-  buildStudentDashboardStatus,
-  buildStudentHistoryRefreshStatus,
-  buildStudentJoinBanner,
-  buildStudentReportsStatus,
-} from "../student-view-state"
-import {
-  type StudentAttendanceCandidate,
-  type StudentProfileDraft,
-  buildStudentAttendanceCandidates,
-  buildStudentAttendanceHistoryRows,
-  buildStudentAttendanceHistorySummaryModel,
-  buildStudentAttendanceInsightModel,
-  buildStudentAttendanceOverviewModel,
-  buildStudentClassroomDetailSummaryModel,
-  buildStudentCourseDiscoveryCards,
-  buildStudentDeviceStatusSummaryModel,
-  buildStudentReportOverviewModel,
-  buildStudentScheduleOverviewModel,
-  buildStudentSubjectReportModel,
-  buildStudentSubjectReportSummaryModel,
-  createStudentProfileDraft,
-  hasStudentProfileDraftChanges,
-  normalizeStudentProfileDraft,
-} from "../student-workflow-models"
+import { buildStudentAttendanceRefreshStatus } from "../student-view-state"
 
+import { useStudentAttendanceOverview } from "./queries"
 import {
-  useStudentAttendanceController,
-  useStudentAttendanceHistoryData,
-  useStudentAttendanceOverview,
-  useStudentAttendanceReadyQuery,
-  useStudentClassroomDetailData,
-  useStudentClassroomsQuery,
-  useStudentDashboardData,
-  useStudentJoinClassroomMutation,
-  useStudentLiveAttendanceSessionsQuery,
-  useStudentMeQuery,
-  useStudentQrMarkAttendanceMutation,
-  useStudentReportsData,
-  useStudentSubjectReportData,
-} from "./queries"
-import {
-  AnnouncementRow,
   AttendanceCandidateRow,
   StudentCard,
-  StudentDashboardSpotlightCard,
-  StudentEmptyCard,
   StudentErrorCard,
   StudentLoadingCard,
   StudentNavAction,
   StudentProfileButton,
-  StudentQuickActions,
   StudentScreen,
   StudentSessionSetupCard,
-  StudentStatusBanner,
-  formatAttendanceMode,
-  formatDateTime,
-  formatEnum,
-  resolveStudentDashboardActionHref,
-  spotlightToneStyle,
-  styles,
-  toneColorStyle,
 } from "./shared-ui"
 
 const env = mobileEnv
@@ -219,7 +113,14 @@ export function StudentAttendanceHubScreen() {
                     paddingVertical: 5,
                   }}
                 >
-                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#fff" }} />
+                  <View
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: 3,
+                      backgroundColor: "#fff",
+                    }}
+                  />
                   <Text style={{ fontSize: 12, fontWeight: "700", color: "#fff" }}>
                     {attendance.overview.totalOpenSessions} Live
                   </Text>
@@ -304,7 +205,13 @@ export function StudentAttendanceHubScreen() {
                       Scan QR code and verify location
                     </Text>
                     {attendance.overview.qrReadyCount > 0 ? (
-                      <Text style={{ fontSize: 12, fontWeight: "700", color: c.success }}>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontWeight: "700",
+                          color: c.success,
+                        }}
+                      >
                         {attendance.overview.qrReadyCount} session
                         {attendance.overview.qrReadyCount === 1 ? "" : "s"} ready
                       </Text>
@@ -351,7 +258,13 @@ export function StudentAttendanceHubScreen() {
                       Auto-detect teacher's beacon nearby
                     </Text>
                     {attendance.overview.bluetoothReadyCount > 0 ? (
-                      <Text style={{ fontSize: 12, fontWeight: "700", color: c.success }}>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontWeight: "700",
+                          color: c.success,
+                        }}
+                      >
                         {attendance.overview.bluetoothReadyCount} session
                         {attendance.overview.bluetoothReadyCount === 1 ? "" : "s"} ready
                       </Text>

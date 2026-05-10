@@ -36,8 +36,11 @@ const adminSessionContext = createContext<AdminSessionContextValue | null>(null)
 export function buildAdminSessionBootstrap(
   source: Record<string, string | undefined> = mobileEnvSource,
 ): AdminSessionBootstrap {
-  const devEmail = source.EXPO_PUBLIC_ADMIN_DEV_EMAIL ?? ""
-  const devPassword = source.EXPO_PUBLIC_ADMIN_DEV_PASSWORD ?? ""
+  // SECURITY: Never expose dev credentials in production builds.
+  const isDev =
+    typeof __DEV__ !== "undefined" ? __DEV__ : source.EXPO_PUBLIC_APP_ENV !== "production"
+  const devEmail = isDev ? (source.EXPO_PUBLIC_ADMIN_DEV_EMAIL ?? "") : ""
+  const devPassword = isDev ? (source.EXPO_PUBLIC_ADMIN_DEV_PASSWORD ?? "") : ""
 
   return {
     hasDevelopmentCredentials: Boolean(devEmail && devPassword),

@@ -7,6 +7,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased] — v2.0
 
+### Fixed
+
+#### Mobile Production Readiness — UI Audit (`apps/mobile/src/auth.ts`, `apps/mobile/src/admin-session.tsx`, `apps/mobile/app.json`, `apps/mobile/package.json`, `apps/mobile/src/student-foundation/*.tsx`)
+
+- **SECURITY:** Dev credentials (`EXPO_PUBLIC_*_DEV_EMAIL/PASSWORD`) are now guarded by `__DEV__` / `EXPO_PUBLIC_APP_ENV` — production builds never pre-fill sign-in forms with test account passwords (`auth.ts`, `admin-session.tsx`).
+- **app.json production metadata:** Added app icon (MNIT Attendance logo), splash screen, adaptive icon, iOS `buildNumber`, Android `versionCode`, iOS camera/location permission descriptions, Android CAMERA + ACCESS_FINE_LOCATION permissions. Version bumped from `0.1.0` → `1.0.0`.
+- **Unused imports cleanup:** Removed ~500 lines of unused imports across 10 student-foundation screen files that were copied from a monolithic source during the split. Reduces bundle size and improves maintainability.
+- All 182 mobile unit tests pass, typecheck clean.
+
 ### Added
 
 #### Phase 3A: Security Event Audit Log (`packages/contracts/src/admin-security.ts`, `apps/api/src/modules/admin/admin-security.service.ts`, `apps/api/src/modules/admin/admin-security.controller.ts`, `apps/web/src/admin-workflows-client/admin-security.tsx`)

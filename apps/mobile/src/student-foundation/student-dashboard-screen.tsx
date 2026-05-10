@@ -1,118 +1,21 @@
-import { createAuthApiClient } from "@attendease/auth"
-import { loadMobileEnv } from "@attendease/config"
-import type { AttendanceMode, TrustedDeviceAttendanceReadyResponse } from "@attendease/contracts"
-import { getColors, mobileTheme } from "@attendease/ui-mobile"
+import { getColors } from "@attendease/ui-mobile"
 import { Ionicons } from "@expo/vector-icons"
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link } from "expo-router"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import type React from "react"
-import type { ComponentType, ReactNode } from "react"
-import {
-  ActivityIndicator,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native"
+import { Pressable, StyleSheet, Text, View } from "react-native"
 import Animated, { FadeInDown } from "react-native-reanimated"
-
-import { getMobileAttendanceListPollInterval } from "../attendance-live"
-import {
-  buildStudentBluetoothDetectionBanner,
-  buildStudentBluetoothScannerBanner,
-  buildStudentBluetoothSubmissionBanner,
-  describeBluetoothSignalStrength,
-  mapBluetoothAvailabilityToPermissionState,
-  resolveSelectedBluetoothDetection,
-  usePreferredBluetoothDetection,
-  useStudentBluetoothMarkAttendanceMutation,
-  useStudentBluetoothScanner,
-} from "../bluetooth-attendance"
-import { buildStudentAttendanceGateModel, createMobileDeviceTrustBootstrap } from "../device-trust"
-import { mobileEntryRoutes } from "../mobile-entry-models"
-import {
-  type StudentAttendancePermissionState,
-  type StudentQrLocationSnapshot,
-  type StudentQrLocationState,
-  buildStudentAttendanceControllerSnapshot,
-  buildStudentBluetoothAttendanceErrorBanner,
-  buildStudentBluetoothMarkRequest,
-  buildStudentQrAttendanceErrorBanner,
-  buildStudentQrLocationBanner,
-  buildStudentQrMarkRequest,
-  buildStudentQrScanBanner,
-  resolveStudentQrCameraPermissionState,
-  studentAttendancePermissionStateValues,
-} from "../student-attendance"
-import {
-  type CardTone,
-  type StudentDashboardActionModel,
-  buildStudentDashboardModel,
-  buildStudentLectureTimeline,
-  mapStudentApiErrorToMessage,
-} from "../student-models"
-import {
-  buildStudentInvalidationKeys,
-  invalidateStudentExperienceQueries,
-  requireStudentAccessToken,
-  studentQueryKeys,
-  useStudentRefreshAction,
-} from "../student-query"
+import { buildStudentDashboardModel, mapStudentApiErrorToMessage } from "../student-models"
 import { studentRoutes } from "../student-routes"
 import { useStudentSession } from "../student-session"
-import {
-  type StudentScreenStatus,
-  buildStudentAttendanceRefreshStatus,
-  buildStudentDashboardStatus,
-  buildStudentHistoryRefreshStatus,
-  buildStudentJoinBanner,
-  buildStudentReportsStatus,
-} from "../student-view-state"
-import {
-  type StudentAttendanceCandidate,
-  type StudentProfileDraft,
-  buildStudentAttendanceCandidates,
-  buildStudentAttendanceHistoryRows,
-  buildStudentAttendanceHistorySummaryModel,
-  buildStudentAttendanceInsightModel,
-  buildStudentAttendanceOverviewModel,
-  buildStudentClassroomDetailSummaryModel,
-  buildStudentCourseDiscoveryCards,
-  buildStudentDeviceStatusSummaryModel,
-  buildStudentReportOverviewModel,
-  buildStudentScheduleOverviewModel,
-  buildStudentSubjectReportModel,
-  buildStudentSubjectReportSummaryModel,
-  createStudentProfileDraft,
-  hasStudentProfileDraftChanges,
-  normalizeStudentProfileDraft,
-} from "../student-workflow-models"
+import { buildStudentDashboardStatus } from "../student-view-state"
 
 import {
-  useStudentAttendanceController,
-  useStudentAttendanceHistoryData,
   useStudentAttendanceOverview,
-  useStudentAttendanceReadyQuery,
-  useStudentClassroomAnnouncementsQuery,
-  useStudentClassroomDetailData,
-  useStudentClassroomsQuery,
-  useStudentCourseDiscoveryData,
   useStudentDashboardData,
   useStudentDeviceRegistrationMutation,
-  useStudentJoinClassroomMutation,
-  useStudentLiveAttendanceSessionsQuery,
-  useStudentMeQuery,
-  useStudentQrMarkAttendanceMutation,
-  useStudentReportsData,
-  useStudentSubjectReportData,
 } from "./queries"
 import {
-  AnnouncementRow,
-  AttendanceCandidateRow,
   StudentCard,
   StudentDashboardSpotlightCard,
   StudentEmptyCard,
@@ -127,8 +30,6 @@ import {
   formatAttendanceMode,
   formatDateTime,
   formatEnum,
-  resolveStudentDashboardActionHref,
-  spotlightToneStyle,
   styles,
   toneColorStyle,
 } from "./shared-ui"
@@ -278,7 +179,12 @@ export function StudentDashboardScreen() {
               >
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                   <View
-                    style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.danger }}
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 4,
+                      backgroundColor: c.danger,
+                    }}
                   />
                   <Text style={{ fontSize: 16, fontWeight: "800", color: c.text }}>Live now</Text>
                   <Text style={{ fontSize: 13, color: c.textMuted }}>
@@ -333,7 +239,11 @@ export function StudentDashboardScreen() {
                           </View>
                           <View style={{ flex: 1, gap: 2 }}>
                             <Text
-                              style={{ fontSize: 15, fontWeight: "700", color: c.text }}
+                              style={{
+                                fontSize: 15,
+                                fontWeight: "700",
+                                color: c.text,
+                              }}
                               numberOfLines={1}
                             >
                               {candidate.classroomTitle}
@@ -354,7 +264,13 @@ export function StudentDashboardScreen() {
                               paddingVertical: 7,
                             }}
                           >
-                            <Text style={{ fontSize: 12, fontWeight: "700", color: "#fff" }}>
+                            <Text
+                              style={{
+                                fontSize: 12,
+                                fontWeight: "700",
+                                color: "#fff",
+                              }}
+                            >
                               Mark
                             </Text>
                             <Ionicons name="arrow-forward" size={12} color="#fff" />
@@ -413,7 +329,11 @@ export function StudentDashboardScreen() {
                       </View>
                       <View style={{ flex: 1, gap: 2 }}>
                         <Text
-                          style={{ fontSize: 15, fontWeight: "600", color: c.text }}
+                          style={{
+                            fontSize: 15,
+                            fontWeight: "600",
+                            color: c.text,
+                          }}
                           numberOfLines={1}
                         >
                           {classroom.title}
@@ -458,7 +378,13 @@ export function StudentDashboardScreen() {
                         : "stats-chart-outline"
                 return (
                   <View key={card.label} style={styles.metricCard}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 6,
+                      }}
+                    >
                       <Ionicons name={iconName} size={13} color={c.textSubtle} />
                       <Text style={styles.metricLabel}>{card.label}</Text>
                     </View>
@@ -499,7 +425,13 @@ export function StudentDashboardScreen() {
                       <Text style={styles.listMeta}>
                         {item.classroomTitle} · {formatDateTime(item.timestamp)}
                       </Text>
-                      <Text style={{ fontSize: 11, fontWeight: "600", color: iconColor }}>
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: "600",
+                          color: iconColor,
+                        }}
+                      >
                         {formatEnum(item.status)}
                       </Text>
                     </View>

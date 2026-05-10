@@ -3,22 +3,39 @@
     "name": "AttendEase",
     "slug": "attendease",
     "scheme": "attendease",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
     "plugins": ["expo-router"],
     "ios": {
+      "buildNumber": "1",
+      "supportsTablet": false,
       "infoPlist": {
         "NSBluetoothAlwaysUsageDescription": "AttendEase uses Bluetooth to run proximity-based attendance sessions and scan nearby teacher broadcasts.",
-        "NSBluetoothPeripheralUsageDescription": "AttendEase uses Bluetooth to run teacher attendance broadcasts during active classroom sessions."
+        "NSBluetoothPeripheralUsageDescription": "AttendEase uses Bluetooth to run teacher attendance broadcasts during active classroom sessions.",
+        "NSCameraUsageDescription": "AttendEase uses the camera to scan QR codes for marking attendance.",
+        "NSLocationWhenInUseUsageDescription": "AttendEase uses your location to verify you are in the classroom when marking QR attendance."
       },
       "bundleIdentifier": "com.anurag203.attendease"
     },
     "android": {
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000"
+      },
       "permissions": [
         "android.permission.BLUETOOTH_SCAN",
         "android.permission.BLUETOOTH_ADVERTISE",
-        "android.permission.BLUETOOTH_CONNECT"
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_FINE_LOCATION"
       ],
       "package": "com.anurag203.attendease"
     }
