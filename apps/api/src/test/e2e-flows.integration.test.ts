@@ -289,6 +289,8 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       expect(res.statusCode).toBe(201)
       expect(res.body.tokens.accessToken).toBeTruthy()
       expect(typeof res.body.tokens.accessToken).toBe("string")
+      // Update stored token — single-session enforcement revokes the old one.
+      teacher.token = res.body.tokens.accessToken
     })
 
     it("logs in a seeded student and returns an access token", async () => {
@@ -307,6 +309,8 @@ describe("E2E flows (20 teachers, 800 students)", () => {
       })
       expect(res.statusCode).toBe(201)
       expect(res.body.tokens.accessToken).toBeTruthy()
+      // Update stored token — single-session enforcement revokes the old one.
+      student.token = res.body.tokens.accessToken
     })
 
     it("rejects login with wrong password", async () => {

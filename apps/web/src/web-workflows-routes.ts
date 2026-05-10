@@ -59,6 +59,7 @@ export const adminWorkflowRoutes = {
   usersTeacherProfile(teacherId: string) {
     return `/admin/users/teachers/${teacherId}`
   },
+  security: "/admin/security",
   communication: "/admin/communication",
   reports: "/admin/reports",
   settings: "/admin/settings",
@@ -161,6 +162,12 @@ export const webWorkflowQueryKeys = {
   adminDashboardLeaderboard(direction: string) {
     return ["web-workflows", "admin-dashboard-leaderboard", direction] as const
   },
+  adminDashboardAttendanceOverview() {
+    return ["web-workflows", "admin-dashboard-attendance-overview"] as const
+  },
+  adminDashboardTodayBranchAttendance() {
+    return ["web-workflows", "admin-dashboard-today-branch"] as const
+  },
   adminStudents(filters?: Record<string, string | undefined>) {
     return ["web-workflows", "admin-students", filters ?? {}] as const
   },
@@ -226,6 +233,15 @@ export const webWorkflowQueryKeys = {
   },
   adminSettingsAdmins() {
     return ["web-workflows", "admin-settings", "admins"] as const
+  },
+  adminSecurityEvents(filters?: Record<string, string | undefined>) {
+    return ["web-workflows", "admin-security", "events", filters ?? {}] as const
+  },
+  adminSecurityActions(filters?: Record<string, string | undefined>) {
+    return ["web-workflows", "admin-security", "actions", filters ?? {}] as const
+  },
+  adminUserSessions(userId: string, filters?: Record<string, string | undefined>) {
+    return ["web-workflows", "admin-users", "sessions", userId, filters ?? {}] as const
   },
   profile() {
     return ["web-workflows", "profile"] as const

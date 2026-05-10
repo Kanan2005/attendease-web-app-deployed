@@ -103,6 +103,15 @@ export const adminActionTypeValues = [
   "SEMESTER_ARCHIVE",
   "CLASSROOM_ARCHIVE",
   "CLASSROOM_STUDENT_REMOVE",
+  "COURSE_OFFERING_ARCHIVE",
+  "COURSE_OFFERING_UNARCHIVE",
+  "STUDENT_ATTENDANCE_DISABLE",
+  "STUDENT_ATTENDANCE_ENABLE",
+  "COMMUNICATION_AUDIENCE_PREVIEW",
+  "COMMUNICATION_GMAIL_DISPATCH_PREPARED",
+  "ADMIN_INVITE",
+  "ADMIN_ROLE_REVOKE",
+  "SYSTEM_SETTING_UPDATE",
 ] as const
 export const adminActionTypeSchema = z.enum(adminActionTypeValues)
 export type AdminActionType = z.infer<typeof adminActionTypeSchema>

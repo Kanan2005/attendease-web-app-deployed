@@ -96,6 +96,48 @@ export type AdminDashboardBranchComparisonResponse = z.infer<
 >
 
 // ---------------------------------------------------------------------------
+// Phase 4A — Attendance overview pie chart brackets.
+// ---------------------------------------------------------------------------
+
+export const adminDashboardAttendanceBracketSchema = z.object({
+  bracket: z.enum([">=75%", "50-75%", "<50%"]),
+  studentCount: z.number().int().nonnegative(),
+})
+export type AdminDashboardAttendanceBracket = z.infer<
+  typeof adminDashboardAttendanceBracketSchema
+>
+
+export const adminDashboardAttendanceOverviewResponseSchema = z.object({
+  brackets: z.array(adminDashboardAttendanceBracketSchema),
+  totalStudents: z.number().int().nonnegative(),
+})
+export type AdminDashboardAttendanceOverviewResponse = z.infer<
+  typeof adminDashboardAttendanceOverviewResponseSchema
+>
+
+// ---------------------------------------------------------------------------
+// Phase 4C — Today's branch attendance (horizontal bar chart).
+// ---------------------------------------------------------------------------
+
+export const adminDashboardTodayBranchRowSchema = z.object({
+  branch: z.string(),
+  attendancePercent: z.number().nullable(),
+  presentCount: z.number().int().nonnegative(),
+  totalCount: z.number().int().nonnegative(),
+})
+export type AdminDashboardTodayBranchRow = z.infer<
+  typeof adminDashboardTodayBranchRowSchema
+>
+
+export const adminDashboardTodayBranchAttendanceResponseSchema = z.object({
+  date: z.string().min(1),
+  branches: z.array(adminDashboardTodayBranchRowSchema),
+})
+export type AdminDashboardTodayBranchAttendanceResponse = z.infer<
+  typeof adminDashboardTodayBranchAttendanceResponseSchema
+>
+
+// ---------------------------------------------------------------------------
 // Phase 6 — Course leaderboard (top / bottom by attendance %).
 // ---------------------------------------------------------------------------
 

@@ -16,10 +16,10 @@ describe("integration test helpers", () => {
     expect(urls[0]).toBe("postgresql://tester:secret@localhost:55432/attendance_db")
     expect(urls).toContain("postgresql://app:secret@localhost:5433/attendance_db")
     expect(urls).toContain(
-      "postgresql://attendance_user:attendance_password@localhost:55432/attendance_db",
+      "postgresql://attendease:attendease@localhost:55432/attendease",
     )
     expect(urls).toContain(
-      "postgresql://attendance_user:attendance_password@localhost:5432/attendance_db",
+      "postgresql://attendease:attendease@localhost:5432/attendease",
     )
   })
 

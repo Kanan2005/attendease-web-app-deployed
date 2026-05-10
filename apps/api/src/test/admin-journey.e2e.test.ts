@@ -19,6 +19,7 @@ import {
   adminRecordsArchiveResponseSchema,
   adminRecordsCourseListResponseSchema,
   adminRecordsDepartmentListResponseSchema,
+  adminRecordsTeacherListResponseSchema,
   adminReportJobSummarySchema,
   adminSettingsAdminInviteResponseSchema,
   adminSettingsSystemResponseSchema,
@@ -147,8 +148,26 @@ describe("Admin journey end-to-end (Phases 1 → 6)", () => {
     )
     expect(departments.departments.length).toBeGreaterThan(0)
 
+    // Drill down: pick the first department → first teacher → list their courses
+    const dept = departments.departments[0]!
+    const teachers = adminRecordsTeacherListResponseSchema.parse(
+      (
+        await request(
+          "GET",
+          `/admin/records/departments/${encodeURIComponent(dept.department)}/teachers`,
+          { token: adminToken },
+        )
+      ).body,
+    )
+    expect(teachers.teachers.length).toBeGreaterThan(0)
+
+    const teacher = teachers.teachers[0]!
     const courses = adminRecordsCourseListResponseSchema.parse(
-      (await request("GET", "/admin/records/courses", { token: adminToken })).body,
+      (
+        await request("GET", `/admin/records/teachers/${teacher.teacherId}/courses`, {
+          token: adminToken,
+        })
+      ).body,
     )
     expect(courses.courses.some((c) => c.courseOfferingId === TARGET_COURSE)).toBe(true)
 
@@ -365,6 +384,16 @@ describe("Admin journey end-to-end (Phases 1 → 6)", () => {
   // ---------------------------------------------------------------------
 
   it("phase 6: dashboard reflects the threshold change made in Phase 5 (cross-phase wiring)", async () => {
+    // Re-login because single-session enforcement may have revoked the
+    // original adminToken when phase 5 re-logged in.
+    const freshAdmin = await login({
+      email: authIntegrationFixtures.admin.email,
+      password: authIntegrationFixtures.admin.password,
+      platform: "WEB",
+      requestedRole: "ADMIN",
+    })
+    adminToken = freshAdmin.tokens.accessToken
+
     const stats = adminDashboardStatsSchema.parse(
       (await request("GET", "/admin/dashboard/stats", { token: adminToken })).body,
     )

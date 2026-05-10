@@ -3,6 +3,10 @@ import fs from "node:fs"
 
 import {
   academicManagementMigrationPath,
+  addParentEmailMigrationPath,
+  adminPanelActionLogEnumExtensionsMigrationPath,
+  adminReportsExportJobTypesMigrationPath,
+  adminSystemSettingsMigrationPath,
   authRoleContextMigrationPath,
   bluetoothAttendanceCoreMigrationPath,
   courseOfferingLabelColumnsMigrationPath,
@@ -31,7 +35,7 @@ export type TemporaryDatabase = {
 }
 
 const fallbackLocalDatabaseUrl =
-  "postgresql://attendance_user:attendance_password@localhost:5432/attendance_db"
+  "postgresql://attendease:attendease@localhost:5432/attendease"
 
 function getBaseDatabaseUrl(): string {
   return process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL ?? defaultDatabaseUrl
@@ -69,6 +73,10 @@ function getCombinedMigrationSql(): string {
     fs.readFileSync(destructiveActionAuditSemanticsMigrationPath, "utf8"),
     fs.readFileSync(studentProfileDegreeBranchMigrationPath, "utf8"),
     fs.readFileSync(courseOfferingLabelColumnsMigrationPath, "utf8"),
+    fs.readFileSync(addParentEmailMigrationPath, "utf8"),
+    fs.readFileSync(adminPanelActionLogEnumExtensionsMigrationPath, "utf8"),
+    fs.readFileSync(adminReportsExportJobTypesMigrationPath, "utf8"),
+    fs.readFileSync(adminSystemSettingsMigrationPath, "utf8"),
   ].join("\n\n")
 }
 

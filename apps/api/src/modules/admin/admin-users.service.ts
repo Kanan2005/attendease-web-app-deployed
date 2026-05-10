@@ -198,7 +198,85 @@ export class AdminUsersService {
       orderBy: { lastSessionAt: "desc" },
     })
 
-    const teacherIds = [...new Set(summaries.map((s) => s.courseOffering.primaryTeacherId))]
+    // Fallback: when the analytics summary table is empty, derive course
+    // data from enrollments + raw attendance records so that the profile
+    // is still useful before the first analytics refresh.
+    type OfferingStatus = "DRAFT" | "ACTIVE" | "ARCHIVED" | "COMPLETED"
+    type CourseBucket = {
+      courseOfferingId: string
+      code: string
+      displayTitle: string
+      status: OfferingStatus
+      primaryTeacherId: string
+      totalSessions: number
+      presentSessions: number
+      lastSessionAt: string | null
+    }
+
+    let courseBuckets: CourseBucket[]
+
+    if (summaries.length > 0) {
+      courseBuckets = summaries.map((s) => ({
+        courseOfferingId: s.courseOffering.id,
+        code: s.courseOffering.code,
+        displayTitle: s.courseOffering.displayTitle,
+        status: s.courseOffering.status,
+        primaryTeacherId: s.courseOffering.primaryTeacherId,
+        totalSessions: s.totalSessions,
+        presentSessions: s.presentSessions,
+        lastSessionAt: s.lastSessionAt ? s.lastSessionAt.toISOString() : null,
+      }))
+    } else {
+      const enrollments = await this.database.prisma.enrollment.findMany({
+        where: { studentId, status: "ACTIVE" },
+        include: {
+          courseOffering: {
+            select: {
+              id: true,
+              code: true,
+              displayTitle: true,
+              status: true,
+              primaryTeacherId: true,
+            },
+          },
+        },
+      })
+
+      const offeringIds = enrollments.map((e) => e.courseOffering.id)
+      const rawRows =
+        offeringIds.length > 0
+          ? await this.database.prisma.$queryRawUnsafe<
+              Array<{
+                courseOfferingId: string
+                total: bigint
+                present: bigint
+                lastAt: Date | null
+              }>
+            >(
+              `SELECT s."courseOfferingId", COUNT(*)::bigint AS total, COUNT(*) FILTER (WHERE r.status = 'PRESENT')::bigint AS present, MAX(r."markedAt") AS "lastAt" FROM attendance_records r JOIN attendance_sessions s ON s.id = r."sessionId" WHERE s."courseOfferingId" = ANY($1) AND r."studentId" = $2 GROUP BY s."courseOfferingId"`,
+              offeringIds,
+              studentId,
+            )
+          : []
+
+      const rawByOffering = new Map(rawRows.map((r) => [r.courseOfferingId, r]))
+
+      courseBuckets = enrollments.map((e) => {
+        const raw = rawByOffering.get(e.courseOffering.id)
+        return {
+          courseOfferingId: e.courseOffering.id,
+          code: e.courseOffering.code,
+          displayTitle: e.courseOffering.displayTitle,
+          status: e.courseOffering.status,
+          primaryTeacherId: e.courseOffering.primaryTeacherId,
+          totalSessions: raw ? Number(raw.total) : 0,
+          presentSessions: raw ? Number(raw.present) : 0,
+          lastSessionAt: raw?.lastAt ? raw.lastAt.toISOString() : null,
+        }
+      })
+    }
+
+    const teacherIds = [...new Set(courseBuckets.map((c) => c.primaryTeacherId))]
     const teachers =
       teacherIds.length > 0
         ? await this.database.prisma.user.findMany({
@@ -210,9 +288,9 @@ export class AdminUsersService {
 
     let overallTotal = 0
     let overallPresent = 0
-    for (const s of summaries) {
-      overallTotal += s.totalSessions
-      overallPresent += s.presentSessions
+    for (const c of courseBuckets) {
+      overallTotal += c.totalSessions
+      overallPresent += c.presentSessions
     }
 
     return {
@@ -233,28 +311,19 @@ export class AdminUsersService {
       overallPresentSessions: overallPresent,
       overallAttendancePercent:
         overallTotal > 0 ? round1((overallPresent / overallTotal) * 100) : null,
-      courses: summaries.map((s) => {
-        const offering: CourseOfferingLite = {
-          id: s.courseOffering.id,
-          code: s.courseOffering.code,
-          displayTitle: s.courseOffering.displayTitle,
-          status: s.courseOffering.status,
-          primaryTeacherId: s.courseOffering.primaryTeacherId,
-        }
-        return {
-          courseOfferingId: offering.id,
-          code: offering.code,
-          displayTitle: offering.displayTitle,
-          status: offering.status,
-          isArchived: offering.status === "ARCHIVED",
-          primaryTeacherName: teacherNameById.get(offering.primaryTeacherId) ?? "Unknown teacher",
-          totalSessions: s.totalSessions,
-          presentSessions: s.presentSessions,
-          attendancePercent:
-            s.totalSessions > 0 ? round1((s.presentSessions / s.totalSessions) * 100) : null,
-          lastSessionAt: s.lastSessionAt ? s.lastSessionAt.toISOString() : null,
-        }
-      }),
+      courses: courseBuckets.map((c) => ({
+        courseOfferingId: c.courseOfferingId,
+        code: c.code,
+        displayTitle: c.displayTitle,
+        status: c.status,
+        isArchived: c.status === "ARCHIVED",
+        primaryTeacherName: teacherNameById.get(c.primaryTeacherId) ?? "Unknown teacher",
+        totalSessions: c.totalSessions,
+        presentSessions: c.presentSessions,
+        attendancePercent:
+          c.totalSessions > 0 ? round1((c.presentSessions / c.totalSessions) * 100) : null,
+        lastSessionAt: c.lastSessionAt,
+      })),
     }
   }
 

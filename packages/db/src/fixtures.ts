@@ -17,6 +17,8 @@ export type DevelopmentStudentSeedFixture = {
   rollNumber: string
   universityId: string
   programName: string
+  degree: string
+  branch: string
   currentSemester: number
   device?: DevelopmentDeviceFixture
 }
@@ -191,6 +193,8 @@ export const developmentAuthFixtures = {
       rollNumber: "CSE2301",
       universityId: "UNI-CSE2301",
       programName: "B.Tech CSE",
+      degree: "B.Tech",
+      branch: "CSE",
       currentSemester: 6,
       device: {
         installId: "seed-install-student-one",
@@ -209,6 +213,8 @@ export const developmentAuthFixtures = {
       rollNumber: "CSE2302",
       universityId: "UNI-CSE2302",
       programName: "B.Tech CSE",
+      degree: "B.Tech",
+      branch: "CSE",
       currentSemester: 6,
       device: {
         installId: "seed-install-student-two",
@@ -227,6 +233,8 @@ export const developmentAuthFixtures = {
       rollNumber: "CSE2303",
       universityId: "UNI-CSE2303",
       programName: "B.Tech CSE",
+      degree: "B.Tech",
+      branch: "CSE",
       currentSemester: 6,
     },
     studentFour: {
@@ -237,6 +245,8 @@ export const developmentAuthFixtures = {
       rollNumber: "CSE2304",
       universityId: "UNI-CSE2304",
       programName: "B.Tech CSE",
+      degree: "B.Tech",
+      branch: "CSE",
       currentSemester: 6,
     },
   },

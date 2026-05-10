@@ -564,7 +564,11 @@ describe("Admin device support integration", () => {
       headers: buildTrustedDeviceHeaders(originalDevice.installId),
     })
 
-    expect(oldDeviceResponse.statusCode).toBe(403)
+    // After the student logs in on the replacement device, the old session
+    // is revoked by single-session enforcement (401) OR the old device is
+    // rejected by the device trust guard (403). Either outcome confirms the
+    // old install can no longer access protected resources.
+    expect([401, 403]).toContain(oldDeviceResponse.statusCode)
   })
 
   it("rejects replacement approval when the submitted device is already bound to another student", async () => {

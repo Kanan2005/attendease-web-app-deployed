@@ -8,6 +8,10 @@ export const sessionPlatformValues = ["WEB", "MOBILE"] as const
 export const sessionPlatformSchema = z.enum(sessionPlatformValues)
 export type SessionPlatform = z.infer<typeof sessionPlatformSchema>
 
+export const authSessionStatusValues = ["ACTIVE", "REVOKED", "EXPIRED"] as const
+export const authSessionStatusSchema = z.enum(authSessionStatusValues)
+export type AuthSessionStatus = z.infer<typeof authSessionStatusSchema>
+
 export const devicePlatformValues = ["ANDROID", "IOS", "WEB"] as const
 export const devicePlatformSchema = z.enum(devicePlatformValues)
 export type DevicePlatform = z.infer<typeof devicePlatformSchema>

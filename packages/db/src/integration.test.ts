@@ -18,6 +18,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
 import {
   academicManagementMigrationPath,
+  addParentEmailMigrationPath,
+  adminPanelActionLogEnumExtensionsMigrationPath,
+  adminReportsExportJobTypesMigrationPath,
+  adminSystemSettingsMigrationPath,
   authRoleContextMigrationPath,
   bluetoothAttendanceCoreMigrationPath,
   buildOutboxEventData,
@@ -82,6 +86,10 @@ const combinedMigrationSql = [
   fs.readFileSync(destructiveActionAuditSemanticsMigrationPath, "utf8"),
   fs.readFileSync(studentProfileDegreeBranchMigrationPath, "utf8"),
   fs.readFileSync(courseOfferingLabelColumnsMigrationPath, "utf8"),
+  fs.readFileSync(addParentEmailMigrationPath, "utf8"),
+  fs.readFileSync(adminPanelActionLogEnumExtensionsMigrationPath, "utf8"),
+  fs.readFileSync(adminReportsExportJobTypesMigrationPath, "utf8"),
+  fs.readFileSync(adminSystemSettingsMigrationPath, "utf8"),
 ].join("\n\n")
 
 const fixtureIds = {

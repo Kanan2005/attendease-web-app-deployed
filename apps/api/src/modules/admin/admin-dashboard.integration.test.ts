@@ -1,8 +1,10 @@
 import {
+  adminDashboardAttendanceOverviewResponseSchema,
   adminDashboardBranchComparisonResponseSchema,
   adminDashboardLeaderboardResponseSchema,
   adminDashboardSessionsGraphResponseSchema,
   adminDashboardStatsSchema,
+  adminDashboardTodayBranchAttendanceResponseSchema,
   authSessionResponseSchema,
 } from "@attendease/contracts"
 import { createPrismaClient, disconnectPrismaClient } from "@attendease/db"
@@ -212,12 +214,42 @@ describe("Admin dashboard integration (Phase 6)", () => {
     expect(limited.entries.length).toBeLessThanOrEqual(2)
   })
 
+  it("attendance-overview returns three brackets with correct structure", async () => {
+    const adminToken = await loginAsAdmin()
+    const response = await request("GET", "/admin/dashboard/attendance-overview", {
+      token: adminToken,
+    })
+    expect(response.statusCode).toBe(200)
+    const result = adminDashboardAttendanceOverviewResponseSchema.parse(response.body)
+    expect(result.brackets).toHaveLength(3)
+    expect(result.brackets.map((b) => b.bracket)).toEqual([">=75%", "50-75%", "<50%"])
+    expect(result.totalStudents).toBeGreaterThanOrEqual(0)
+    const sum = result.brackets.reduce((acc, b) => acc + b.studentCount, 0)
+    expect(sum).toBe(result.totalStudents)
+  })
+
+  it("today-branch-attendance returns a date string and branches array", async () => {
+    const adminToken = await loginAsAdmin()
+    const response = await request("GET", "/admin/dashboard/today-branch-attendance", {
+      token: adminToken,
+    })
+    expect(response.statusCode).toBe(200)
+    const result = adminDashboardTodayBranchAttendanceResponseSchema.parse(response.body)
+    expect(result.date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(Array.isArray(result.branches)).toBe(true)
+    for (const branch of result.branches) {
+      expect(branch.totalCount).toBeGreaterThanOrEqual(branch.presentCount)
+    }
+  })
+
   it("rejects all dashboard endpoints without an admin token", async () => {
     for (const url of [
       "/admin/dashboard/stats",
       "/admin/dashboard/sessions-graph",
       "/admin/dashboard/branch-comparison",
       "/admin/dashboard/course-leaderboard",
+      "/admin/dashboard/attendance-overview",
+      "/admin/dashboard/today-branch-attendance",
     ]) {
       const response = await request("GET", url)
       expect(response.statusCode).toBe(401)

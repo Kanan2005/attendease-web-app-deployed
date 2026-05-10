@@ -119,6 +119,7 @@ describe("LecturesService", () => {
       actualStartAt: null,
       actualEndAt: null,
       status: "PLANNED",
+      createdAt: new Date("2026-08-09T12:00:00.000Z"),
     })
 
     const lecture = await service.createLecture(teacherAuth, "classroom_1", {

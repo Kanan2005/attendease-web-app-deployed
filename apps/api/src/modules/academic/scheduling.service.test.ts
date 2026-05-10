@@ -58,6 +58,14 @@ describe("SchedulingService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // Also reset mock implementations to prevent leakage between tests
+    // (clearAllMocks only clears call history, not mockResolvedValue)
+    for (const model of Object.values(database.prisma)) {
+      for (const fn of Object.values(model as Record<string, ReturnType<typeof vi.fn>>)) {
+        fn.mockReset()
+      }
+    }
+    classroomsService.requireAccessibleClassroom.mockReset()
     service = new SchedulingService(database as never, classroomsService as never)
 
     classroomsService.requireAccessibleClassroom.mockResolvedValue({

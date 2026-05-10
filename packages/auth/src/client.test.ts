@@ -2031,7 +2031,7 @@ describe("auth api client", () => {
     ).rejects.toEqual(
       expect.objectContaining({
         name: "AuthApiClientError",
-        message: "Auth API request failed.",
+        message: "Forbidden",
         status: 403,
         details: {
           message: "Forbidden",

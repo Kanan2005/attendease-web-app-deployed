@@ -8,6 +8,7 @@ import { useState } from "react"
 import { WebSectionCard } from "../web-shell"
 import { adminWorkflowRoutes, webWorkflowQueryKeys } from "../web-workflows"
 import { ArchivedPill, PercentBadge } from "./admin-records-shared"
+import { AdminUserSessionsPanel } from "./admin-user-sessions"
 import { Banner, StateCard, bootstrap, styles } from "./shared"
 
 export function AdminUsersStudentProfileWorkspace(props: {
@@ -255,6 +256,12 @@ export function AdminUsersStudentProfileWorkspace(props: {
           </div>
         )}
       </WebSectionCard>
+
+      <AdminUserSessionsPanel
+        accessToken={props.accessToken}
+        userId={profile.studentId}
+        userName={profile.displayName}
+      />
     </div>
   )
 }

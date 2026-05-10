@@ -1,4 +1,9 @@
 import {
+  type AdminActionAuditQuery,
+  type AdminActionAuditResponse,
+  type AdminForceLogoutResponse,
+  type AdminUserSessionsQuery,
+  type AdminUserSessionsResponse,
   type AdminApproveReplacementDeviceRequest,
   type AdminApproveReplacementDeviceResponse,
   type AdminCommunicationAudiencePreviewRequest,
@@ -6,13 +11,17 @@ import {
   type AdminCommunicationLogDispatchRequest,
   type AdminCommunicationLogDispatchResponse,
   type AdminCourseReportRequest,
+  type AdminDashboardAttendanceOverviewResponse,
   type AdminDashboardBranchComparisonResponse,
   type AdminDashboardLeaderboardQuery,
   type AdminDashboardLeaderboardResponse,
   type AdminDashboardSessionsGraphQuery,
   type AdminDashboardSessionsGraphResponse,
   type AdminDashboardStats,
+  type AdminDashboardTodayBranchAttendanceResponse,
   type AdminDelinkStudentDevicesRequest,
+  type AdminSecurityAuditQuery,
+  type AdminSecurityAuditResponse,
   type AdminDelinkStudentDevicesResponse,
   type AdminDeviceSupportDetail,
   type AdminDeviceSupportSearchQuery,
@@ -66,21 +75,30 @@ import {
   type StudentSupportCaseDetail,
   type StudentSupportCaseSummary,
   type StudentSupportSearchQuery,
+  adminActionAuditQuerySchema,
+  adminActionAuditResponseSchema,
+  adminForceLogoutResponseSchema,
+  adminUserSessionsQuerySchema,
+  adminUserSessionsResponseSchema,
   adminApproveReplacementDeviceResponseSchema,
   adminCommunicationAudiencePreviewRequestSchema,
   adminCommunicationAudiencePreviewResponseSchema,
   adminCommunicationLogDispatchRequestSchema,
   adminCommunicationLogDispatchResponseSchema,
   adminCourseReportRequestSchema,
+  adminDashboardAttendanceOverviewResponseSchema,
   adminDashboardBranchComparisonResponseSchema,
   adminDashboardLeaderboardQuerySchema,
   adminDashboardLeaderboardResponseSchema,
   adminDashboardSessionsGraphQuerySchema,
   adminDashboardSessionsGraphResponseSchema,
   adminDashboardStatsSchema,
+  adminDashboardTodayBranchAttendanceResponseSchema,
   adminDelinkStudentDevicesResponseSchema,
   adminDeviceSupportDetailSchema,
   adminDeviceSupportSummariesResponseSchema,
+  adminSecurityAuditQuerySchema,
+  adminSecurityAuditResponseSchema,
   adminRecordsArchiveRequestSchema,
   adminRecordsArchiveResponseSchema,
   adminRecordsCourseListResponseSchema,
@@ -174,6 +192,24 @@ export function buildAuthClientAdminMethods(request: AuthApiRequest) {
         token,
         query: toQuery(query),
         parse: adminDashboardLeaderboardResponseSchema.parse,
+      })
+    },
+    getAdminDashboardAttendanceOverview(
+      token: string,
+    ): Promise<AdminDashboardAttendanceOverviewResponse> {
+      return request("/admin/dashboard/attendance-overview", {
+        method: "GET",
+        token,
+        parse: adminDashboardAttendanceOverviewResponseSchema.parse,
+      })
+    },
+    getAdminDashboardTodayBranchAttendance(
+      token: string,
+    ): Promise<AdminDashboardTodayBranchAttendanceResponse> {
+      return request("/admin/dashboard/today-branch-attendance", {
+        method: "GET",
+        token,
+        parse: adminDashboardTodayBranchAttendanceResponseSchema.parse,
       })
     },
     listAdminTeachers(
@@ -629,6 +665,53 @@ export function buildAuthClientAdminMethods(request: AuthApiRequest) {
         token,
         payload: adminSettingsChangePasswordRequestSchema.parse(payload),
         parse: adminSettingsChangePasswordResponseSchema.parse,
+      })
+    },
+    listAdminSecurityEvents(
+      token: string,
+      filters: Partial<AdminSecurityAuditQuery> = {},
+    ): Promise<AdminSecurityAuditResponse> {
+      const query = adminSecurityAuditQuerySchema.parse(filters)
+      return request("/admin/security/events", {
+        method: "GET",
+        token,
+        query: toQuery(query),
+        parse: adminSecurityAuditResponseSchema.parse,
+      })
+    },
+    listAdminActions(
+      token: string,
+      filters: Partial<AdminActionAuditQuery> = {},
+    ): Promise<AdminActionAuditResponse> {
+      const query = adminActionAuditQuerySchema.parse(filters)
+      return request("/admin/security/actions", {
+        method: "GET",
+        token,
+        query: toQuery(query),
+        parse: adminActionAuditResponseSchema.parse,
+      })
+    },
+    listUserSessions(
+      token: string,
+      userId: string,
+      filters: Partial<AdminUserSessionsQuery> = {},
+    ): Promise<AdminUserSessionsResponse> {
+      const query = adminUserSessionsQuerySchema.parse(filters)
+      return request(`/admin/users/${userId}/sessions`, {
+        method: "GET",
+        token,
+        query: toQuery(query),
+        parse: adminUserSessionsResponseSchema.parse,
+      })
+    },
+    forceLogout(
+      token: string,
+      userId: string,
+    ): Promise<AdminForceLogoutResponse> {
+      return request(`/admin/users/${userId}/force-logout`, {
+        method: "POST",
+        token,
+        parse: adminForceLogoutResponseSchema.parse,
       })
     },
   }

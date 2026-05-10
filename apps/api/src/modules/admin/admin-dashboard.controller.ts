@@ -1,10 +1,12 @@
 import {
+  adminDashboardAttendanceOverviewResponseSchema,
   adminDashboardBranchComparisonResponseSchema,
   adminDashboardLeaderboardQuerySchema,
   adminDashboardLeaderboardResponseSchema,
   adminDashboardSessionsGraphQuerySchema,
   adminDashboardSessionsGraphResponseSchema,
   adminDashboardStatsSchema,
+  adminDashboardTodayBranchAttendanceResponseSchema,
 } from "@attendease/contracts"
 import { Controller, Get, Inject, Logger, Query, UseGuards } from "@nestjs/common"
 
@@ -58,6 +60,20 @@ export class AdminDashboardController {
       await this.adminDashboardService.getLeaderboard(
         parseWithSchema(adminDashboardLeaderboardQuerySchema, query ?? {}),
       ),
+    )
+  }
+
+  @Get("attendance-overview")
+  async getAttendanceOverview() {
+    return adminDashboardAttendanceOverviewResponseSchema.parse(
+      await this.adminDashboardService.getAttendanceOverview(),
+    )
+  }
+
+  @Get("today-branch-attendance")
+  async getTodayBranchAttendance() {
+    return adminDashboardTodayBranchAttendanceResponseSchema.parse(
+      await this.adminDashboardService.getTodayBranchAttendance(),
     )
   }
 }

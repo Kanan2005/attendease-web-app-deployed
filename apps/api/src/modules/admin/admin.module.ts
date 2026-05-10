@@ -15,6 +15,8 @@ import { AdminRecordsController } from "./admin-records.controller.js"
 import { AdminRecordsService } from "./admin-records.service.js"
 import { AdminReportsController } from "./admin-reports.controller.js"
 import { AdminReportsService } from "./admin-reports.service.js"
+import { AdminSecurityController } from "./admin-security.controller.js"
+import { AdminSecurityService } from "./admin-security.service.js"
 import { AdminSettingsController } from "./admin-settings.controller.js"
 import { AdminSettingsService } from "./admin-settings.service.js"
 import { AdminStudentsController } from "./admin-students.controller.js"
@@ -35,6 +37,7 @@ import { AdminUsersService } from "./admin-users.service.js"
     AdminUsersController,
     AdminCommunicationController,
     AdminReportsController,
+    AdminSecurityController,
     AdminSettingsController,
   ],
   providers: [
@@ -46,6 +49,7 @@ import { AdminUsersService } from "./admin-users.service.js"
     AdminUsersService,
     AdminCommunicationService,
     AdminReportsService,
+    AdminSecurityService,
     AdminSettingsService,
   ],
   exports: [AdminDeviceSupportService, AdminAcademicGovernanceService],

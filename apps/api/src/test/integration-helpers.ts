@@ -10,6 +10,9 @@ import {
   buildDevelopmentStudentRegistrationFixture,
   buildDevelopmentTeacherRegistrationFixture,
   addParentEmailMigrationPath,
+  adminPanelActionLogEnumExtensionsMigrationPath,
+  adminReportsExportJobTypesMigrationPath,
+  adminSystemSettingsMigrationPath,
   courseOfferingLabelColumnsMigrationPath,
   createPrismaClient,
   defaultDatabaseUrl,
@@ -39,7 +42,7 @@ export type TemporaryDatabase = {
 }
 
 const fallbackLocalDatabaseUrl =
-  "postgresql://attendance_user:attendance_password@localhost:5432/attendance_db"
+  "postgresql://attendease:attendease@localhost:5432/attendease"
 
 export type IntegrationTestEnvironment = Partial<
   Record<"TEST_DATABASE_URL" | "DATABASE_URL" | "TEST_DATABASE_PORT" | "POSTGRES_PORT", string>
@@ -169,6 +172,9 @@ function getCombinedMigrationSql(): string {
     fs.readFileSync(studentProfileDegreeBranchMigrationPath, "utf8"),
     fs.readFileSync(courseOfferingLabelColumnsMigrationPath, "utf8"),
     fs.readFileSync(addParentEmailMigrationPath, "utf8"),
+    fs.readFileSync(adminPanelActionLogEnumExtensionsMigrationPath, "utf8"),
+    fs.readFileSync(adminReportsExportJobTypesMigrationPath, "utf8"),
+    fs.readFileSync(adminSystemSettingsMigrationPath, "utf8"),
   ].join("\n\n")
 }
 

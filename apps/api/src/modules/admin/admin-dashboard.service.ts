@@ -1,4 +1,5 @@
 import type {
+  AdminDashboardAttendanceOverviewResponse,
   AdminDashboardBranchComparisonResponse,
   AdminDashboardLeaderboardEntry,
   AdminDashboardLeaderboardQuery,
@@ -6,6 +7,7 @@ import type {
   AdminDashboardSessionsGraphQuery,
   AdminDashboardSessionsGraphResponse,
   AdminDashboardStats,
+  AdminDashboardTodayBranchAttendanceResponse,
   AdminSecurityEventSummary,
 } from "@attendease/contracts"
 import { Inject, Injectable } from "@nestjs/common"
@@ -258,6 +260,111 @@ export class AdminDashboardService {
     return {
       direction: query.direction,
       entries: entries.slice(0, query.limit),
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // Phase 4A — Attendance overview pie chart brackets
+  // -------------------------------------------------------------------
+
+  async getAttendanceOverview(): Promise<AdminDashboardAttendanceOverviewResponse> {
+    const prisma = this.database.prisma
+
+    const summaries = await prisma.analyticsStudentCourseSummary.findMany({
+      select: { studentId: true, presentSessions: true, totalSessions: true },
+    })
+
+    type Agg = { sumPresent: number; sumTotal: number }
+    const byStudent = new Map<string, Agg>()
+    for (const row of summaries) {
+      const existing = byStudent.get(row.studentId) ?? { sumPresent: 0, sumTotal: 0 }
+      existing.sumPresent += row.presentSessions
+      existing.sumTotal += row.totalSessions
+      byStudent.set(row.studentId, existing)
+    }
+
+    let high = 0
+    let mid = 0
+    let low = 0
+
+    for (const agg of byStudent.values()) {
+      if (agg.sumTotal === 0) continue
+      const pct = (agg.sumPresent / agg.sumTotal) * 100
+      if (pct >= 75) high += 1
+      else if (pct >= 50) mid += 1
+      else low += 1
+    }
+
+    return {
+      brackets: [
+        { bracket: ">=75%", studentCount: high },
+        { bracket: "50-75%", studentCount: mid },
+        { bracket: "<50%", studentCount: low },
+      ],
+      totalStudents: high + mid + low,
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // Phase 4C — Today's branch attendance
+  // -------------------------------------------------------------------
+
+  async getTodayBranchAttendance(): Promise<AdminDashboardTodayBranchAttendanceResponse> {
+    const prisma = this.database.prisma
+    const now = new Date()
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000)
+
+    const todaysSessions = await prisma.attendanceSession.findMany({
+      where: { startedAt: { gte: todayStart, lt: todayEnd } },
+      select: { id: true },
+    })
+
+    if (todaysSessions.length === 0) {
+      return {
+        date: todayStart.toISOString().slice(0, 10),
+        branches: [],
+      }
+    }
+
+    const sessionIds = todaysSessions.map((s) => s.id)
+
+    const records = await prisma.attendanceRecord.findMany({
+      where: { sessionId: { in: sessionIds } },
+      select: {
+        status: true,
+        student: { select: { studentProfile: { select: { branch: true } } } },
+      },
+    })
+
+    type BranchAgg = { present: number; total: number }
+    const byBranch = new Map<string, BranchAgg>()
+
+    for (const record of records) {
+      const branch = record.student.studentProfile?.branch
+      if (!branch) continue
+      const existing = byBranch.get(branch) ?? { present: 0, total: 0 }
+      existing.total += 1
+      if (record.status === "PRESENT") existing.present += 1
+      byBranch.set(branch, existing)
+    }
+
+    const branches = [...byBranch.entries()]
+      .map(([branch, agg]) => ({
+        branch,
+        attendancePercent: agg.total === 0 ? null : round1((agg.present / agg.total) * 100),
+        presentCount: agg.present,
+        totalCount: agg.total,
+      }))
+      .sort((a, b) => {
+        const av = a.attendancePercent ?? -1
+        const bv = b.attendancePercent ?? -1
+        return bv - av
+      })
+
+    return {
+      date: todayStart.toISOString().slice(0, 10),
+      branches,
     }
   }
 

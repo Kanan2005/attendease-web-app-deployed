@@ -7,6 +7,7 @@ import Link from "next/link"
 import { WebSectionCard } from "../web-shell"
 import { adminWorkflowRoutes, webWorkflowQueryKeys } from "../web-workflows"
 import { ArchivedPill, PercentBadge } from "./admin-records-shared"
+import { AdminUserSessionsPanel } from "./admin-user-sessions"
 import { Banner, StateCard, bootstrap, styles } from "./shared"
 
 export function AdminUsersTeacherProfileWorkspace(props: {
@@ -121,6 +122,12 @@ export function AdminUsersTeacherProfileWorkspace(props: {
           </div>
         )}
       </WebSectionCard>
+
+      <AdminUserSessionsPanel
+        accessToken={props.accessToken}
+        userId={profile.teacherId}
+        userName={profile.displayName}
+      />
     </div>
   )
 }

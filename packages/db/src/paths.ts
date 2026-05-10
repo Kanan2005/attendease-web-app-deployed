@@ -71,3 +71,15 @@ export const addParentEmailMigrationPath = path.resolve(
   currentDirectory,
   "../prisma/migrations/20260403054537_add_parent_email/migration.sql",
 )
+export const adminPanelActionLogEnumExtensionsMigrationPath = path.resolve(
+  currentDirectory,
+  "../prisma/migrations/20260509073000_admin_panel_action_log_enum_extensions/migration.sql",
+)
+export const adminReportsExportJobTypesMigrationPath = path.resolve(
+  currentDirectory,
+  "../prisma/migrations/20260509120000_admin_reports_export_job_types/migration.sql",
+)
+export const adminSystemSettingsMigrationPath = path.resolve(
+  currentDirectory,
+  "../prisma/migrations/20260509130000_admin_system_settings/migration.sql",
+)

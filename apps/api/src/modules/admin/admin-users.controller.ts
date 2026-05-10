@@ -1,7 +1,10 @@
 import {
+  adminForceLogoutResponseSchema,
   adminUsersAttendanceToggleRequestSchema,
   adminUsersAttendanceToggleResponseSchema,
   adminUsersFilterOptionsSchema,
+  adminUserSessionsQuerySchema,
+  adminUserSessionsResponseSchema,
   adminUsersStudentListQuerySchema,
   adminUsersStudentListResponseSchema,
   adminUsersStudentProfileSchema,
@@ -9,7 +12,7 @@ import {
   adminUsersTeacherListResponseSchema,
   adminUsersTeacherProfileSchema,
 } from "@attendease/contracts"
-import { Body, Controller, Get, Inject, Param, Post, Query, UseGuards } from "@nestjs/common"
+import { Body, Controller, Get, Inject, Logger, Param, Post, Query, UseGuards } from "@nestjs/common"
 
 import { parseWithSchema } from "../../shared/zod.js"
 import { AuthGuard } from "../auth/auth.guard.js"
@@ -17,15 +20,20 @@ import type { AuthRequestContext } from "../auth/auth.types.js"
 import { CurrentAuth } from "../auth/current-auth.decorator.js"
 import { Roles } from "../auth/roles.decorator.js"
 import { RolesGuard } from "../auth/roles.guard.js"
+import { AdminSecurityService } from "./admin-security.service.js"
 import { AdminUsersService } from "./admin-users.service.js"
 
 @Controller("admin/users")
 @UseGuards(AuthGuard, RolesGuard)
 @Roles("ADMIN")
 export class AdminUsersController {
+  private readonly logger = new Logger(AdminUsersController.name)
+
   constructor(
     @Inject(AdminUsersService)
     private readonly adminUsersService: AdminUsersService,
+    @Inject(AdminSecurityService)
+    private readonly adminSecurityService: AdminSecurityService,
   ) {}
 
   @Get("filter-options")
@@ -97,5 +105,34 @@ export class AdminUsersController {
     return adminUsersTeacherProfileSchema.parse(
       await this.adminUsersService.getTeacherProfile(teacherId),
     )
+  }
+
+  @Get(":userId/sessions")
+  async listUserSessions(
+    @Param("userId") userId: string,
+    @Query() query: unknown,
+  ) {
+    try {
+      const parsed = parseWithSchema(adminUserSessionsQuerySchema, query ?? {})
+      const result = await this.adminSecurityService.listUserSessions(userId, parsed)
+      return adminUserSessionsResponseSchema.parse(result)
+    } catch (error) {
+      this.logger.error(`Failed to list sessions for user ${userId}`, error)
+      throw error
+    }
+  }
+
+  @Post(":userId/force-logout")
+  async forceLogout(
+    @CurrentAuth() auth: AuthRequestContext,
+    @Param("userId") userId: string,
+  ) {
+    try {
+      const result = await this.adminSecurityService.forceLogout(userId, auth.userId)
+      return adminForceLogoutResponseSchema.parse(result)
+    } catch (error) {
+      this.logger.error(`Failed to force-logout user ${userId}`, error)
+      throw error
+    }
   }
 }

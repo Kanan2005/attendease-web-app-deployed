@@ -9,6 +9,70 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+#### Phase 3A: Security Event Audit Log (`packages/contracts/src/admin-security.ts`, `apps/api/src/modules/admin/admin-security.service.ts`, `apps/api/src/modules/admin/admin-security.controller.ts`, `apps/web/src/admin-workflows-client/admin-security.tsx`)
+
+- New `GET /admin/security/events` endpoint — paginated, filterable security event audit log (by eventType, severity, userId, date range).
+- New `GET /admin/security/actions` endpoint — paginated, filterable admin action audit log (by actionType, adminUserId, targetUserId, date range).
+- Zod contracts for query and response schemas (`adminSecurityAuditQuerySchema`, `adminActionAuditQuerySchema`, etc.).
+- Service with Prisma cursor-based pagination, user/actor display name enrichment.
+- Controller guarded by `AuthGuard` + `RolesGuard` (admin-only).
+- Auth client methods (`listAdminSecurityEvents`, `listAdminActions`) in `packages/auth/src/client.admin.ts`.
+- Web query keys (`adminSecurityEvents`, `adminSecurityActions`) in `apps/web/src/web-workflows-routes.ts`.
+- Web UI page with tab-based layout (Security Events / Admin Actions), dropdown filters, severity badges, cursor pagination.
+- Updated `adminActionTypeValues` in `packages/contracts/src/devices.ts` to include all 19 Prisma enum values.
+- Integration test suite (11 tests) covering default listing, filtering by type/severity/user, pagination, user enrichment, and role-based access control.
+
+#### Phase 3B: Active Session Listing per User (`packages/contracts/src/admin-security.ts`, `apps/api/src/modules/admin/admin-security.service.ts`, `apps/api/src/modules/admin/admin-users.controller.ts`, `apps/web/src/admin-workflows-client/admin-user-sessions.tsx`)
+
+- New `GET /admin/users/:userId/sessions` endpoint — lists all auth sessions for a given user, optionally filtered by status (ACTIVE/REVOKED/EXPIRED).
+- Zod contracts: `adminUserSessionsQuerySchema`, `adminUserSessionSchema`, `adminUserSessionsResponseSchema`.
+- Added `authSessionStatusSchema` to `packages/contracts/src/auth.ts`.
+- Service method `listUserSessions` with 404 on unknown user.
+- Auth client method `listUserSessions` in `packages/auth/src/client.admin.ts`.
+- Web query key `adminUserSessions` in `apps/web/src/web-workflows-routes.ts`.
+- Reusable `AdminUserSessionsPanel` React component embedded in both student and teacher profile pages.
+- Integration tests: 4 tests (list, filter by status, 404, role guard).
+
+#### Phase 3C: Force-Logout Action for Admin (`packages/contracts/src/admin-security.ts`, `apps/api/src/modules/admin/admin-security.service.ts`, `apps/api/src/modules/admin/admin-users.controller.ts`, `apps/web/src/admin-workflows-client/admin-user-sessions.tsx`)
+
+- New `POST /admin/users/:userId/force-logout` endpoint — revokes all active sessions and refresh tokens for any user.
+- Zod contract: `adminForceLogoutResponseSchema`.
+- Service method `forceLogout` with admin action log recording.
+- Auth client method `forceLogout` in `packages/auth/src/client.admin.ts`.
+- Web UI: "Force logout all" button with confirmation dialog, success/error banners.
+- Integration tests: 4 tests (revoke flow, admin action log audit, 404, role guard).
+
+#### Phase 4A: Attendance Overview Pie Chart (`packages/contracts/src/admin-dashboard.ts`, `apps/api/src/modules/admin/admin-dashboard.service.ts`, `apps/api/src/modules/admin/admin-dashboard.controller.ts`, `apps/web/src/admin-workflows-client/admin-dashboard.tsx`)
+
+- New `GET /admin/dashboard/attendance-overview` endpoint — groups active students into 3 brackets: ≥75%, 50–75%, <50%.
+- Zod contracts: `adminDashboardAttendanceBracketSchema`, `adminDashboardAttendanceOverviewResponseSchema`.
+- Service method `getAttendanceOverview` aggregating from `AnalyticsStudentCourseSummary`.
+- Auth client method `getAdminDashboardAttendanceOverview`.
+- Web query key `adminDashboardAttendanceOverview`.
+- SVG donut chart with color-coded segments (green, amber, red) + legend with counts and percentages.
+- Integration test: verifies 3 brackets, correct structure, bracket sum = totalStudents.
+
+#### Phase 4B: Sessions Trend Chart Enhancements (`apps/web/src/admin-workflows-client/admin-dashboard.tsx`)
+
+- Smooth cubic bezier curves (`buildSmoothPath`) replacing straight-line segments.
+- Filled area under the curve uses SVG linear gradient (18% → 2% opacity) instead of flat fill.
+- No API changes — visual-only improvement.
+
+#### Phase 4C: Today's Branch Attendance (`packages/contracts/src/admin-dashboard.ts`, `apps/api/src/modules/admin/admin-dashboard.service.ts`, `apps/api/src/modules/admin/admin-dashboard.controller.ts`, `apps/web/src/admin-workflows-client/admin-dashboard.tsx`)
+
+- New `GET /admin/dashboard/today-branch-attendance` endpoint — computes today's attendance % per branch from raw `AttendanceRecord` + `AttendanceSession` rows.
+- Zod contracts: `adminDashboardTodayBranchRowSchema`, `adminDashboardTodayBranchAttendanceResponseSchema`.
+- Service method `getTodayBranchAttendance` with real-time computation (no analytics lag).
+- Auth client method `getAdminDashboardTodayBranchAttendance`.
+- Web query key `adminDashboardTodayBranchAttendance`.
+- Horizontal bar chart with gradient fills, present/total counts, color-coded by attendance %.
+- Integration test: verifies date format, branches array, presentCount ≤ totalCount invariant.
+
+#### Phase 4D: Course Leaderboard Enhancements (`apps/web/src/admin-workflows-client/admin-dashboard.tsx`)
+
+- Added inline attendance bar (sparkline) next to each leaderboard entry for visual density.
+- No API changes — visual-only improvement.
+
 #### Security: Single-session enforcement (`apps/api/src/modules/auth/auth.service.session.ts`)
 
 - When a user logs in on a new device (or new session), all previously ACTIVE sessions for that user are automatically revoked.
@@ -35,6 +99,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 #### Dashboard average attendance fallback (`apps/api/src/modules/admin/admin-dashboard.service.ts`)
 
 - When the `analytics_student_course_summary` table is empty (analytics worker hasn't run, or data was seeded directly), the dashboard now falls back to computing average attendance from raw `AttendanceRecord` counts instead of showing "—".
+
+#### Test suite — fix all pre-existing failures (54 files, 386 tests, 0 failures)
+
+- **Scheduling service unit tests** (`apps/api/src/modules/academic/scheduling.service.test.ts`): Replaced `vi.clearAllMocks()` with full `mockReset()` on database mocks in `beforeEach` to prevent `mockResolvedValue` leaking between tests — root cause of `slot.id` TypeError and lecture linkage assertion mismatches.
+- **Lectures service unit test** (`apps/api/src/modules/academic/lectures.service.test.ts`): Added missing `createdAt` field to mock lecture return value used by `toLectureSummary`.
+- **Admin device-support integration test** (`apps/api/src/modules/admin/admin-device-support.integration.test.ts`): Accept 401 or 403 for old-device check — single-session enforcement now revokes the old session before the device trust guard runs.
+- **Admin e2e journey test** (`apps/api/src/test/admin-journey.e2e.test.ts`): Fixed Phase 1 to drill down departments → teachers → courses (matching actual REST hierarchy). Re-login admin in Phase 6 after Phase 5 revokes old session.
+- **E2E flows integration test** (`apps/api/src/test/e2e-flows.integration.test.ts`): Updated stored teacher/student tokens after login tests, since single-session enforcement invalidates original seed tokens.
+- **Admin users service** (`apps/api/src/modules/admin/admin-users.service.ts`): Added enrollment-based fallback for student course data when analytics summaries are empty.
+- **Seed data** (`packages/db/src/seed.auth.ts`): Added `degree` and `branch` fields to student profile upserts.
 
 ### Added
 

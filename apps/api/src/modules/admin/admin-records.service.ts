@@ -348,16 +348,17 @@ export class AdminRecordsService {
       // the analytics summary table hasn't been populated yet.
       (async () => {
         const raw = await this.database.prisma.$queryRawUnsafe<
-          Array<{ courseOfferingId: string; total: bigint; present: bigint }>
+          Array<{ courseOfferingId: string; total: bigint; present: bigint; students: bigint }>
         >(
-          `SELECT s."courseOfferingId", COUNT(*)::bigint AS total, COUNT(*) FILTER (WHERE r.status = 'PRESENT')::bigint AS present FROM attendance_records r JOIN attendance_sessions s ON s.id = r."sessionId" WHERE s."courseOfferingId" = ANY($1) GROUP BY s."courseOfferingId"`,
+          `SELECT s."courseOfferingId", COUNT(*)::bigint AS total, COUNT(*) FILTER (WHERE r.status = 'PRESENT')::bigint AS present, COUNT(DISTINCT r."studentId")::bigint AS students FROM attendance_records r JOIN attendance_sessions s ON s.id = r."sessionId" WHERE s."courseOfferingId" = ANY($1) GROUP BY s."courseOfferingId"`,
           offeringIds,
         )
-        const map = new Map<string, { total: number; present: number }>()
+        const map = new Map<string, { total: number; present: number; students: number }>()
         for (const row of raw) {
           map.set(row.courseOfferingId, {
             total: Number(row.total),
             present: Number(row.present),
+            students: Number(row.students),
           })
         }
         return map
@@ -397,13 +398,12 @@ export class AdminRecordsService {
       )
 
       // Fallback to raw AttendanceRecord counts when analytics is empty
-      if (aggregate.totalSessions === 0) {
-        const raw = recordCountsByOffering.get(offering.id)
-        if (raw && raw.total > 0) {
-          aggregate = { totalSessions: raw.total, presentSessions: raw.present }
-        }
+      const rawFallback = recordCountsByOffering.get(offering.id)
+      if (aggregate.totalSessions === 0 && rawFallback && rawFallback.total > 0) {
+        aggregate = { totalSessions: rawFallback.total, presentSessions: rawFallback.present }
       }
 
+      const effectiveStudentCount = studentSet.size > 0 ? studentSet.size : (rawFallback?.students ?? 0)
       const meta = sessionsMetaByOffering.get(offering.id)
 
       return {
@@ -414,7 +414,7 @@ export class AdminRecordsService {
         isArchived: offering.status === "ARCHIVED",
         primaryTeacherId: offering.primaryTeacherId,
         primaryTeacherName: teacher.displayName,
-        studentCount: studentSet.size,
+        studentCount: effectiveStudentCount,
         sessionsConductedCount: meta?.sessionCount ?? 0,
         averageAttendancePercent: computePercent(aggregate),
         lastSessionAt: meta?.lastSessionAt?.toISOString() ?? null,
