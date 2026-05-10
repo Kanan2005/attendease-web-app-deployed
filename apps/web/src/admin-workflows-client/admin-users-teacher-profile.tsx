@@ -8,7 +8,7 @@ import { WebSectionCard } from "../web-shell"
 import { adminWorkflowRoutes, webWorkflowQueryKeys } from "../web-workflows"
 import { ArchivedPill, PercentBadge } from "./admin-records-shared"
 import { AdminUserSessionsPanel } from "./admin-user-sessions"
-import { Banner, StateCard, bootstrap, styles } from "./shared"
+import { BackLink, Banner, StateCard, bootstrap, styles } from "./shared"
 
 export function AdminUsersTeacherProfileWorkspace(props: {
   accessToken: string | null
@@ -33,12 +33,7 @@ export function AdminUsersTeacherProfileWorkspace(props: {
 
   return (
     <div style={{ display: "grid", gap: 24 }}>
-      <Link
-        href={adminWorkflowRoutes.usersTeachers}
-        style={{ fontSize: 13, color: webTheme.colors.textMuted, textDecoration: "none" }}
-      >
-        ← Back to all teachers
-      </Link>
+      <BackLink href={adminWorkflowRoutes.usersTeachers}>Back to all teachers</BackLink>
 
       <WebSectionCard
         title={profile.displayName}

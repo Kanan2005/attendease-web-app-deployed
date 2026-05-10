@@ -9,7 +9,7 @@ import { WebSectionCard } from "../web-shell"
 import { adminWorkflowRoutes, webWorkflowQueryKeys } from "../web-workflows"
 import { ArchivedPill, PercentBadge } from "./admin-records-shared"
 import { AdminUserSessionsPanel } from "./admin-user-sessions"
-import { Banner, StateCard, bootstrap, styles } from "./shared"
+import { BackLink, Banner, StateCard, bootstrap, styles } from "./shared"
 
 export function AdminUsersStudentProfileWorkspace(props: {
   accessToken: string | null
@@ -93,12 +93,7 @@ export function AdminUsersStudentProfileWorkspace(props: {
 
   return (
     <div style={{ display: "grid", gap: 24 }}>
-      <Link
-        href={adminWorkflowRoutes.usersStudents}
-        style={{ fontSize: 13, color: webTheme.colors.textMuted, textDecoration: "none" }}
-      >
-        ← Back to all students
-      </Link>
+      <BackLink href={adminWorkflowRoutes.usersStudents}>Back to all students</BackLink>
 
       <WebSectionCard
         title={profile.displayName}

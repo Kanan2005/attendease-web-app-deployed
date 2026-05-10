@@ -143,6 +143,31 @@ export const styles = {
   },
 } as const
 
+export function BackLink(props: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={props.href}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        fontSize: 14,
+        fontWeight: 600,
+        color: webTheme.colors.accent,
+        textDecoration: "none",
+        padding: "8px 14px",
+        borderRadius: webTheme.radius.button,
+        border: `1px solid ${webTheme.colors.borderStrong}`,
+        background: webTheme.colors.surfaceRaised,
+        transition: "border-color 0.15s ease, background 0.15s ease",
+      }}
+    >
+      <span style={{ fontSize: 16, lineHeight: 1 }}>←</span>
+      {props.children}
+    </Link>
+  )
+}
+
 export type SemesterFormState = {
   academicTermId: string
   code: string
