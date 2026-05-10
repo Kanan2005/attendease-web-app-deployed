@@ -166,11 +166,25 @@ html {
 
 /* ───── Focus & Interaction States ───── */
 
+input,
+select,
+textarea {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
 input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--ae-accent-border) !important;
   box-shadow: 0 0 0 3px var(--ae-accent-soft) !important;
+}
+
+button {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 button:focus-visible,
@@ -374,6 +388,95 @@ table tbody tr:hover {
   }
 }
 
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  70% {
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes barFill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes bannerSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scaleY(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
@@ -409,13 +512,175 @@ table tbody tr:hover {
   }
 }
 
+@keyframes countPop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    box-shadow: 0 0 0 0 var(--ae-accent-soft);
+  }
+  70% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@keyframes checkmark {
+  0% {
+    stroke-dashoffset: 24;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
 .ui-card-link:hover .ui-card-accent-bar {
   opacity: 1 !important;
   animation: cardGlow 2s ease-in-out infinite;
 }
 
+/* ───── Page-enter Animations ───── */
+
 .animate-in {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slide-left {
+  animation: slideInLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slide-right {
+  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-pop-in {
+  animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ───── Staggered Children ───── */
+
+.stagger-children > * {
+  animation: slideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0.04s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.08s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.12s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.16s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.20s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.24s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.28s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.32s; }
+.stagger-children > *:nth-child(9) { animation-delay: 0.36s; }
+.stagger-children > *:nth-child(10) { animation-delay: 0.40s; }
+.stagger-children > *:nth-child(n+11) { animation-delay: 0.44s; }
+
+/* Faster stagger for small items like stat cards */
+.stagger-fast > * {
+  animation: scaleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.stagger-fast > *:nth-child(1) { animation-delay: 0.02s; }
+.stagger-fast > *:nth-child(2) { animation-delay: 0.06s; }
+.stagger-fast > *:nth-child(3) { animation-delay: 0.10s; }
+.stagger-fast > *:nth-child(4) { animation-delay: 0.14s; }
+.stagger-fast > *:nth-child(5) { animation-delay: 0.18s; }
+.stagger-fast > *:nth-child(6) { animation-delay: 0.22s; }
+
+/* ───── Progress / Bar Animations ───── */
+
+.animate-bar-fill {
+  transform-origin: left;
+  animation: barFill 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+/* ───── Banner / Alert Animations ───── */
+
+.animate-banner {
+  animation: bannerSlide 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ───── Stat / Count Animations ───── */
+
+.animate-count {
+  animation: countPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+  display: inline-block;
+}
+
+/* ───── Badge / Pill Pop ───── */
+
+.animate-badge {
+  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+  display: inline-flex;
+}
+
+/* ───── Interactive Ripple on Click ───── */
+
+.ui-primary-btn:active:not(:disabled) {
+  animation: ripple 0.4s ease-out;
+}
+
+/* ───── Smooth Section Reveals ───── */
+
+.ae-section {
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.ae-hero-header {
+  animation: slideUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ───── Table Row Stagger ───── */
+
+table tbody tr {
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+table tbody tr:nth-child(1) { animation-delay: 0.03s; }
+table tbody tr:nth-child(2) { animation-delay: 0.06s; }
+table tbody tr:nth-child(3) { animation-delay: 0.09s; }
+table tbody tr:nth-child(4) { animation-delay: 0.12s; }
+table tbody tr:nth-child(5) { animation-delay: 0.15s; }
+table tbody tr:nth-child(6) { animation-delay: 0.18s; }
+table tbody tr:nth-child(7) { animation-delay: 0.21s; }
+table tbody tr:nth-child(8) { animation-delay: 0.24s; }
+table tbody tr:nth-child(9) { animation-delay: 0.27s; }
+table tbody tr:nth-child(10) { animation-delay: 0.30s; }
+table tbody tr:nth-child(n+11) { animation-delay: 0.33s; }
+
+/* ───── Reduced Motion ───── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .skeleton {

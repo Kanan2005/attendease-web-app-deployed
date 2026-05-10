@@ -51,7 +51,7 @@ function DashboardContent(props: { accessToken: string; stats: AdminDashboardSta
 
   return (
     <div style={{ display: "grid", gap: 28 }}>
-      <header>
+      <header className="animate-slide-up">
         <h2 style={pageTitleStyle}>Dashboard</h2>
         <p style={pageSubtitleStyle}>
           Live snapshot of attendance, engagement, and pending actions.
@@ -94,7 +94,7 @@ function HeroStats(props: { stats: AdminDashboardStats }) {
       : Math.round((sessionsDelta / insights.sessionsPrior7Days) * 100)
 
   return (
-    <div style={heroGridStyle}>
+    <div className="stagger-fast" style={heroGridStyle}>
       <HeroCard
         label="Average attendance"
         value={
@@ -165,7 +165,7 @@ function HeroCard(props: {
   const inner = (
     <div style={{ ...heroCardStyle, borderColor: borderColorForAccent(props.accent) }}>
       <span style={heroLabelStyle}>{props.label}</span>
-      <span style={{ ...heroValueStyle, color: valueColor }}>{props.value}</span>
+      <span className="animate-count" style={{ ...heroValueStyle, color: valueColor }}>{props.value}</span>
       <span
         style={{
           ...heroHelperStyle,
@@ -816,7 +816,7 @@ function formatEventType(eventType: string): string {
 // ---------------------------------------------------------------------------
 
 function Card(props: { children: React.ReactNode }) {
-  return <section style={cardStyle}>{props.children}</section>
+  return <section className="animate-scale-in" style={cardStyle}>{props.children}</section>
 }
 
 function colorForAccent(accent: HeroAccent): string {

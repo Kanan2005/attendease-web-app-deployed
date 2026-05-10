@@ -73,6 +73,7 @@ export function ReportSummaryRings(props: {
 
   return (
     <div
+      className="stagger-fast"
       style={{
         display: "flex",
         justifyContent: "center",

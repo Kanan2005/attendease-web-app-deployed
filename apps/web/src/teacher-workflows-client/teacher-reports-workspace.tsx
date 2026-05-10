@@ -791,7 +791,7 @@ export function TeacherReportsWorkspace(props: {
               gap: 12,
             }}
           >
-            <h2 style={{ fontSize: 22, fontWeight: 700, color: webTheme.colors.text, margin: 0 }}>
+            <h2 className="animate-slide-up" style={{ fontSize: 22, fontWeight: 700, color: webTheme.colors.text, margin: 0 }}>
               Reports
             </h2>
             <button
@@ -979,7 +979,7 @@ export function TeacherReportsWorkspace(props: {
             />
           ) : null}
 
-          <section style={{ marginBottom: 32 }} aria-labelledby="report-trend-heading">
+          <section className="animate-slide-up" style={{ marginBottom: 32 }} aria-labelledby="report-trend-heading">
             <h3
               id="report-trend-heading"
               style={{
@@ -994,7 +994,7 @@ export function TeacherReportsWorkspace(props: {
             <ReportSessionTrendChart data={sessionChartData} />
           </section>
 
-          <section aria-labelledby="report-threshold-heading">
+          <section className="animate-slide-up" aria-labelledby="report-threshold-heading">
             <div
               style={{
                 display: "flex",

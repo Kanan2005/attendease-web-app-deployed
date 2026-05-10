@@ -99,7 +99,7 @@ export function WebPortalPage(props: {
 
   return (
     <section style={{ display: "grid", gap: 24 }}>
-      <header style={{ padding: "8px 0" }}>
+      <header className="animate-slide-up" style={{ padding: "8px 0" }}>
         <p style={sectionStyles.rolePill}>{props.model.eyebrow}</p>
         <h2 style={sectionStyles.sectionTitleLarge}>{props.model.title}</h2>
         <p style={sectionStyles.sectionDescription}>{props.model.description}</p>
@@ -109,6 +109,7 @@ export function WebPortalPage(props: {
 
       {hasActions ? (
         <div
+          className="stagger-children"
           style={{
             display: "grid",
             gap: 10,
@@ -169,6 +170,7 @@ export function WebPortalPage(props: {
                 </p>
               </div>
               <div
+                className="stagger-children"
                 style={{
                   display: "grid",
                   gap: 12,
@@ -285,7 +287,7 @@ export function WebSectionCard(props: {
   children: ReactNode
 }) {
   return (
-    <section style={shellStyles.surface}>
+    <section className="animate-scale-in" style={shellStyles.surface}>
       <div
         aria-hidden
         style={{

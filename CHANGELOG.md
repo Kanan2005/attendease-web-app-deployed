@@ -18,6 +18,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+#### Comprehensive UI Animation System — Web (`apps/web/app/globals.css`, `apps/web/src/*.tsx`)
+
+- **CSS keyframe library:** Added 12 new keyframe animations — `slideUp`, `slideDown`, `slideInLeft`, `slideInRight`, `scaleIn`, `popIn`, `barFill`, `bannerSlide`, `countPop`, `ripple`, `checkmark`.
+- **Page-enter animations:** All page headers, section cards, chart cards, table cards, and metric grids now animate in smoothly on load with `slideUp` / `scaleIn` transitions.
+- **Staggered children:** Cards and grid items cascade in with `.stagger-children` (40ms delay per item) and `.stagger-fast` (quick 20ms delay for stat cards/metrics). Applied to MetricGrid, HeroStats, portal action cards, spotlight sections, report summary rings.
+- **Stat/count pop:** Number values in metric cards and hero stats animate with a satisfying scale-bounce (`countPop`) on appearance.
+- **Banner/alert animations:** Success and error banners slide down smoothly on appearance (`bannerSlide`). Applied to WorkflowBanner, Banner, WorkflowStatusCard.
+- **Badge/pill pop:** Status pills and tone badges animate in with elastic overshoot (`popIn`).
+- **Table row stagger:** Table body rows fade in sequentially (30ms delay per row, up to 11+).
+- **Button press feedback:** All buttons globally have smooth `scale(0.97)` active state with 150ms ease transition.
+- **Input focus transitions:** All inputs, selects, and textareas have smooth 200ms border-color and box-shadow transitions on focus.
+- **Reduced motion support:** Full `prefers-reduced-motion: reduce` media query disables all animations and transitions for accessibility.
+- **Login page:** Upgraded from `fadeIn` to `slideUp` animation for a more polished entrance.
+- **Components updated:** `web-shell.tsx` (WebSectionCard, WebPortalPage), `web-shell-parts.tsx` (MetricGrid, WebTableCard, WebChartCard, WebPortalAccessPage), `shared.tsx` (WorkflowSummaryGrid, WorkflowBanner, WorkflowStateCard, WorkflowTonePill, WorkflowStatusCard), `admin-dashboard.tsx` (Card, HeroCard, HeroStats header), `reports-charts.tsx` (ReportSummaryRings), `teacher-reports-workspace.tsx` (report sections), `admin shared.tsx` (StateCard, Banner), `unified-login-form.tsx`.
+
 #### Startup Splash Animations — Mobile & Web (`apps/mobile/src/animated-splash.tsx`, `apps/mobile/app/_layout.tsx`, `apps/web/app/loading.tsx`, `apps/web/app/globals.css`)
 
 - **Mobile animated splash:** Branded launch animation using `react-native-reanimated` — indigo logo scales up with spring bounce and subtle rotation, glow ring pulses behind it, title slides up, tagline fades in, three bouncing loading dots, "MNIT Jaipur" footer. Plays for 2.2s then fades out to reveal the landing screen. Decorative gradient orbs in background. Respects existing theme (light/dark).

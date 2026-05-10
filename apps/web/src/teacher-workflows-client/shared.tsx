@@ -69,7 +69,7 @@ export function WorkflowSummaryGrid(props: {
   cards: Array<{ label: string; value: string; tone: TeacherWebReviewTone }>
 }) {
   return (
-    <div style={workflowStyles.summaryGrid}>
+    <div className="stagger-fast" style={workflowStyles.summaryGrid}>
       {props.cards.map((card) => (
         <div
           key={card.label}
@@ -101,6 +101,7 @@ export function WorkflowSummaryGrid(props: {
             {card.label}
           </div>
           <strong
+            className="animate-count"
             style={{
               display: "block",
               fontSize: 22,
@@ -125,6 +126,7 @@ export function WorkflowTonePill(props: {
 
   return (
     <span
+      className="animate-badge"
       style={{
         ...workflowStyles.pill,
         background: toneStyles.background,
@@ -146,6 +148,7 @@ export function WorkflowStatusCard(props: {
 
   return (
     <div
+      className="animate-banner"
       style={{
         ...workflowStyles.rowCard,
         borderColor: toneStyles.borderColor,
@@ -160,7 +163,7 @@ export function WorkflowStatusCard(props: {
 }
 
 export function WorkflowStateCard(props: { message: string }) {
-  return <div style={workflowStyles.stateCard}>{props.message}</div>
+  return <div className="animate-in" style={workflowStyles.stateCard}>{props.message}</div>
 }
 
 /**
@@ -184,6 +187,7 @@ export function WorkflowBanner(props: {
   const isDanger = props.tone === "danger"
   return (
     <div
+      className="animate-banner"
       style={{
         borderRadius: 10,
         padding: "12px 16px",

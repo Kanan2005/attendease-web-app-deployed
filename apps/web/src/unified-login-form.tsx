@@ -108,7 +108,7 @@ export function UnifiedLoginForm(props: {
       <div />
 
       <section
-        className="animate-in ae-login-card"
+        className="animate-slide-up ae-login-card"
         style={{
           borderRadius: 20,
           padding: 40,

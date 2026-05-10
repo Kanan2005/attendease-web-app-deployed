@@ -8,7 +8,7 @@ type MetricCardTone = Parameters<typeof getWebToneColor>[0]
 
 export function MetricGrid(props: { metrics: WebPortalMetric[] }) {
   return (
-    <div style={metricStyles.grid}>
+    <div className="stagger-fast" style={metricStyles.grid}>
       {props.metrics.map((metric) => (
         <div
           key={metric.label}
@@ -16,6 +16,7 @@ export function MetricGrid(props: { metrics: WebPortalMetric[] }) {
         >
           <p style={metricStyles.label}>{metric.label}</p>
           <p
+            className="animate-count"
             style={{ ...metricStyles.value, color: getWebToneColor(metric.tone as MetricCardTone) }}
           >
             {metric.value}
@@ -33,7 +34,7 @@ export function WebTableCard(props: {
   emptyMessage: string
 }) {
   return (
-    <section style={shellStyles.surface}>
+    <section className="animate-slide-up" style={shellStyles.surface}>
       <h3 style={{ marginTop: 0, color: webTheme.colors.text }}>{props.title}</h3>
       <p style={sectionStyles.sectionMetaText}>{props.description}</p>
       <div
@@ -75,7 +76,7 @@ export function WebChartCard(props: {
   seriesLabels: string[]
 }) {
   return (
-    <section style={shellStyles.surface}>
+    <section className="animate-slide-up" style={shellStyles.surface}>
       <h3 style={{ marginTop: 0, color: webTheme.colors.text }}>{props.title}</h3>
       <p style={sectionStyles.sectionMetaText}>{props.description}</p>
       <div
@@ -143,6 +144,7 @@ export function WebPortalAccessPage(props: {
       }}
     >
       <section
+        className="animate-slide-up"
         style={{
           width: "min(440px, 100%)",
           display: "grid",

@@ -234,7 +234,7 @@ export function Field(props: {
 }
 
 export function StateCard(props: { message: string }) {
-  return <div style={styles.stateCard}>{props.message}</div>
+  return <div className="animate-in" style={styles.stateCard}>{props.message}</div>
 }
 
 export function Banner(props: {
@@ -243,6 +243,7 @@ export function Banner(props: {
 }) {
   return (
     <div
+      className="animate-banner"
       style={{
         ...styles.rowCard,
         borderColor:
