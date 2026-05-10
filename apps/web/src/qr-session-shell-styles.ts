@@ -3,8 +3,8 @@ import { webTheme } from "@attendease/ui-web"
 export const qrShellStyles = {
   grid: {
     display: "grid",
-    gap: 16,
-    height: "calc(100vh - 100px)",
+    gap: 10,
+    height: "calc(100vh - 64px)",
     gridTemplateRows: "auto auto 1fr",
     overflow: "hidden",
   },
@@ -13,7 +13,7 @@ export const qrShellStyles = {
     border: "1px solid var(--ae-card-border)",
     background: "var(--ae-card-surface)",
     boxShadow: "var(--ae-card-shadow)",
-    padding: "20px 28px",
+    padding: "14px 24px",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
@@ -73,7 +73,7 @@ export const qrShellStyles = {
   },
   stageGrid: {
     display: "grid",
-    gap: 16,
+    gap: 10,
     gridTemplateColumns: "1fr 320px",
     alignItems: "stretch",
     minHeight: 0,
@@ -101,7 +101,7 @@ export const qrShellStyles = {
     placeItems: "center",
     borderRadius: 16,
     background: "#FFFFFF",
-    padding: 16,
+    padding: 8,
     minHeight: 0,
     flex: 1,
     overflow: "hidden",
