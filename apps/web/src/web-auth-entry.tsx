@@ -196,10 +196,10 @@ export function WebAuthEntryPage(props: {
         </section>
 
         <div
+          className="ae-register-grid"
           style={{
             display: "grid",
             gap: webTheme.spacing.lg,
-            gridTemplateColumns: "minmax(0, 1.15fr) minmax(280px, 0.85fr)",
           }}
         >
           <section
