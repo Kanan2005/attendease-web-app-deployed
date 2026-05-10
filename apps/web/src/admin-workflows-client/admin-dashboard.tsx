@@ -497,8 +497,12 @@ function SessionsLineChart(props: { points: readonly AdminDashboardSessionsGraph
         <title>Sessions trend</title>
         <defs>
           <linearGradient id="sessionAreaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={webTheme.colors.primary} stopOpacity={0.18} />
-            <stop offset="100%" stopColor={webTheme.colors.primary} stopOpacity={0.02} />
+            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.25} />
+            <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.03} />
+          </linearGradient>
+          <linearGradient id="sessionLineGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#2563eb" />
+            <stop offset="100%" stopColor="#60a5fa" />
           </linearGradient>
         </defs>
         {[0.25, 0.5, 0.75].map((t) => (
@@ -517,14 +521,14 @@ function SessionsLineChart(props: { points: readonly AdminDashboardSessionsGraph
         <path
           d={linePath}
           fill="none"
-          stroke={webTheme.colors.primary}
+          stroke="url(#sessionLineGrad)"
           strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         {coords.map((c) => (
           <g key={c.point.bucketStart}>
-            <circle cx={c.x} cy={c.y} r={3} fill={webTheme.colors.primary} />
+            <circle cx={c.x} cy={c.y} r={3} fill="#3b82f6" />
             <text
               x={c.x}
               y={height - 6}
