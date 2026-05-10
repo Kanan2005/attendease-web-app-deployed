@@ -73,6 +73,7 @@ export async function registerStudentAccount(
             create: {
               ...(request.degree ? { degree: request.degree } : {}),
               ...(request.branch ? { branch: request.branch } : {}),
+              ...(request.rollNumber ? { rollNumber: request.rollNumber } : {}),
             },
           },
         },

@@ -147,6 +147,7 @@ export const studentRegistrationRequestSchema = authRegistrationBaseSchema.exten
   device: authDeviceRegistrationSchema,
   degree: studentDegreeSchema.optional(),
   branch: studentBranchSchema.optional(),
+  rollNumber: z.string().trim().min(1).max(60).optional(),
 })
 export type StudentRegistrationRequest = z.infer<typeof studentRegistrationRequestSchema>
 

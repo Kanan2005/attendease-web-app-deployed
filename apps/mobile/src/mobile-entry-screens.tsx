@@ -416,10 +416,21 @@ export function StudentRegisterScreen() {
           </Text>
         </View>
         <Text style={{ color: getColors().textMuted, fontSize: 12 }}>
-          Select your degree program and branch.
+          Enter your roll number and select your degree program and branch.
         </Text>
       </View>
 
+      <FormField label="Roll number" icon="id-card-outline">
+        <TextInput
+          value={draft.rollNumber ?? ""}
+          autoCapitalize="characters"
+          autoCorrect={false}
+          placeholder="e.g. 2023UCS1234"
+          placeholderTextColor={getColors().textSubtle}
+          onChangeText={(value) => updateDraft({ rollNumber: value })}
+          style={mobileEntryScreenStyles.input}
+        />
+      </FormField>
       <FormField label="Degree" icon="school-outline">
         <PillSelector
           options={DEGREE_OPTIONS}

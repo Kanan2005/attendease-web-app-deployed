@@ -25,6 +25,7 @@ export interface StudentSessionDraft {
   devicePlatform: Extract<DevicePlatform, "ANDROID" | "IOS">
   degree?: "B.Tech" | "M.Tech"
   branch?: "CSE" | "ECE" | "EE" | "ME" | "CHE" | "Civil" | "Meta"
+  rollNumber?: string
 }
 
 export interface StudentSessionBootstrap {
@@ -103,6 +104,7 @@ export function buildStudentRegistrationRequest(
     },
     ...(draft.degree ? { degree: draft.degree } : {}),
     ...(draft.branch ? { branch: draft.branch } : {}),
+    ...(draft.rollNumber?.trim() ? { rollNumber: draft.rollNumber.trim() } : {}),
   }
 }
 
