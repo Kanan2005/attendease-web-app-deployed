@@ -156,8 +156,7 @@ export class AdminDashboardService {
     type Agg = { sumPresent: number; sumTotal: number; studentIds: Set<string> }
     const byBranch = new Map<string, Agg>()
     for (const row of summaries) {
-      const branch = row.student.studentProfile?.branch
-      if (!branch) continue
+      const branch = row.student.studentProfile?.branch || "Unassigned"
       const existing = byBranch.get(branch) ?? {
         sumPresent: 0,
         sumTotal: 0,
@@ -341,8 +340,7 @@ export class AdminDashboardService {
     const byBranch = new Map<string, BranchAgg>()
 
     for (const record of records) {
-      const branch = record.student.studentProfile?.branch
-      if (!branch) continue
+      const branch = record.student.studentProfile?.branch || "Unassigned"
       const existing = byBranch.get(branch) ?? { present: 0, total: 0 }
       existing.total += 1
       if (record.status === "PRESENT") existing.present += 1
