@@ -435,7 +435,7 @@ function GenerateRow(props: {
           tone={props.mutation.data.status === "COMPLETED" ? "info" : "danger"}
           message={
             props.mutation.data.status === "COMPLETED"
-              ? `Generated ${props.mutation.data.fileName} — ${props.mutation.data.rowCount} rows. Download started in a new tab.`
+              ? `Report generated successfully.`
               : `Failed: ${props.mutation.data.errorMessage ?? "unknown error"}`
           }
         />
