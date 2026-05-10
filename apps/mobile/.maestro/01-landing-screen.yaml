@@ -1,0 +1,15 @@
+appId: host.exp.Exponent
+name: "Landing screen — role selection cards"
+---
+- launchApp:
+    appId: host.exp.Exponent
+- openLink: exp://192.168.1.2:8083
+- waitForAnimationToEnd
+- assertVisible: "AttendEase"
+- assertVisible: "I'm a Student"
+- assertVisible: "I'm a Teacher"
+# Verify sign-in buttons and admin link (text is in accessibilityText → use label)
+- assertVisible:
+    label: ".*Sign In.*"
+- assertVisible:
+    label: ".*Admin sign in.*"

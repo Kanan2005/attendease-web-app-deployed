@@ -31,21 +31,13 @@ export function WebPortalLayout(props: {
               gap: 10,
             }}
           >
-            <div
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: 8,
-                background: webTheme.gradients.accentButton,
-                display: "grid",
-                placeItems: "center",
-                fontSize: 14,
-                fontWeight: 800,
-                color: "#fff",
-              }}
-            >
-              A
-            </div>
+            <img
+              src="/logo.png"
+              alt="AttendEase"
+              width={30}
+              height={30}
+              style={{ borderRadius: 8 }}
+            />
             <span
               style={{
                 color: webTheme.colors.text,

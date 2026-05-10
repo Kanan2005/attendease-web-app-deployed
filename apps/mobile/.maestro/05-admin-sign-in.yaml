@@ -1,0 +1,16 @@
+appId: host.exp.Exponent
+name: "Admin sign-in screen"
+---
+- launchApp:
+    appId: host.exp.Exponent
+- openLink: exp://192.168.1.2:8083
+- waitForAnimationToEnd
+# Tap Admin sign in link
+- tapOn:
+    label: ".*Admin sign in.*"
+- waitForAnimationToEnd
+# Verify admin sign-in form
+- assertVisible:
+    label: ".*Email.*"
+- assertVisible:
+    label: ".*Password.*"

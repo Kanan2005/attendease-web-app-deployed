@@ -46,22 +46,17 @@ export default async function HomePage(props: {
           }}
         >
           <div style={{ textAlign: "center" }}>
-            <div
+            <img
+              src="/logo.png"
+              alt="AttendEase"
+              width={44}
+              height={44}
               style={{
-                width: 44,
-                height: 44,
                 borderRadius: 12,
-                background: "linear-gradient(135deg, #A78BFA 0%, #818CF8 100%)",
-                display: "grid",
-                placeItems: "center",
-                fontSize: 20,
-                fontWeight: 800,
-                color: "#fff",
                 margin: "0 auto 14px",
+                display: "block",
               }}
-            >
-              A
-            </div>
+            />
             <div
               className="skeleton"
               style={{

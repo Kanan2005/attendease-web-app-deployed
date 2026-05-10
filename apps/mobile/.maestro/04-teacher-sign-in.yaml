@@ -1,0 +1,17 @@
+appId: host.exp.Exponent
+name: "Teacher sign-in screen"
+---
+- launchApp:
+    appId: host.exp.Exponent
+- openLink: exp://192.168.1.2:8083
+- waitForAnimationToEnd
+# Tap the second "Sign In" button (Teacher card)
+- tapOn:
+    label: ".*Sign In.*"
+    index: 1
+- waitForAnimationToEnd
+# Verify teacher sign-in form
+- assertVisible:
+    label: ".*Email.*"
+- assertVisible:
+    label: ".*Password.*"

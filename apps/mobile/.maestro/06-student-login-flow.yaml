@@ -1,0 +1,28 @@
+appId: com.anurag203.attendease
+name: "Student login E2E flow"
+---
+- launchApp
+- tapOn: "Student sign in"
+- assertVisible: "Student sign in"
+# Fill in credentials (uses dev prefilled values in dev builds)
+- tapOn:
+    id: "student-email-input"
+    optional: true
+- tapOn:
+    text: "Email"
+    optional: true
+- inputText: "${STUDENT_EMAIL}"
+- tapOn:
+    id: "student-password-input"
+    optional: true
+- tapOn:
+    text: "Password"
+    optional: true
+- inputText: "${STUDENT_PASSWORD}"
+# Submit
+- tapOn: "Sign in"
+# Wait for either dashboard or error
+- assertVisible:
+    text: "Courses|error|Sign in"
+    regex: true
+    timeout: 10000

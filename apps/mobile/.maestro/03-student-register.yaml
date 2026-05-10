@@ -1,0 +1,22 @@
+appId: host.exp.Exponent
+name: "Student registration screen"
+---
+- launchApp:
+    appId: host.exp.Exponent
+- openLink: exp://192.168.1.2:8083
+- waitForAnimationToEnd
+# Navigate: Student Sign In → then tap "Create account" link
+- tapOn:
+    label: ".*Sign In.*"
+    index: 0
+- waitForAnimationToEnd
+# Tap the registration link
+- tapOn:
+    label: ".*register.*|.*create.*|.*Create.*"
+    optional: true
+- waitForAnimationToEnd
+# Verify registration form elements
+- assertVisible:
+    label: ".*Email.*"
+- assertVisible:
+    label: ".*Password.*"

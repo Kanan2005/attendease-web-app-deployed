@@ -162,22 +162,13 @@ export function WebPortalAccessPage(props: {
             justifyItems: "center",
           }}
         >
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 16,
-              background: webTheme.gradients.accentButton,
-              display: "grid",
-              placeItems: "center",
-              fontSize: 22,
-              fontWeight: 800,
-              color: "#fff",
-              marginBottom: 28,
-            }}
-          >
-            A
-          </div>
+          <img
+            src="/logo.png"
+            alt="AttendEase"
+            width={56}
+            height={56}
+            style={{ borderRadius: 16, marginBottom: 28 }}
+          />
 
           <p
             style={{

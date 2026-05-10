@@ -18,6 +18,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+#### Startup Splash Animations — Mobile & Web (`apps/mobile/src/animated-splash.tsx`, `apps/mobile/app/_layout.tsx`, `apps/web/app/loading.tsx`, `apps/web/app/globals.css`)
+
+- **Mobile animated splash:** Branded launch animation using `react-native-reanimated` — indigo logo scales up with spring bounce and subtle rotation, glow ring pulses behind it, title slides up, tagline fades in, three bouncing loading dots, "MNIT Jaipur" footer. Plays for 2.2s then fades out to reveal the landing screen. Decorative gradient orbs in background. Respects existing theme (light/dark).
+- **Web loading screen:** Pure CSS animated splash for Next.js route transitions — logo scales in with elastic overshoot, title slides up, tagline fades, three sequentially bouncing dots, floating background orbs with blur. Uses existing `--ae-accent` design tokens for full dark/light theme support. Respects `prefers-reduced-motion`. Shows during server-side page transitions (Next.js `loading.tsx` convention).
+- **CORS defaults updated:** Added Expo web ports (`localhost:8081-8083`) to default `API_CORS_ALLOWED_ORIGINS` in `packages/config/src/index.ts` for seamless local Expo web ↔ API development.
+- **Maestro E2E test setup:** Installed Maestro CLI v1.39.13, created 5 UI test flows in `apps/mobile/.maestro/` covering landing screen, student/teacher/admin sign-in navigation. All 4 core flows pass on iOS simulator. Added `test:maestro` npm script.
+
 #### Phase 3A: Security Event Audit Log (`packages/contracts/src/admin-security.ts`, `apps/api/src/modules/admin/admin-security.service.ts`, `apps/api/src/modules/admin/admin-security.controller.ts`, `apps/web/src/admin-workflows-client/admin-security.tsx`)
 
 - New `GET /admin/security/events` endpoint — paginated, filterable security event audit log (by eventType, severity, userId, date range).

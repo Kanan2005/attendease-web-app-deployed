@@ -3,7 +3,7 @@ import { AnimatedButton, AnimatedCard, GradientHeader } from "@attendease/ui-mob
 import { Ionicons } from "@expo/vector-icons"
 import { Link, Redirect } from "expo-router"
 import { useState } from "react"
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native"
+import { Image, Pressable, ScrollView, Text, TextInput, View } from "react-native"
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
@@ -44,19 +44,15 @@ export function MobileEntryLandingScreen() {
         entering={FadeInDown.duration(500).delay(100)}
         style={{ alignItems: "center", gap: 8 }}
       >
-        <View
+        <Image
+          source={require("../assets/icon.png")}
           style={{
             width: 56,
             height: 56,
             borderRadius: 16,
-            backgroundColor: c.primarySoft,
-            alignItems: "center",
-            justifyContent: "center",
             marginBottom: 4,
           }}
-        >
-          <Ionicons name="calendar" size={28} color={c.primary} />
-        </View>
+        />
         <Text style={{ fontSize: 28, fontWeight: "800", color: c.text, letterSpacing: -0.5 }}>
           AttendEase
         </Text>

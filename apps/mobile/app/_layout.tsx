@@ -1,10 +1,12 @@
 import { getColors, setMobileColorScheme } from "@attendease/ui-mobile"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { Stack } from "expo-router"
+import { useCallback, useState } from "react"
 import { StatusBar, useColorScheme } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
 import { AdminSessionProvider } from "../src/admin-session"
+import { AnimatedSplash } from "../src/animated-splash"
 import { mobileQueryClient } from "../src/query-client"
 import { StudentSessionProvider } from "../src/student-session"
 import { TeacherSessionProvider } from "../src/teacher-session"
@@ -14,6 +16,9 @@ export default function RootLayout() {
   const scheme = systemScheme === "dark" ? "dark" : "light"
   setMobileColorScheme(scheme)
   const c = getColors()
+
+  const [splashDone, setSplashDone] = useState(false)
+  const handleSplashFinish = useCallback(() => setSplashDone(true), [])
 
   return (
     <SafeAreaProvider>
@@ -33,6 +38,7 @@ export default function RootLayout() {
                   animationDuration: 200,
                 }}
               />
+              {!splashDone && <AnimatedSplash onFinish={handleSplashFinish} />}
             </StudentSessionProvider>
           </TeacherSessionProvider>
         </AdminSessionProvider>

@@ -28,7 +28,7 @@ async function bootstrap() {
     allowedHeaders: [
       "authorization",
       "content-type",
-      "x-attendease-device-install-id",
+      "x-attendease-install-id",
       "x-attendease-device-platform",
       "x-attendease-device-public-key",
       "x-attendease-device-app-version",

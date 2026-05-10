@@ -115,7 +115,7 @@ export const apiEnvSchema = baseNodeEnvSchema.extend({
   API_CORS_ALLOWED_ORIGINS: z
     .string()
     .default(
-      "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001",
+      "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001,http://localhost:8081,http://localhost:8082,http://localhost:8083",
     ),
   DATABASE_URL: z
     .string()

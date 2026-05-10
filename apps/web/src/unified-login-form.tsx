@@ -127,22 +127,16 @@ export function UnifiedLoginForm(props: {
               marginBottom: 16,
             }}
           >
-            <div
+            <img
+              src="/logo.png"
+              alt="AttendEase"
+              width={40}
+              height={40}
               style={{
-                width: 40,
-                height: 40,
                 borderRadius: 12,
-                background: webTheme.gradients.accentButton,
-                display: "grid",
-                placeItems: "center",
-                fontSize: 18,
-                fontWeight: 800,
-                color: "#fff",
                 boxShadow: webTheme.shadow.glow,
               }}
-            >
-              A
-            </div>
+            />
             <span
               style={{
                 fontSize: 22,
