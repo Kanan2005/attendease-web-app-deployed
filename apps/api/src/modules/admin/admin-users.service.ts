@@ -16,7 +16,7 @@ import type { AuthRequestContext } from "../auth/auth.types.js"
 
 const LOW_ATTENDANCE_THRESHOLD_PERCENT = 75
 
-const CANONICAL_DEGREES = ["BTech", "MTech"] as const
+const CANONICAL_DEGREES = ["B.Tech", "M.Tech"] as const
 const CANONICAL_BRANCHES = ["CSE", "ECE", "EE", "ME", "CHEM", "CIVIL", "META"] as const
 const CANONICAL_SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8] as const
 
