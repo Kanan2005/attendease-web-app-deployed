@@ -332,7 +332,7 @@ export function AdminCommunicationComposerWorkspace(props: { accessToken: string
 
       <WebSectionCard
         title="Compose message"
-        description="The subject and body below are URL-encoded into the Gmail or default-mail-app compose window. No mail is sent from our servers — your mail client controls the actual send."
+        description="Draft your message below and open it in your mail client."
       >
         <div style={{ display: "grid", gap: 12 }}>
           <Field
