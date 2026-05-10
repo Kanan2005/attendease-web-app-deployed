@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router"
+    ],
     "ios": {
       "buildNumber": "1",
       "supportsTablet": false,
@@ -38,6 +40,12 @@
         "android.permission.ACCESS_FINE_LOCATION"
       ],
       "package": "com.anurag203.attendease"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "facbe8c5-6610-4a90-96db-40e083071996"
+      }
     }
   }
 }

@@ -2,7 +2,7 @@
 -- The simplified device binding flow no longer creates PENDING bindings.
 -- This migration revokes all existing PENDING student attendance bindings.
 
-UPDATE "UserDeviceBinding"
+UPDATE "user_device_bindings"
 SET
   "status" = 'REVOKED',
   "revokedAt" = NOW(),

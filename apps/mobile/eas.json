@@ -17,7 +17,8 @@
     "production": {
       "android": {
         "buildType": "apk"
-      }
+      },
+      "node": "22.15.0"
     }
   }
 }
