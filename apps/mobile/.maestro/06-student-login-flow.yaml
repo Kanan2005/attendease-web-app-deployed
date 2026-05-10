@@ -4,7 +4,7 @@ name: "Student login E2E flow"
 - launchApp
 - tapOn: "Student sign in"
 - assertVisible: "Student sign in"
-# Fill in credentials (uses dev prefilled values in dev builds)
+# Fill in credentials (provide STUDENT_EMAIL and STUDENT_PASSWORD env vars)
 - tapOn:
     id: "student-email-input"
     optional: true

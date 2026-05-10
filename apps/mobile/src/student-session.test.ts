@@ -7,7 +7,7 @@ import {
 } from "./student-session.js"
 
 describe("student session bootstrap", () => {
-  it("builds a development bootstrap draft from public mobile env", () => {
+  it("builds bootstrap with empty credentials (production mode)", () => {
     const bootstrap = buildStudentSessionBootstrap({
       EXPO_PUBLIC_API_URL: "http://localhost:4000",
       EXPO_PUBLIC_STUDENT_DEV_EMAIL: "student.one@attendease.dev",
@@ -17,13 +17,10 @@ describe("student session bootstrap", () => {
       EXPO_PUBLIC_STUDENT_DEV_PLATFORM: "IOS",
     })
 
-    expect(bootstrap.hasDevelopmentCredentials).toBe(true)
+    expect(bootstrap.hasDevelopmentCredentials).toBe(false)
     expect(bootstrap.defaultDraft).toMatchObject({
       displayName: "",
-      email: "student.one@attendease.dev",
-      installId: "student-dev-install-01",
-      publicKey: "student-dev-public-key-01",
-      devicePlatform: "IOS",
+      email: "",
     })
   })
 

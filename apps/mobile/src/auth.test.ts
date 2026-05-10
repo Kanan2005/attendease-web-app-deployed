@@ -15,8 +15,8 @@ describe("mobile auth bootstrap", () => {
 
     expect(bootstrap.apiBaseUrl).toBe("http://localhost:4000")
     expect(bootstrap.googleClientId).toBe("mobile-client-id")
-    expect(bootstrap.developmentStudentEmail).toBe("student.one@attendease.dev")
-    expect(bootstrap.developmentTeacherEmail).toBe("teacher.one@attendease.dev")
+    expect(bootstrap.developmentStudentEmail).toBeNull()
+    expect(bootstrap.developmentTeacherEmail).toBeNull()
     expect(
       bootstrap.createGoogleExchangePayload({
         requestedRole: "STUDENT",

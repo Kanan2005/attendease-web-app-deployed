@@ -17,6 +17,7 @@ export default function AdminLayout() {
 
   return (
     <Tabs
+      backBehavior="initialRoute"
       screenOptions={{
         headerShown: false,
         tabBarStyle: {

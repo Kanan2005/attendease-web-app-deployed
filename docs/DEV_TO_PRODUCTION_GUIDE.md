@@ -11,7 +11,7 @@ When it's time to deploy to production, use this as a checklist to reverse local
 
 | Variable | Local Dev Value | Production Value |
 |----------|----------------|-----------------|
-| `NEXT_PUBLIC_APP_URL` | `http://127.0.0.1:3000` | `https://attendease-anurag.netlify.app` (or your production domain) |
+| `NEXT_PUBLIC_APP_URL` | `http://127.0.0.1:3000` | `https://www.attendeaselive.xyz` |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:4000` | `https://attendease-api-4h45.onrender.com` (or your production API) |
 | `WEB_INTERNAL_API_URL` | `http://localhost:4000` | `https://attendease-api-4h45.onrender.com` (or internal API URL) |
 | `NEXT_PUBLIC_APP_ENV` | `development` | `production` |
@@ -40,7 +40,7 @@ When it's time to deploy to production, use this as a checklist to reverse local
 |----------|----------------|-----------------|
 | `DATABASE_URL` | `postgresql://attendease:attendease@localhost:5432/attendease` | Neon/managed Postgres connection string |
 | `REDIS_URL` | `redis://localhost:6379` | Managed Redis URL (or `redis://placeholder:6379` if not used) |
-| `API_CORS_ALLOWED_ORIGINS` | `http://localhost:3000,http://127.0.0.1:3000,http://192.168.29.11:3000` | `https://attendease-anurag.netlify.app,http://localhost:3000` |
+| `API_CORS_ALLOWED_ORIGINS` | `http://localhost:3000,http://127.0.0.1:3000,http://192.168.29.11:3000` | `https://www.attendeaselive.xyz,https://attendeaselive.xyz,http://localhost:3000` |
 | `STORAGE_ENDPOINT` | `http://localhost:9000` (MinIO) | AWS S3 or production object storage endpoint |
 | `STORAGE_ACCESS_KEY` | `minioadmin` | Production S3 access key |
 | `STORAGE_SECRET_KEY` | `minioadmin` | Production S3 secret key |

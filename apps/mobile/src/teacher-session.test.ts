@@ -46,17 +46,17 @@ function createTeacherSession(
 }
 
 describe("teacher session bootstrap", () => {
-  it("builds a development teacher bootstrap draft from public mobile env", () => {
+  it("builds bootstrap with empty credentials (production mode)", () => {
     const bootstrap = buildTeacherSessionBootstrap({
       EXPO_PUBLIC_API_URL: "http://localhost:4000",
       EXPO_PUBLIC_TEACHER_DEV_EMAIL: "teacher.one@attendease.dev",
       EXPO_PUBLIC_TEACHER_DEV_PASSWORD: "TeacherOnePass123!",
     })
 
-    expect(bootstrap.hasDevelopmentCredentials).toBe(true)
+    expect(bootstrap.hasDevelopmentCredentials).toBe(false)
     expect(bootstrap.defaultDraft).toMatchObject({
       displayName: "",
-      email: "teacher.one@attendease.dev",
+      email: "",
     })
   })
 

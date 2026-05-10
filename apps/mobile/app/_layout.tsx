@@ -37,7 +37,31 @@ export default function RootLayout() {
                   animation: "fade_from_bottom",
                   animationDuration: 200,
                 }}
-              />
+              >
+                {/* Landing page — can be swiped/backed out of freely */}
+                <Stack.Screen name="index" />
+
+                {/* Entry (sign-in / register) flows — normal stack back */}
+                <Stack.Screen name="(entry)" />
+
+                {/*
+                  Authenticated route groups: disable gesture-back and the
+                  native header-back so the user can never swipe back to the
+                  landing or sign-in screens while logged in.
+                */}
+                <Stack.Screen
+                  name="(student)"
+                  options={{ gestureEnabled: false, headerBackVisible: false }}
+                />
+                <Stack.Screen
+                  name="(teacher)"
+                  options={{ gestureEnabled: false, headerBackVisible: false }}
+                />
+                <Stack.Screen
+                  name="(admin)"
+                  options={{ gestureEnabled: false, headerBackVisible: false }}
+                />
+              </Stack>
               {!splashDone && <AnimatedSplash onFinish={handleSplashFinish} />}
             </StudentSessionProvider>
           </TeacherSessionProvider>

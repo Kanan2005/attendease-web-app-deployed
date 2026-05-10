@@ -34,3 +34,6 @@ deploy-*.zip
 # Local backups & user notes
 *.bak
 *.docx
+
+# Neon CLI local config (contains org/project IDs)
+.neon

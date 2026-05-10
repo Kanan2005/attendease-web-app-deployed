@@ -6,13 +6,20 @@ import type {
 } from "@attendease/contracts"
 import { webTheme } from "@attendease/ui-web"
 import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query"
-import type { Dispatch, SetStateAction } from "react"
+import { useCallback, type Dispatch, type SetStateAction } from "react"
 
 import type { TeacherLowAttendanceEmailDraft } from "../teacher-analytics-automation"
 import { WebSectionCard } from "../web-shell"
 import { WorkflowBanner, WorkflowStateCard, renderQueryError } from "./shared"
 import { teacherAnalyticsStyles as styles } from "./styles"
 import { DispatchRunTable, EmailLogTable } from "./tables"
+
+function buildMailtoUrl(preview: LowAttendanceEmailPreviewResponse): string {
+  const recipients = preview.sampleRecipients.map((r) => r.studentEmail).join(",")
+  const subject = encodeURIComponent(preview.previewSubject)
+  const body = encodeURIComponent(preview.previewText)
+  return `mailto:${recipients}?subject=${subject}&body=${body}`
+}
 
 export function TeacherPreviewSendSection(props: {
   accessToken: string | null
@@ -25,11 +32,17 @@ export function TeacherPreviewSendSection(props: {
   logsQuery: UseQueryResult<EmailLogSummary[]>
   clearStatus: () => void
 }) {
+  const handleDraftEmail = useCallback(() => {
+    const preview = props.previewMutation.data
+    if (!preview || preview.sampleRecipients.length === 0) return
+    const url = buildMailtoUrl(preview)
+    window.open(url, "_blank")
+  }, [props.previewMutation.data])
   return (
     <>
       <WebSectionCard
-        title="Preview And Manual Send"
-        description="Manual preview and manual send use the same recipient-selection truth as the automated scheduler."
+        title="Preview And Draft Email"
+        description="Preview identifies recipients below the threshold. Draft email opens your email client with pre-filled recipients and content."
       >
         <div style={styles.formGrid}>
           <label style={{ display: "grid", gap: 6 }}>
@@ -140,17 +153,10 @@ export function TeacherPreviewSendSection(props: {
             <button
               type="button"
               style={styles.primaryButton}
-              onClick={() => {
-                props.clearStatus()
-                props.manualSendMutation.mutate()
-              }}
-              disabled={
-                !props.accessToken ||
-                !props.previewDraft.ruleId ||
-                props.manualSendMutation.isPending
-              }
+              onClick={handleDraftEmail}
+              disabled={!props.previewMutation.data || props.previewMutation.data.sampleRecipients.length === 0}
             >
-              {props.manualSendMutation.isPending ? "Queueing..." : "Send manually"}
+              Draft email
             </button>
           </div>
         </div>
@@ -164,14 +170,10 @@ export function TeacherPreviewSendSection(props: {
             )}
           />
         ) : null}
-        {props.manualSendMutation.isError ? (
-          <WorkflowBanner
-            tone="danger"
-            message={renderQueryError(
-              props.manualSendMutation.error,
-              "Failed to queue the manual email run.",
-            )}
-          />
+        {!props.previewMutation.data && !props.previewMutation.isPending && !props.previewMutation.isError ? (
+          <p style={{ color: webTheme.colors.textMuted, marginTop: 8 }}>
+            Click &quot;Preview email&quot; first, then &quot;Draft email&quot; to open your email client with pre-filled recipients and content.
+          </p>
         ) : null}
 
         {props.previewMutation.data ? (

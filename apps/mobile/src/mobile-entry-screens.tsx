@@ -17,8 +17,10 @@ import { studentRoutes } from "./student-routes"
 import { useStudentSession } from "./student-session"
 import { teacherRoutes } from "./teacher-routes"
 import { useTeacherSession } from "./teacher-session"
+import { useExitOnBack } from "./use-back-handler"
 
 export function MobileEntryLandingScreen() {
+  useExitOnBack()
   const insets = useSafeAreaInsets()
   const c = getColors()
 

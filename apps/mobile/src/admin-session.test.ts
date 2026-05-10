@@ -10,15 +10,15 @@ import {
 } from "./admin-session"
 
 describe("admin session", () => {
-  it("builds admin session bootstrap from environment variables", () => {
+  it("builds admin session bootstrap with empty credentials (production mode)", () => {
     const bootstrap = buildAdminSessionBootstrap({
       EXPO_PUBLIC_ADMIN_DEV_EMAIL: "admin@attendease.dev",
       EXPO_PUBLIC_ADMIN_DEV_PASSWORD: "AdminPass123!",
     })
 
-    expect(bootstrap.hasDevelopmentCredentials).toBe(true)
-    expect(bootstrap.defaultDraft.email).toBe("admin@attendease.dev")
-    expect(bootstrap.defaultDraft.password).toBe("AdminPass123!")
+    expect(bootstrap.hasDevelopmentCredentials).toBe(false)
+    expect(bootstrap.defaultDraft.email).toBe("")
+    expect(bootstrap.defaultDraft.password).toBe("")
   })
 
   it("detects missing admin development credentials", () => {

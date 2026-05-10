@@ -7,6 +7,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased] — v2.0
 
+### Changed
+
+#### Export: Inline Processing Without S3 (`apps/api/src/modules/exports/exports-inline-processor.ts`, `apps/api/src/modules/exports/exports.service.ts`, `apps/api/src/modules/exports/export-storage.service.ts`)
+
+- **No S3/AWS credentials required for exports.** When `STORAGE_INLINE_FALLBACK` is enabled (or when using default dev credentials), teacher exports are now processed synchronously in the API request handler instead of being queued for the worker.
+- **New inline processor** (`exports-inline-processor.ts`): Mirrors the worker's export job processor — loads session/student/comprehensive data from Prisma, generates CSV/PDF via `@attendease/export`, and embeds the result as a base64 `data:` URL in the job record.
+- **Fixes download URLs for inline jobs**: `toExportJobFile` and `toExportJobSummary` now detect `inline:` object keys and resolve the download URL from `filterSnapshot.inlineDataUrl` instead of attempting an S3 signed-URL call.
+- Admin reports were already inline-capable; this change extends the same pattern to teacher exports.
+
+#### Email Automation: Draft Instead of Server-Side Send (`apps/web/src/teacher-analytics-automation-client/preview-send-section.tsx`)
+
+- **"Send manually" → "Draft email":** The button that previously queued server-side emails via AWS SES now opens the user's email client (via `mailto:` link) with pre-filled recipients, subject, and body from the preview data.
+- **No AWS SES credentials required.** The teacher email flow no longer depends on the worker or SES. Teachers click "Preview email" to identify low-attendance students, then "Draft email" to open a compose window in their mail app.
+- Section title updated from "Preview And Manual Send" to "Preview And Draft Email" with a guidance hint for the two-step workflow.
+- Admin communication composer was already using `mailto:` / Gmail compose links — no changes needed.
+
 ### Fixed
 
 #### Mobile Production Readiness — UI Audit (`apps/mobile/src/auth.ts`, `apps/mobile/src/admin-session.tsx`, `apps/mobile/app.json`, `apps/mobile/package.json`, `apps/mobile/src/student-foundation/*.tsx`)
@@ -17,6 +33,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - All 182 mobile unit tests pass, typecheck clean.
 
 ### Added
+
+#### Mobile Back-Button Navigation Hardening (`apps/mobile/src/use-back-handler.ts`, `apps/mobile/app/**/_layout.tsx`, route screens)
+
+- **Shared hooks:** Created `useExitOnBack`, `useDoubleBackToExit`, and `useBlockBack` hooks in `use-back-handler.ts` for consistent Android hardware back-button handling across the app.
+- **Landing screen:** Back press now cleanly exits the app via `BackHandler.exitApp()` instead of undefined behavior.
+- **Home tab screens:** Student classrooms, Teacher classrooms, and Admin dashboard tabs use "press back again to exit" pattern — prevents navigating back to the landing/sign-in screens while the user is still authenticated.
+- **Tab back behavior:** Added `backBehavior="initialRoute"` to all three tab navigators (student, teacher, admin) so pressing back on a non-home tab returns to the home tab first.
+- **Root stack gesture guard:** Disabled `gestureEnabled` and `headerBackVisible` on all authenticated route groups (`(student)`, `(teacher)`, `(admin)`) in the root `Stack` — prevents iOS swipe-back and Android back from escaping the authenticated shell to the landing or sign-in screens.
+- **Bluetooth session:** Existing `BackHandler` in bluetooth broadcast screen already handled; no changes needed.
+- **iOS:** All hooks are no-ops on iOS (no hardware back button), so no behavior change.
 
 #### Comprehensive UI Animation System — Web (`apps/web/app/globals.css`, `apps/web/src/*.tsx`)
 

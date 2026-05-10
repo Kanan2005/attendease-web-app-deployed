@@ -13,6 +13,7 @@ import { DatabaseService } from "../../database/database.service.js"
 import type { AuthRequestContext } from "../auth/auth.types.js"
 import { ReportsService } from "../reports/reports.service.js"
 import { ExportStorageService } from "./export-storage.service.js"
+import { processExportJobInline } from "./exports-inline-processor.js"
 
 type ExportJobWithRelations = Prisma.ExportJobGetPayload<{
   include: {
@@ -77,6 +78,24 @@ export class ExportsService {
         },
       },
     })
+
+    // When no S3 backend is configured, process the export synchronously
+    // so teacher/admin exports work without the worker service.
+    if (this.exportStorageService.inlineFallbackEnabled) {
+      await processExportJobInline(this.database, this.exportStorageService, job.id)
+
+      const processed = await this.database.prisma.exportJob.findUnique({
+        where: { id: job.id },
+        include: {
+          courseOffering: { select: { code: true, displayTitle: true } },
+          files: { orderBy: { createdAt: "desc" } },
+        },
+      })
+
+      if (processed) {
+        return this.toExportJobDetail(processed)
+      }
+    }
 
     return this.toExportJobDetail(job)
   }
@@ -154,8 +173,18 @@ export class ExportsService {
   private async toExportJobFile(
     file: ExportJobWithRelations["files"][number],
     now: Date,
+    inlineDataUrl?: string | null,
   ): Promise<ExportJobFile> {
     const effectiveStatus = this.resolveEffectiveFileStatus(file, now)
+
+    let downloadUrl: string | null = null
+    if (effectiveStatus === "READY") {
+      if (file.objectKey.startsWith("inline:") && inlineDataUrl) {
+        downloadUrl = inlineDataUrl
+      } else if (!file.objectKey.startsWith("inline:")) {
+        downloadUrl = await this.exportStorageService.getDownloadUrl(file.objectKey)
+      }
+    }
 
     return {
       id: file.id,
@@ -168,10 +197,7 @@ export class ExportsService {
       createdAt: file.createdAt.toISOString(),
       readyAt: file.readyAt?.toISOString() ?? null,
       expiresAt: file.expiresAt?.toISOString() ?? null,
-      downloadUrl:
-        effectiveStatus === "READY"
-          ? await this.exportStorageService.getDownloadUrl(file.objectKey)
-          : null,
+      downloadUrl,
     }
   }
 
@@ -211,10 +237,15 @@ export class ExportsService {
   private async toExportJobDetail(job: ExportJobWithRelations): Promise<ExportJobDetail> {
     const now = new Date()
     const summary = await this.toExportJobSummary(job, now)
+    const snapshot = toRecord(job.filterSnapshot)
+    const inlineDataUrl =
+      typeof snapshot?.inlineDataUrl === "string" ? snapshot.inlineDataUrl : null
 
     return {
       ...summary,
-      files: await Promise.all(job.files.map((file) => this.toExportJobFile(file, now))),
+      files: await Promise.all(
+        job.files.map((file) => this.toExportJobFile(file, now, inlineDataUrl)),
+      ),
     }
   }
 
@@ -245,7 +276,11 @@ export class ExportsService {
       readyFileCount,
       totalFileCount: job.files.length,
       latestReadyDownloadUrl: latestReadyFile
-        ? await this.exportStorageService.getDownloadUrl(latestReadyFile.objectKey)
+        ? latestReadyFile.objectKey.startsWith("inline:")
+          ? (typeof filterSnapshot?.inlineDataUrl === "string"
+              ? filterSnapshot.inlineDataUrl
+              : null)
+          : await this.exportStorageService.getDownloadUrl(latestReadyFile.objectKey)
         : null,
     }
   }

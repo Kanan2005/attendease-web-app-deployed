@@ -10,12 +10,13 @@
 | Service | URL | Source repo | Branch |
 |---|---|---|---|
 | **API** | https://attendease-api-4h45.onrender.com | `Kanan2005/attendease-web-app-deployed` | `main` |
-| **Web** | https://attendease-anurag.netlify.app | `Kanan2005/attendease-web-app-deployed` | `main` |
+| **Web** | https://www.attendeaselive.xyz | `Kanan2005/attendease-web-app-deployed` | `main` |
 | **DB** | Neon project `fragrant-recipe-73514410` (`ap-southeast-1`) | n/a | n/a |
 | **GitHub** | https://github.com/Kanan2005/attendease-web-app-deployed | — | — |
 
 ### Netlify projects in the team
-- `attendease-anurag` (b43ae689-...) — **active**, repo updated
+- `attendease-mnit` — **active**, custom domain `www.attendeaselive.xyz`
+- `attendease-anurag` (b43ae689-...) — legacy, out of credits
 - `attendease-web-app` (c5a338c3-...) — secondary; verify if needed
 
 ### Old / abandoned
@@ -166,7 +167,7 @@ for ep in /admin/dashboard/stats /admin/teachers /admin/students /admin/classroo
 done
 
 # Verify Netlify web app deployed latest code
-curl -s -o /dev/null -w "%{http_code}\n" https://attendease-anurag.netlify.app/admin/teachers
+curl -s -o /dev/null -w "%{http_code}\n" https://www.attendeaselive.xyz/admin/teachers
 
 # Check Neon migrations applied
 # (use mcp1_run_sql with sql='SELECT migration_name, finished_at FROM _prisma_migrations ORDER BY started_at DESC LIMIT 10')

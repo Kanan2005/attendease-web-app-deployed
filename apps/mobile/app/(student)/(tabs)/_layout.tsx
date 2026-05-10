@@ -8,6 +8,7 @@ export default function StudentTabsLayout() {
 
   return (
     <Tabs
+      backBehavior="initialRoute"
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
