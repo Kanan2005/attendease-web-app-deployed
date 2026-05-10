@@ -17,9 +17,34 @@ Bluetooth beacons | Rolling QR codes | GPS geofencing | Real-time analytics
 [![Expo](https://img.shields.io/badge/Expo-55-000020?logo=expo)](https://expo.dev/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?logo=postgresql&logoColor=white)](https://neon.tech/)
 
-[Live Demo](https://attendeaselive.xyz) &nbsp;&bull;&nbsp; [API Docs](#api-endpoints) &nbsp;&bull;&nbsp; [Screenshots](#screenshots) &nbsp;&bull;&nbsp; [Get Started](#getting-started)
+[Live Demo](https://attendeaselive.xyz) &nbsp;&bull;&nbsp; [Download APK](https://github.com/Kanan2005/attendease-web-app-deployed/releases/latest) &nbsp;&bull;&nbsp; [Screenshots](#screenshots) &nbsp;&bull;&nbsp; [Get Started](#getting-started)
 
 </div>
+
+---
+
+## Quick Links
+
+| Resource | URL |
+|----------|-----|
+| **Web App (Custom Domain)** | [attendeaselive.xyz](https://attendeaselive.xyz) |
+| **Web App (Netlify)** | [attendease-mnit.netlify.app](https://attendease-mnit.netlify.app) |
+| **REST API (Render)** | [attendease-api-4h45.onrender.com](https://attendease-api-4h45.onrender.com) |
+| **Database (Neon)** | PostgreSQL — Neon Serverless (ap-southeast-1) |
+| **Android APK** | [Download Latest Release](https://github.com/Kanan2005/attendease-web-app-deployed/releases/latest) |
+| **GitHub Repository** | [Kanan2005/attendease-web-app-deployed](https://github.com/Kanan2005/attendease-web-app-deployed) |
+
+### Demo Credentials
+
+Use these accounts to explore the platform:
+
+| Role | Email | Password |
+|------|-------|----------|
+| **Admin** | `admin@attendease.dev` | `AdminPass123!` |
+| **Teacher** | `teacher@attendease.dev` | `TeacherPass123!` |
+| **Student** | `student.one@attendease.dev` | `StudentOnePass123!` |
+
+> **Note:** The API runs on Render's free tier — the first request after inactivity may take ~30-60s to cold-start.
 
 ---
 
@@ -372,7 +397,7 @@ Every push triggers **7 automated workflows** via GitHub Actions:
 | **Web App** | [attendeaselive.xyz](https://attendeaselive.xyz) | Netlify |
 | **REST API** | [attendease-api-4h45.onrender.com](https://attendease-api-4h45.onrender.com) | Render (Docker) |
 | **Database** | Neon PostgreSQL (ap-southeast-1) | Neon Serverless |
-| **Mobile APK** | Direct download | Android |
+| **Mobile APK** | [Download from Releases](https://github.com/Kanan2005/attendease-web-app-deployed/releases/latest) | GitHub Releases |
 
 ### Deploy Commands
 
