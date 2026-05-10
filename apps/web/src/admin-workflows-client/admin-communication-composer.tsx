@@ -48,6 +48,7 @@ const INITIAL_FORM: FormState = {
 export function AdminCommunicationComposerWorkspace(props: { accessToken: string | null }) {
   const [form, setForm] = useState<FormState>(INITIAL_FORM)
   const [preview, setPreview] = useState<AdminCommunicationAudiencePreviewResponse | null>(null)
+  const [excluded, setExcluded] = useState<Set<string>>(new Set())
 
   const filterOptionsQuery = useQuery({
     queryKey: webWorkflowQueryKeys.adminUsersFilterOptions(),
@@ -71,14 +72,17 @@ export function AdminCommunicationComposerWorkspace(props: { accessToken: string
               attendanceComparator: form.attendanceComparator,
             }
           : {}),
-        sampleLimit: 5,
+        sampleLimit: 50,
       }
       return bootstrap.authClient.previewAdminCommunicationAudience(
         props.accessToken ?? "",
         payload,
       )
     },
-    onSuccess: (data) => setPreview(data),
+    onSuccess: (data) => {
+      setPreview(data)
+      setExcluded(new Set())
+    },
   })
 
   const filtersSummary = useMemo(() => buildFiltersSummary(form), [form])
@@ -91,6 +95,33 @@ export function AdminCommunicationComposerWorkspace(props: { accessToken: string
   function handleReset() {
     setForm(INITIAL_FORM)
     setPreview(null)
+    setExcluded(new Set())
+  }
+
+  const selectedEmails = useMemo(() => {
+    if (!preview) return []
+    const excludedEmails = new Set(
+      preview.sample.filter((s) => excluded.has(s.studentId)).map((s) => s.email).filter(Boolean),
+    )
+    return preview.emails.filter((e) => !excludedEmails.has(e))
+  }, [preview, excluded])
+
+  function toggleStudent(studentId: string) {
+    setExcluded((prev) => {
+      const next = new Set(prev)
+      if (next.has(studentId)) next.delete(studentId)
+      else next.add(studentId)
+      return next
+    })
+  }
+
+  function toggleAll() {
+    if (!preview) return
+    if (excluded.size === 0) {
+      setExcluded(new Set(preview.sample.map((s) => s.studentId)))
+    } else {
+      setExcluded(new Set())
+    }
   }
 
   function logDispatch(channel: AdminCommunicationDispatchChannel, recipientCount: number) {
@@ -110,20 +141,20 @@ export function AdminCommunicationComposerWorkspace(props: { accessToken: string
     if (!preview || preview.emails.length === 0) return
     const subject = encodeURIComponent(form.subject)
     const body = encodeURIComponent(form.body)
-    const chunks = chunk(preview.emails, GMAIL_BCC_CHUNK)
+    const chunks = chunk(selectedEmails, GMAIL_BCC_CHUNK)
     for (const batch of chunks) {
       const bcc = encodeURIComponent(batch.join(","))
       const url = `https://mail.google.com/mail/?view=cm&fs=1&bcc=${bcc}&su=${subject}&body=${body}`
       window.open(url, "_blank", "noopener,noreferrer")
     }
-    logDispatch("GMAIL", preview.emails.length)
+    logDispatch("GMAIL", selectedEmails.length)
   }
 
   function handleOpenMailto() {
     if (!preview || preview.emails.length === 0) return
     const subject = encodeURIComponent(form.subject)
     const body = encodeURIComponent(form.body)
-    const chunks = chunk(preview.emails, MAILTO_BCC_CHUNK)
+    const chunks = chunk(selectedEmails, MAILTO_BCC_CHUNK)
     for (const batch of chunks) {
       const bcc = encodeURIComponent(batch.join(","))
       const url = `mailto:?bcc=${bcc}&subject=${subject}&body=${body}`
@@ -132,7 +163,7 @@ export function AdminCommunicationComposerWorkspace(props: { accessToken: string
       // overflow chunks, surface a warning to the admin once.
       break
     }
-    logDispatch("MAILTO", preview.emails.length)
+    logDispatch("MAILTO", selectedEmails.length)
   }
 
   const overflowChunks =
@@ -287,6 +318,14 @@ export function AdminCommunicationComposerWorkspace(props: { accessToken: string
               <table style={styles.table}>
                 <thead>
                   <tr>
+                    <th style={styles.th}>
+                      <input
+                        type="checkbox"
+                        checked={excluded.size === 0}
+                        onChange={toggleAll}
+                        style={{ cursor: "pointer" }}
+                      />
+                    </th>
                     <th style={styles.th}>Name</th>
                     <th style={styles.th}>Roll no.</th>
                     <th style={styles.th}>Branch / Sem</th>
@@ -296,7 +335,15 @@ export function AdminCommunicationComposerWorkspace(props: { accessToken: string
                 </thead>
                 <tbody>
                   {preview.sample.map((entry) => (
-                    <tr key={entry.studentId}>
+                    <tr key={entry.studentId} style={{ opacity: excluded.has(entry.studentId) ? 0.45 : 1 }}>
+                      <td style={styles.td}>
+                        <input
+                          type="checkbox"
+                          checked={!excluded.has(entry.studentId)}
+                          onChange={() => toggleStudent(entry.studentId)}
+                          style={{ cursor: "pointer" }}
+                        />
+                      </td>
                       <td style={styles.td}>{entry.displayName}</td>
                       <td style={styles.td}>{entry.rollNumber ?? "—"}</td>
                       <td style={styles.td}>
@@ -323,8 +370,8 @@ export function AdminCommunicationComposerWorkspace(props: { accessToken: string
           )}
           {preview.studentCount > preview.sample.length ? (
             <p style={{ fontSize: 12, color: webTheme.colors.textMuted, marginTop: 8 }}>
-              Showing first {preview.sample.length} of {preview.studentCount} matched students. All{" "}
-              {preview.emailCount} recipients are included in BCC when you click Send.
+              Showing first {preview.sample.length} of {preview.studentCount} matched students.{" "}
+              {selectedEmails.length} of {preview.emailCount} recipients selected for BCC.
             </p>
           ) : null}
         </WebSectionCard>
@@ -361,17 +408,17 @@ export function AdminCommunicationComposerWorkspace(props: { accessToken: string
             type="button"
             onClick={handleOpenGmail}
             disabled={
-              !preview || preview.emails.length === 0 || !form.subject.trim() || !form.body.trim()
+              !preview || selectedEmails.length === 0 || !form.subject.trim() || !form.body.trim()
             }
             style={styles.primaryButton}
           >
-            Open in Gmail
+            Open in Gmail ({selectedEmails.length})
           </button>
           <button
             type="button"
             onClick={handleOpenMailto}
             disabled={
-              !preview || preview.emails.length === 0 || !form.subject.trim() || !form.body.trim()
+              !preview || selectedEmails.length === 0 || !form.subject.trim() || !form.body.trim()
             }
             style={styles.secondaryButton}
           >
