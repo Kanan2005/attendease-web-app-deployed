@@ -21,6 +21,39 @@ import { Banner, Field, StateCard, bootstrap, styles } from "./shared"
 const GMAIL_BCC_CHUNK = 100
 const MAILTO_BCC_CHUNK = 80
 
+type ComposeRecipient = "STUDENT" | "PARENT"
+
+const DEFAULT_TEMPLATES: Record<ComposeRecipient, { subject: string; body: string }> = {
+  PARENT: {
+    subject: "Attendance Alert — Action Required",
+    body: `Dear Parents,
+
+This is to inform you that your ward's attendance is below the required threshold as per university norms.
+
+Kindly ensure that your ward attends classes regularly to avoid any academic consequences.
+
+For any queries, please contact the administration office.
+
+Regards,
+Administration
+MNIT Jaipur`,
+  },
+  STUDENT: {
+    subject: "Attendance Alert — Immediate Attention Required",
+    body: `Dear Student,
+
+This is to bring to your notice that your attendance is below the minimum required percentage.
+
+You are advised to attend all upcoming classes without fail. Continued absence may result in disciplinary action as per university regulations.
+
+If you have any concerns, please reach out to your class coordinator or the administration office.
+
+Regards,
+Administration
+MNIT Jaipur`,
+  },
+}
+
 type FormState = {
   audience: AdminCommunicationAudienceType
   degree: string
@@ -49,6 +82,7 @@ export function AdminCommunicationComposerWorkspace(props: { accessToken: string
   const [form, setForm] = useState<FormState>(INITIAL_FORM)
   const [preview, setPreview] = useState<AdminCommunicationAudiencePreviewResponse | null>(null)
   const [excluded, setExcluded] = useState<Set<string>>(new Set())
+  const [composeRecipient, setComposeRecipient] = useState<ComposeRecipient>("STUDENT")
 
   const filterOptionsQuery = useQuery({
     queryKey: webWorkflowQueryKeys.adminUsersFilterOptions(),
@@ -382,6 +416,22 @@ export function AdminCommunicationComposerWorkspace(props: { accessToken: string
         description="Draft your message below and open it in your mail client."
       >
         <div style={{ display: "grid", gap: 12 }}>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span>Message template</span>
+            <select
+              value={composeRecipient}
+              onChange={(e) => {
+                const recipient = e.target.value as ComposeRecipient
+                setComposeRecipient(recipient)
+                const tpl = DEFAULT_TEMPLATES[recipient]
+                setForm({ ...form, subject: tpl.subject, body: tpl.body })
+              }}
+              style={styles.input}
+            >
+              <option value="STUDENT">To Students</option>
+              <option value="PARENT">To Parents</option>
+            </select>
+          </label>
           <Field
             label="Subject"
             value={form.subject}
