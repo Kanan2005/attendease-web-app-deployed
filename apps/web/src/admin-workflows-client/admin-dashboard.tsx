@@ -870,7 +870,7 @@ const pageSubtitleStyle: React.CSSProperties = {
 const heroGridStyle: React.CSSProperties = {
   display: "grid",
   gap: 14,
-  gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+  gridTemplateColumns: "repeat(6, 1fr)",
 }
 
 const heroCardStyle: React.CSSProperties = {
@@ -878,10 +878,11 @@ const heroCardStyle: React.CSSProperties = {
   flexDirection: "column",
   gap: 6,
   borderRadius: 14,
-  border: `1px solid ${webTheme.colors.border}`,
+  border: `1.5px solid ${webTheme.colors.borderStrong}`,
   background: webTheme.colors.surfaceRaised,
   padding: "18px 18px 16px",
   minHeight: 116,
+  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
 }
 
 const heroLabelStyle: React.CSSProperties = {
