@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="docs/screenshots/app/final_screenshot.png" alt="AttendEase" width="680" />
-
 # AttendEase
 
 **Smart Attendance Management for Modern Institutions**
