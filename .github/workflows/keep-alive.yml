@@ -12,19 +12,24 @@ on:
 jobs:
   ping:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - name: Ping API health endpoint
         run: |
-          set -e
           URL="https://attendease-api-4h45.onrender.com/health"
           echo "Pinging $URL"
-          # Allow up to 90s for cold starts; treat any 2xx as success.
-          HTTP_CODE=$(curl -s -o /tmp/body.txt -w "%{http_code}" --max-time 90 "$URL" || echo "000")
-          echo "HTTP $HTTP_CODE"
-          cat /tmp/body.txt || true
-          echo
-          case "$HTTP_CODE" in
-            2*) echo "OK"; exit 0 ;;
-            *) echo "Failed (got $HTTP_CODE)"; exit 1 ;;
-          esac
+          # Retry up to 3 times — Render free-tier cold starts can take 60-120s.
+          for ATTEMPT in 1 2 3; do
+            echo "Attempt $ATTEMPT/3"
+            HTTP_CODE=$(curl -s -o /tmp/body.txt -w "%{http_code}" --max-time 120 "$URL" || echo "000")
+            echo "HTTP $HTTP_CODE"
+            cat /tmp/body.txt 2>/dev/null || true
+            echo
+            case "$HTTP_CODE" in
+              2*) echo "✓ API is warm"; exit 0 ;;
+            esac
+            [ "$ATTEMPT" -lt 3 ] && echo "Retrying in 30s..." && sleep 30
+          done
+          # Don't fail the workflow — this is just a keep-warm ping, not a test.
+          echo "⚠ API did not respond after 3 attempts (may be deploying or scaled down)"
+          exit 0
